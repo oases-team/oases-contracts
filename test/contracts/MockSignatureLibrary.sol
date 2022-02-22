@@ -5,9 +5,7 @@ pragma abicoder v2;
 
 import "../../contracts/common_libraries/SignatureLibrary.sol";
 
-import "@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol";
-
-contract MockSignatureLibrary is EIP712Upgradeable {
+contract MockSignatureLibrary {
     using SignatureLibrary for bytes32;
 
     function recover(bytes32 hash, bytes memory signature) external pure returns (address){
