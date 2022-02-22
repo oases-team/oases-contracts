@@ -1,0 +1,26 @@
+{
+  "name": "oases-contracts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/l2labs/oases-contracts.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/l2labs/oases-contracts/issues"
+  },
+  "homepage": "https://github.com/l2labs/oases-contracts#readme",
+  "dependencies": {
+    "@openzeppelin/contracts-upgradeable": "4.4.2",
+    "ethereumjs-util": "^7.1.4"
+  }
+}
