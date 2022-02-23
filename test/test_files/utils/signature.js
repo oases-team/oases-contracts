@@ -28,6 +28,6 @@ async function signMessage(msg, account) {
     };
 }
 
-module.exports = {signMessage}
+module.exports = {signMessage, generateRandomAccount}
 
 
