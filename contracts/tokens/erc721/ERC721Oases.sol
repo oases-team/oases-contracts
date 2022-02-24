@@ -35,6 +35,7 @@ contract ERC721Oases is ERC721EnumerableUpgradeable {
         emit PriceChanged(tokenId, price);
     }
 
+    // buy token from the original owner with eth
     function trade(uint256 tokenId, bytes memory data) external payable {
         // will check the existence of token
         address originalOwner = ownerOf(tokenId);
@@ -51,6 +52,7 @@ contract ERC721Oases is ERC721EnumerableUpgradeable {
         _safeTransfer(originalOwner, newOwner, tokenId, data);
         emit Trade(tokenId, price, newOwner, originalOwner);
     }
+
     // get the price on chain
     function getPrice(uint256 tokenId) public view returns (uint256){
         require(_exists(tokenId), "token not exists");
