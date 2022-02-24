@@ -39,6 +39,7 @@ contract ERC721Oases is ERC721EnumerableUpgradeable {
         // will check the existence of token
         address originalOwner = ownerOf(tokenId);
         address newOwner = msg.sender;
+        require(newOwner != originalOwner, "self trading");
         uint256 price = prices[tokenId];
         require(price != 0, "not for sale");
         require(msg.value == price, "wrong payment");
