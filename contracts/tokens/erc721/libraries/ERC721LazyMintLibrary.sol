@@ -21,7 +21,7 @@ library ERC721LazyMintLibrary {
         "ERC721LazyMintData(uint256 tokenId,string tokenURI,Part[] creatorInfos,Part[] royaltyInfos)Part(address account,uint96 value)"
     );
 
-    function getHash(ERC721LazyMintData memory erc721LazyMintData) internal pure returns (bytes32 a) {
+    function getHash(ERC721LazyMintData memory erc721LazyMintData) internal pure returns (bytes32) {
         bytes32[] memory creatorInfosHashes = new bytes32[](erc721LazyMintData.creatorInfos.length);
         for (uint256 i = 0; i < erc721LazyMintData.creatorInfos.length; ++i) {
             creatorInfosHashes[i] = PartLibrary.getHash(erc721LazyMintData.creatorInfos[i]);
@@ -42,5 +42,4 @@ library ERC721LazyMintLibrary {
             )
         );
     }
-
 }
