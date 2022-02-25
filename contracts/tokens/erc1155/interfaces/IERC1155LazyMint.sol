@@ -1,7 +1,7 @@
-pragma solidity ^0.4.0;
+// SPDX-License-Identifier: MIT
 
-contract IERC1155LazyMint {
-    function IERC1155LazyMint(){
+pragma solidity 0.8.8;
 
-    }
+interface IERC1155LazyMint {
+    //todo
 }
