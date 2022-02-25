@@ -5,6 +5,7 @@ pragma abicoder v2;
 
 import "./interfaces/ICashierManager.sol";
 import "../common_libraries/AssetLibrary.sol";
+import "../common_libraries/PartLibrary.sol";
 import "./libraries/BasisPointLibrary.sol";
 import "./libraries/FeeSideLibrary.sol";
 import "../royalties/interfaces/IRoyaltiesProvider.sol";
@@ -109,15 +110,20 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
 
     function transferProtocolFee(
         address payer,
-        uint256 totalAmountAndFees,
-        uint256 amount,
+        uint256 totalAmountAndFeesRest,
+        uint256 amountToCalculateFee,
         AssetLibrary.AssetType memory paymentType,
         bytes4 direction
     )
     private
     returns
-    (uint256){
-        (uint256 rest, uint256 fee) = deductFeeWithBasisPoint(totalAmountAndFees, amount, protocolFeeBasisPoint);
+    (uint256)
+    {
+        (uint256 rest, uint256 fee) = deductFeeWithBasisPoint(
+            totalAmountAndFeesRest,
+            amountToCalculateFee,
+            protocolFeeBasisPoint
+        );
         if (fee > 0) {
             address paymentAddress = address(0);
             if (paymentType.assetClass == AssetLibrary.ERC20_ASSET_CLASS) {
@@ -135,12 +141,48 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
             }),
                 payer,
                 getFeeReceiver(paymentAddress),
-                direction,
-                PROTOCOL_FEE
+                PROTOCOL_FEE,
+                direction
             );
         }
 
         return rest;
+    }
+
+    function transferFees(
+        address payer,
+        bool doSumFeeBasisPoints,
+        uint256 totalAmountAndFeesRest,
+        uint256 amountToCalculateFee,
+        AssetLibrary.AssetType memory paymentType,
+        PartLibrary.Part[] memory feeInfos,
+        bytes4 transferType,
+        bytes4 direction
+    )
+    private
+    returns
+    (uint256 rest, uint256 totalFeeBasisPoints)
+    {
+        rest = totalAmountAndFeesRest;
+        for (uint256 i = 0; i < feeInfos.length; ++i) {
+            if (doSumFeeBasisPoints) {
+                totalFeeBasisPoints += feeInfos[i].value;
+            }
+            uint256 fee;
+            (rest, fee) = deductFeeWithBasisPoint(rest, amountToCalculateFee, feeInfos[i].value);
+            if (fee > 0) {
+                // transfer fee
+                transfer(
+                    AssetLibrary.Asset({
+                assetType : paymentType,
+                value : fee
+                }),
+                    payer,
+                    feeInfos[i].account,
+                    transferType, direction
+                );
+            }
+        }
     }
 
     // calculate the sum of amount and all fees
@@ -148,7 +190,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         uint256 amount,
         PartLibrary.Part[] memory orderOriginalFees
     )
-    internal
+    private
     view
     returns
     (uint256 totalSum)
@@ -164,7 +206,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         uint256 amountToCalculateFee,
         uint256 feeBasisPoint
     )
-    internal
+    private
     pure
     returns
     (uint256 rest, uint256 realFee){
