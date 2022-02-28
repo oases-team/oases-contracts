@@ -18,7 +18,7 @@ abstract contract ICashierManager is ICashier {
     bytes4 constant PROTOCOL_FEE = bytes4(keccak256("PROTOCOL_FEE_TYPE"));
     bytes4 constant ROYALTY = bytes4(keccak256("ROYALTY_TYPE"));
     bytes4 constant ORIGIN = bytes4(keccak256("ORIGIN_TYPE"));
-    bytes4 constant PAYOUT = bytes4(keccak256("PAYOUT_TYPE"));
+    bytes4 constant PAYMENT = bytes4(keccak256("PAYMENT_TYPE"));
 
     function allocateAssets(
         FillLibrary.FillResult memory fillResult,

@@ -239,6 +239,54 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         return rest;
     }
 
+    function transferPayment(
+        address payer,
+        uint256 amountToCalculate,
+        AssetLibrary.AssetType memory paymentType,
+        PartLibrary.Part[] memory paymentInfos,
+        bytes4 direction
+    )
+    private
+    {
+        uint256 totalFeeBasisPoints;
+        uint256 rest = amountToCalculate;
+        uint256 lastPartIndex = paymentInfos.length - 1;
+        for (uint256 i = 0; i < lastPartIndex; ++i) {
+            uint256 amountToPay = amountToCalculate.basisPointCalculate(paymentInfos[i].value);
+            totalFeeBasisPoints += paymentInfos[i].value;
+            if (rest > 0) {
+                rest -= amountToPay;
+                transfer(
+                    AssetLibrary.Asset({
+                assetType : paymentType,
+                value : amountToPay
+                }),
+                    payer,
+                    paymentInfos[i].account,
+                    direction,
+                    PAYMENT
+                );
+            }
+        }
+
+        require(
+            totalFeeBasisPoints + paymentInfos[lastPartIndex].value == 10000,
+            "total bp of payment is not 100%"
+        );
+        if (rest > 0) {
+            transfer(
+                AssetLibrary.Asset({
+            assetType : paymentType,
+            value : rest
+            }),
+                payer,
+                paymentInfos[lastPartIndex].account,
+                direction,
+                PAYMENT
+            );
+        }
+    }
+
     // calculate the sum of amount and all fees
     function sumAmountAndFees(
         uint256 amount,
