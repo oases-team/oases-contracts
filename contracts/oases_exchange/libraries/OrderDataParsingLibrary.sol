@@ -13,10 +13,10 @@ library OrderDataParsingLibrary {
             require(order.dataType == 0xffffffff, "unsupported order data type");
         }
 
-        if (orderData.payouts.length == 0) {
-            orderData.payouts = new PartLibrary.Part[](1);
-            orderData.payouts[0].account = payable(order.maker);
-            orderData.payouts[0].value = 10000;
+        if (orderData.payoutInfos.length == 0) {
+            orderData.payoutInfos = new PartLibrary.Part[](1);
+            orderData.payoutInfos[0].account = payable(order.maker);
+            orderData.payoutInfos[0].value = 10000;
         }
     }
 }

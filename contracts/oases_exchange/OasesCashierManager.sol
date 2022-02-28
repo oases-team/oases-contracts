@@ -111,6 +111,64 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
     //
     //    }
 
+    function transferPaymentWithFeesAndRoyalties(
+        address payer,
+        uint256 amountToCalculate,
+        OrderDataLibrary.Data memory paymentData,
+        OrderDataLibrary.Data memory nftData,
+        AssetLibrary.AssetType memory paymentType,
+        AssetLibrary.AssetType memory nftType,
+        bytes4 direction
+    )
+    internal
+    returns
+    (uint256 totalAmount)
+    {
+        totalAmount = sumAmountAndFees(amountToCalculate, paymentData.originFeeInfos);
+        uint256 rest = transferProtocolFee(
+            payer,
+            totalAmount,
+            amountToCalculate,
+            paymentType,
+            direction
+        );
+        rest = transferRoyalties(
+            payer,
+            rest,
+            amountToCalculate,
+            paymentType,
+            nftType,
+            direction
+        );
+        (rest,) = transferFees(
+            payer,
+            false,
+            rest,
+            amountToCalculate,
+            paymentType,
+            paymentData.originFeeInfos,
+            ORIGIN_FEE,
+            direction
+        );
+        (rest,) = transferFees(
+            payer,
+            false,
+            rest,
+            amountToCalculate,
+            nftType,
+            nftData.originFeeInfos,
+            ORIGIN_FEE,
+            direction
+        );
+        transferPayment(
+            payer,
+            amountToCalculate,
+            paymentType,
+            nftData.payoutInfos,
+            direction
+        );
+    }
+
     function transferProtocolFee(
         address payer,
         uint256 totalAmountAndFeesRest,
@@ -118,7 +176,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         AssetLibrary.AssetType memory paymentType,
         bytes4 direction
     )
-    private
+    internal
     returns
     (uint256)
     {
@@ -162,7 +220,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         bytes4 transferType,
         bytes4 direction
     )
-    private
+    internal
     returns
     (uint256 rest, uint256 totalFeeBasisPoints)
     {
@@ -197,7 +255,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         AssetLibrary.AssetType memory nftType,
         bytes4 direction
     )
-    private
+    internal
     returns
     (uint256)
     {
@@ -246,7 +304,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         PartLibrary.Part[] memory paymentInfos,
         bytes4 direction
     )
-    private
+    internal
     {
         uint256 totalFeeBasisPoints;
         uint256 rest = amountToCalculate;
@@ -292,7 +350,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         uint256 amount,
         PartLibrary.Part[] memory orderOriginalFees
     )
-    private
+    internal
     view
     returns
     (uint256 totalSum)
@@ -308,7 +366,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         uint256 amountToCalculateFee,
         uint256 feeBasisPoint
     )
-    private
+    internal
     pure
     returns
     (uint256 rest, uint256 realFee){
