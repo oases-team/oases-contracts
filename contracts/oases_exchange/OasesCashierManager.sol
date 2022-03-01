@@ -421,4 +421,6 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
             realFee = value;
         }
     }
+
+    uint256[46] private __gap;
 }
