@@ -11,8 +11,8 @@ import "../libraries/OrderDataLibrary.sol";
 
 abstract contract ICashierManager is ICashier {
     // transfer direction
-    bytes4 constant TO_MAKER = bytes4(keccak256("TO_MAKER_DIRECTION"));
-    bytes4 constant TO_TAKER = bytes4(keccak256("TO_TAKER_DIRECTION"));
+    bytes4 constant TO_MAKER_DIRECTION = bytes4(keccak256("TO_MAKER_DIRECTION"));
+    bytes4 constant TO_TAKER_DIRECTION = bytes4(keccak256("TO_TAKER_DIRECTION"));
 
     // transfer type
     bytes4 constant PROTOCOL_FEE = bytes4(keccak256("PROTOCOL_FEE_TYPE"));

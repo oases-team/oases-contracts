@@ -78,38 +78,80 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         return defaultFeeReceiver;
     }
 
-    //    function allocateAssets(
-    //        FillLibrary.FillResult memory fillResult,
-    //        AssetLibrary.AssetType memory matchedMakeAssetType,
-    //        AssetLibrary.AssetType memory matchedTakeAssetType,
-    //        OrderLibrary.Order memory leftOrder,
-    //        OrderLibrary.Order memory rightOrder,
-    //        OrderDataLibrary.Data memory leftOrderData,
-    //        OrderDataLibrary.Data memory rightOrderData
-    //    )
-    //    internal
-    //    override
-    //    returns
-    //    (uint256 totalMakeAmount, uint256 totalTakeAmount)
-    //    {
-    //        totalMakeAmount = fillResult.leftValue;
-    //        totalTakeAmount = fillResult.rightValue;
-    //
-    //        // get fee side
-    //        FeeSideLibrary.FeeSide feeSide = FeeSideLibrary.getFeeSide(
-    //            matchedMakeAssetType.assetClass,
-    //            matchedTakeAssetType.assetClass
-    //        );
-    //        if (feeSide == FeeSideLibrary.FeeSide.MAKE) {
-    //
-    //        } else if (feeSide == FeeSideLibrary.FeeSide.TAKE) {
-    //
-    //        } else {
-    //
-    //        }
-    //
-    //
-    //    }
+    function allocateAssets(
+        FillLibrary.FillResult memory fillResult,
+        AssetLibrary.AssetType memory matchedMakeAssetType,
+        AssetLibrary.AssetType memory matchedTakeAssetType,
+        OrderLibrary.Order memory leftOrder,
+        OrderLibrary.Order memory rightOrder,
+        OrderDataLibrary.Data memory leftOrderData,
+        OrderDataLibrary.Data memory rightOrderData
+    )
+    internal
+    override
+    returns
+    (uint256 totalMakeAmount, uint256 totalTakeAmount)
+    {
+        totalMakeAmount = fillResult.leftValue;
+        totalTakeAmount = fillResult.rightValue;
+
+        // get fee side
+        FeeSideLibrary.FeeSide feeSide = FeeSideLibrary.getFeeSide(
+            matchedMakeAssetType.assetClass,
+            matchedTakeAssetType.assetClass
+        );
+        if (feeSide == FeeSideLibrary.FeeSide.MAKE) {
+            totalMakeAmount = transferPaymentWithFeesAndRoyalties(
+                leftOrder.maker,
+                fillResult.leftValue,
+                leftOrderData,
+                rightOrderData,
+                matchedMakeAssetType,
+                matchedTakeAssetType,
+                TO_TAKER_DIRECTION
+            );
+            transferPayment(
+                rightOrder.maker,
+                fillResult.rightValue,
+                matchedTakeAssetType,
+                leftOrderData.payoutInfos,
+                TO_MAKER_DIRECTION
+            );
+        } else if (feeSide == FeeSideLibrary.FeeSide.TAKE) {
+            totalTakeAmount = transferPaymentWithFeesAndRoyalties(
+                rightOrder.maker,
+                fillResult.rightValue,
+                rightOrderData,
+                leftOrderData,
+                matchedTakeAssetType,
+                matchedMakeAssetType,
+                TO_MAKER_DIRECTION
+            );
+            transferPayment(
+                leftOrder.maker,
+                fillResult.leftValue,
+                matchedMakeAssetType,
+                rightOrderData.payoutInfos,
+                TO_TAKER_DIRECTION
+            );
+        } else {
+            // no fee side
+            transferPayment(
+                leftOrder.maker,
+                fillResult.leftValue,
+                matchedMakeAssetType,
+                rightOrderData.payoutInfos,
+                TO_TAKER_DIRECTION
+            );
+            transferPayment(
+                rightOrder.maker,
+                fillResult.rightValue,
+                matchedTakeAssetType,
+                leftOrderData.payoutInfos,
+                TO_MAKER_DIRECTION
+            );
+        }
+    }
 
     function transferPaymentWithFeesAndRoyalties(
         address payer,
