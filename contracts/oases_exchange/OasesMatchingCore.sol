@@ -10,9 +10,10 @@ import "./libraries/TransferHelperLibrary.sol";
 import "./libraries/OrderLibrary.sol";
 import "./libraries/OrderDataParsingLibrary.sol";
 import "./libraries/FillLibrary.sol";
+import "./interfaces/ICashierManager.sol";
 import "../common_libraries/AssetLibrary.sol";
 
-abstract contract OasesMatchingCore is AssetTypeMatcher, Cashier, OrderVerifier {
+abstract contract OasesMatchingCore is AssetTypeMatcher, Cashier, OrderVerifier, ICashierManager {
     using TransferHelperLibrary for address;
 
     // record the filled amount of each order
@@ -24,6 +25,9 @@ abstract contract OasesMatchingCore is AssetTypeMatcher, Cashier, OrderVerifier 
         AssetLibrary.AssetType makeAssetType,
         AssetLibrary.AssetType takeAssetType
     );
+
+    // todo
+    //    event Trade()
 
     function cancelOrder(OrderLibrary.Order memory order) external {
         require(msg.sender == order.maker, "not the order maker");
@@ -71,6 +75,43 @@ abstract contract OasesMatchingCore is AssetTypeMatcher, Cashier, OrderVerifier 
 
         OrderDataLibrary.Data memory leftOrderData = OrderDataParsingLibrary.parse(leftOrder);
         OrderDataLibrary.Data memory rightOrderData = OrderDataParsingLibrary.parse(rightOrder);
+
+        FillLibrary.FillResult memory fillResult = getFillResult(
+            leftOrder,
+            rightOrder,
+            leftOrderHashKey,
+            rightOrderHashKey,
+            leftOrderData,
+            rightOrderData
+        );
+
+        (uint256 totalMakeAmount, uint256 totalTakeAmount) = allocateAssets(
+            fillResult,
+            matchedMakeAssetType,
+            matchedTakeAssetType,
+            leftOrder,
+            rightOrder,
+            leftOrderData,
+            rightOrderData
+        );
+
+        // transfer extra eth
+        if (matchedMakeAssetType.assetClass == AssetLibrary.ETH_ASSET_CLASS) {
+            require(matchedTakeAssetType.assetClass != AssetLibrary.ETH_ASSET_CLASS);
+            uint256 ethAmount = msg.value;
+            require(ethAmount >= totalMakeAmount, "insufficient eth");
+            if (ethAmount > totalMakeAmount) {
+                address(msg.sender).transferEth(ethAmount - totalMakeAmount);
+            }
+        } else if (matchedTakeAssetType.assetClass == AssetLibrary.ETH_ASSET_CLASS) {
+            uint256 ethAmount = msg.value;
+            require(ethAmount >= totalTakeAmount, "insufficient eth");
+            if (ethAmount > totalTakeAmount) {
+                address(msg.sender).transferEth(ethAmount - totalTakeAmount);
+            }
+        }
+
+        //        emit Trade();
     }
 
     function getFillResult(
