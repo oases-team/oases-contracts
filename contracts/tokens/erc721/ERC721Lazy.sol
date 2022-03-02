@@ -11,6 +11,7 @@ import "../../royalties-upgradeable/contracts/RoyaltiesV2Upgradeable.sol";
 import "./interfaces/IERC721LazyMint.sol";
 import "../Mint721Validator.sol";
 
+// TODO: change base contract
 abstract contract ERC721Lazy is
     IERC721LazyMint,
     ERC721Upgradeable,
@@ -90,6 +91,7 @@ abstract contract ERC721Lazy is
         }
 
         _safeMint(to, erc721LazyMintData.tokenId);
+        // TODO: check
         _saveRoyalties(
             erc721LazyMintData.tokenId,
             erc721LazyMintData.royaltyInfos
