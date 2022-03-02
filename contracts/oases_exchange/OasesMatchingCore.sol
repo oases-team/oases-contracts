@@ -9,6 +9,7 @@ import "./OrderVerifier.sol";
 import "./libraries/TransferHelperLibrary.sol";
 import "./libraries/OrderLibrary.sol";
 import "./libraries/OrderDataParsingLibrary.sol";
+import "./libraries/FillLibrary.sol";
 import "../common_libraries/AssetLibrary.sol";
 
 abstract contract OasesMatchingCore is AssetTypeMatcher, Cashier, OrderVerifier {
@@ -72,6 +73,49 @@ abstract contract OasesMatchingCore is AssetTypeMatcher, Cashier, OrderVerifier 
         OrderDataLibrary.Data memory rightOrderData = OrderDataParsingLibrary.parse(rightOrder);
     }
 
+    function getFillResult(
+        OrderLibrary.Order memory leftOrder,
+        OrderLibrary.Order memory rightOrder,
+        bytes32 leftOrderHashKey,
+        bytes32 rightOrderHashKey,
+        OrderDataLibrary.Data memory leftOrderData,
+        OrderDataLibrary.Data memory rightOrderData
+    )
+    internal
+    returns
+    (FillLibrary.FillResult memory fillResult)
+    {
+        uint256 leftOrderFillRecord = getOrderFilledRecord(leftOrder.salt, leftOrderHashKey);
+        uint256 rightOrderFillRecord = getOrderFilledRecord(rightOrder.salt, rightOrderHashKey);
+
+        fillResult = FillLibrary.fillOrders(
+            leftOrder,
+            rightOrder,
+            leftOrderFillRecord,
+            rightOrderFillRecord,
+            leftOrderData.isMakeFill,
+            rightOrderData.isMakeFill
+        );
+
+        require(fillResult.rightValue > 0 && fillResult.leftValue > 0, "null fill");
+
+        if (leftOrder.salt != 0) {
+            if (leftOrderData.isMakeFill) {
+                filledRecords[leftOrderHashKey] = leftOrderFillRecord + fillResult.leftValue;
+            } else {
+                filledRecords[leftOrderHashKey] = leftOrderFillRecord + fillResult.rightValue;
+            }
+        }
+
+        if (rightOrder.salt != 0) {
+            if (rightOrderData.isMakeFill) {
+                filledRecords[rightOrderHashKey] = rightOrderFillRecord + fillResult.rightValue;
+            } else {
+                filledRecords[rightOrderHashKey] = rightOrderFillRecord + fillResult.leftValue;
+            }
+        }
+    }
+
     function matchAssetTypesFromOrders(
         OrderLibrary.Order memory leftOrder,
         OrderLibrary.Order memory rightOrder
@@ -98,14 +142,14 @@ abstract contract OasesMatchingCore is AssetTypeMatcher, Cashier, OrderVerifier 
     }
 
     function getOrderFilledRecord(
-        OrderLibrary.Order memory order,
+        uint256 orderSalt,
         bytes32 orderHashKey
     )
     internal
     view
     returns
     (uint256){
-        if (order.salt == 0) {
+        if (orderSalt == 0) {
             return 0;
         } else {
             return filledRecords[orderHashKey];
