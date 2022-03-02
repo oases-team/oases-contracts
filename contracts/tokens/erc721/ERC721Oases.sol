@@ -3,17 +3,22 @@
 pragma solidity 0.8.8;
 
 import "../../oases_exchange/libraries/TransferHelperLibrary.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+import "./ERC721OasesBase.sol";
 
 // todo: just a framework
-contract ERC721Oases is ERC721EnumerableUpgradeable {
+contract ERC721Oases is ERC721OasesBase {
     using TransferHelperLibrary for address;
 
     // records of price for each token id on chain
     mapping(uint256 => uint256) prices;
 
     event PriceChanged(uint256 tokenId, uint256 newPrice);
-    event Trade(uint256 tokenId, uint256 price, address newOwner, address originalOwner);
+    event Trade(
+        uint256 tokenId,
+        uint256 price,
+        address newOwner,
+        address originalOwner
+    );
 
     // todo:simple init
     function __ERC721Oases_init(
@@ -54,7 +59,7 @@ contract ERC721Oases is ERC721EnumerableUpgradeable {
     }
 
     // get the price on chain
-    function getPrice(uint256 tokenId) public view returns (uint256){
+    function getPrice(uint256 tokenId) public view returns (uint256) {
         require(_exists(tokenId), "token not exists");
         return prices[tokenId];
     }

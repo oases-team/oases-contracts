@@ -16,7 +16,7 @@ library ERC721LazyMintLibrary {
     bytes4 public constant ERC721_LAZY_MINT_ASSET_CLASS =
         bytes4(keccak256("ERC721_LAZY_MINT_CLASS"));
     // TODO: rename '_INTERFACE_ID_MINT_AND_TRANSFER' and calculate the value later
-    bytes4 constant _INTERFACE_ID_LAZY_MINT_DATA = 0x8486f69f;
+    bytes4 constant _INTERFACE_ID_MINT_AND_TRANSFER = 0x8486f69f;
     bytes32 public constant ERC721_LAZY_MINT_DATA_TYPEHASH =
         keccak256(
             "ERC721LazyMintData(uint256 tokenId,string tokenURI,Part[] creatorInfos,Part[] royaltyInfos)Part(address account,uint96 value)"
