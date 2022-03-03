@@ -26,8 +26,16 @@ abstract contract OasesMatchingCore is AssetTypeMatcher, Cashier, OrderVerifier,
         AssetLibrary.AssetType takeAssetType
     );
 
-    // todo
-    //    event Trade()
+    event Trade(
+        bytes32 leftOrderHashKey,
+        bytes32 rightOrderHashKey,
+        address leftOrderMaker,
+        address rightOrderMaker,
+        uint256 fillResultLeftValue,
+        uint256 fillResultRightValue,
+        AssetLibrary.AssetType matchedMakeAssetType,
+        AssetLibrary.AssetType matchedTakeAssetType
+    );
 
     function cancelOrder(OrderLibrary.Order memory order) external {
         require(msg.sender == order.maker, "not the order maker");
@@ -111,7 +119,16 @@ abstract contract OasesMatchingCore is AssetTypeMatcher, Cashier, OrderVerifier,
             }
         }
 
-        //        emit Trade();
+        emit Trade(
+            leftOrderHashKey,
+            rightOrderHashKey,
+            leftOrder.maker,
+            rightOrder.maker,
+            fillResult.leftValue,
+            fillResult.rightValue,
+            matchedMakeAssetType,
+            matchedTakeAssetType
+        );
     }
 
     function getFillResult(
