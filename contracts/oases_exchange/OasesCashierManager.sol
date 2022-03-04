@@ -26,11 +26,11 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
     function __OasesCashierManager_init_unchained(
         uint256 newProtocolFeeBasisPoint,
         address newDefaultFeeReceiver,
-        address newRoyaltiesProviderAddress
+        IRoyaltiesProvider newRoyaltiesProvider
     ) internal initializer {
         protocolFeeBasisPoint = newProtocolFeeBasisPoint;
         defaultFeeReceiver = newDefaultFeeReceiver;
-        royaltiesProvider = IRoyaltiesProvider(newRoyaltiesProviderAddress);
+        royaltiesProvider = newRoyaltiesProvider;
     }
 
     // set basis point of protocol fee by the owner
