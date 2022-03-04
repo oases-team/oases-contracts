@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/l2labs/oases-contracts#readme",
   "dependencies": {
+    "@daonomic/tests-common": "^0.2.2",
     "@openzeppelin/contracts-upgradeable": "4.4.2",
     "ethereumjs-util": "^7.1.4"
   }
