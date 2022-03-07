@@ -138,7 +138,7 @@ contract ERC721Oases is ERC721OasesBase {
         require(newOwner != originalOwner, "self trading");
         uint256 price = prices[tokenId];
         require(price != 0, "not for sale");
-        require(msg.value == price, "wrong payment");
+        require(msg.value >= price, "insufficient payment");
         // clear price
         prices[tokenId] = 0;
         // transfer payment
