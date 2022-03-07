@@ -100,18 +100,12 @@ contract ERC721Upgradeable is
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
      */
-    function __ERC721_init(string memory name_, string memory symbol_)
-        internal
-        initializer
-    {
+    function __ERC721_init(string memory name_, string memory symbol_) internal initializer {
         __ERC165_init_unchained();
         __ERC721_init_unchained(name_, symbol_);
     }
 
-    function __ERC721_init_unchained(string memory name_, string memory symbol_)
-        internal
-        initializer
-    {
+    function __ERC721_init_unchained(string memory name_, string memory symbol_) internal initializer {
         _name = name_;
         _symbol = symbol_;
 
@@ -124,13 +118,7 @@ contract ERC721Upgradeable is
     /**
      * @dev See {IERC721-balanceOf}.
      */
-    function balanceOf(address owner)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
-    {
+    function balanceOf(address owner) public view virtual override returns (uint256) {
         require(
             owner != address(0),
             "ERC721: balance query for the zero address"
@@ -141,13 +129,7 @@ contract ERC721Upgradeable is
     /**
      * @dev See {IERC721-ownerOf}.
      */
-    function ownerOf(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (address)
-    {
+    function ownerOf(uint256 tokenId) public view virtual override returns (address) {
         return
             _tokenOwners.get(
                 tokenId,
@@ -172,13 +154,7 @@ contract ERC721Upgradeable is
     /**
      * @dev See {IERC721Metadata-tokenURI}.
      */
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (string memory)
-    {
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         require(
             _exists(tokenId),
             "ERC721Metadata: URI query for nonexistent token"
@@ -211,13 +187,7 @@ contract ERC721Upgradeable is
     /**
      * @dev See {IERC721Enumerable-tokenOfOwnerByIndex}.
      */
-    function tokenOfOwnerByIndex(address owner, uint256 index)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
-    {
+    function tokenOfOwnerByIndex(address owner, uint256 index) public view virtual override returns (uint256) {
         return _holderTokens[owner].at(index);
     }
 
@@ -232,13 +202,7 @@ contract ERC721Upgradeable is
     /**
      * @dev See {IERC721Enumerable-tokenByIndex}.
      */
-    function tokenByIndex(uint256 index)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
-    {
+    function tokenByIndex(uint256 index) public view virtual override returns (uint256) {
         (uint256 tokenId, ) = _tokenOwners.at(index);
         return tokenId;
     }
@@ -262,13 +226,7 @@ contract ERC721Upgradeable is
     /**
      * @dev See {IERC721-getApproved}.
      */
-    function getApproved(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (address)
-    {
+    function getApproved(uint256 tokenId) public view virtual override returns (address) {
         require(
             _exists(tokenId),
             "ERC721: approved query for nonexistent token"
@@ -280,11 +238,7 @@ contract ERC721Upgradeable is
     /**
      * @dev See {IERC721-setApprovalForAll}.
      */
-    function setApprovalForAll(address operator, bool approved)
-        public
-        virtual
-        override
-    {
+    function setApprovalForAll(address operator, bool approved) public virtual override {
         require(operator != _msgSender(), "ERC721: approve to caller");
 
         _operatorApprovals[_msgSender()][operator] = approved;
@@ -294,13 +248,7 @@ contract ERC721Upgradeable is
     /**
      * @dev See {IERC721-isApprovedForAll}.
      */
-    function isApprovedForAll(address owner, address operator)
-        public
-        view
-        virtual
-        override
-        returns (bool)
-    {
+    function isApprovedForAll(address owner, address operator) public view virtual override returns (bool) {
         return _operatorApprovals[owner][operator];
     }
 
@@ -311,7 +259,11 @@ contract ERC721Upgradeable is
         address from,
         address to,
         uint256 tokenId
-    ) public virtual override {
+    ) 
+    public 
+    virtual 
+    override 
+    {
         //solhint-disable-next-line max-line-length
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
@@ -328,7 +280,11 @@ contract ERC721Upgradeable is
         address from,
         address to,
         uint256 tokenId
-    ) public virtual override {
+    ) 
+    public 
+    virtual 
+    override 
+    {
         safeTransferFrom(from, to, tokenId, "");
     }
 
@@ -340,7 +296,11 @@ contract ERC721Upgradeable is
         address to,
         uint256 tokenId,
         bytes memory _data
-    ) public virtual override {
+    ) 
+    public 
+    virtual 
+    override 
+    {
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
             "ERC721: transfer caller is not owner nor approved"
@@ -371,7 +331,10 @@ contract ERC721Upgradeable is
         address to,
         uint256 tokenId,
         bytes memory _data
-    ) internal virtual {
+    ) 
+    internal 
+    virtual 
+    {
         _transfer(from, to, tokenId);
         require(
             _checkOnERC721Received(from, to, tokenId, _data),
@@ -398,12 +361,7 @@ contract ERC721Upgradeable is
      *
      * - `tokenId` must exist.
      */
-    function _isApprovedOrOwner(address spender, uint256 tokenId)
-        internal
-        view
-        virtual
-        returns (bool)
-    {
+    function _isApprovedOrOwner(address spender, uint256 tokenId) internal view virtual returns (bool) {
         require(
             _exists(tokenId),
             "ERC721: operator query for nonexistent token"
@@ -436,7 +394,10 @@ contract ERC721Upgradeable is
         address to,
         uint256 tokenId,
         bytes memory _data
-    ) internal virtual {
+    ) 
+    internal 
+    virtual 
+    {
         _mint(to, tokenId);
         require(
             _checkOnERC721Received(address(0), to, tokenId, _data),
@@ -525,7 +486,10 @@ contract ERC721Upgradeable is
         address from,
         address to,
         uint256 tokenId
-    ) internal virtual {
+    ) 
+    internal 
+    virtual 
+    {
         require(
             ERC721Upgradeable.ownerOf(tokenId) == from,
             "ERC721: transfer of token that is not own"
@@ -552,10 +516,7 @@ contract ERC721Upgradeable is
      *
      * - `tokenId` must exist.
      */
-    function _setTokenURI(uint256 tokenId, string memory _tokenURI)
-        internal
-        virtual
-    {
+    function _setTokenURI(uint256 tokenId, string memory _tokenURI) internal virtual {
         require(
             _exists(tokenId),
             "ERC721Metadata: URI set of nonexistent token"
@@ -587,7 +548,10 @@ contract ERC721Upgradeable is
         address to,
         uint256 tokenId,
         bytes memory _data
-    ) private returns (bool) {
+    ) 
+    private 
+    returns (bool) 
+    {
         if (!to.isContract()) {
             return true;
         }

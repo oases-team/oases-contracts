@@ -14,7 +14,10 @@ contract Mint721Validator is ERC1271Validator {
         address account,
         bytes32 hash,
         bytes memory signature
-    ) internal view {
+    ) 
+    internal 
+    view 
+    {
         validate1271(account, hash, signature);
     }
 

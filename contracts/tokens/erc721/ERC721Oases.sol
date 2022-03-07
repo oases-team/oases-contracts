@@ -34,7 +34,10 @@ contract ERC721Oases is ERC721OasesBase {
         address[] memory operators,
         address transferProxy,
         address lazyTransferProxy
-    ) external initializer {
+    ) 
+    external 
+    initializer 
+    {
         __ERC721Oases_init_unchained(
             _name,
             _symbol,
@@ -59,7 +62,10 @@ contract ERC721Oases is ERC721OasesBase {
         string memory contractURI,
         address transferProxy,
         address lazyTransferProxy
-    ) external initializer {
+    ) 
+    external 
+    initializer 
+    {
         __ERC721Oases_init_unchained(
             _name,
             _symbol,
@@ -80,7 +86,9 @@ contract ERC721Oases is ERC721OasesBase {
         string memory contractURI,
         address transferProxy,
         address lazyTransferProxy
-    ) internal {
+    ) 
+    internal 
+    {
         _setBaseURI(baseURI);
         __ERC721Lazy_init_unchained();
         // TODO: update __RoyaltiesV2Upgradeable_init_unchained
@@ -100,7 +108,11 @@ contract ERC721Oases is ERC721OasesBase {
     function mintAndTransfer(
         ERC721LazyMintLibrary.ERC721LazyMintData memory erc721LazyMintData,
         address to
-    ) public virtual override {
+    ) 
+    public 
+    virtual 
+    override 
+    {
         if (isPrivate) {
             require(
                 owner() == erc721LazyMintData.creatorInfos[0].account,

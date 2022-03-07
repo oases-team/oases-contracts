@@ -14,25 +14,13 @@ abstract contract ERC721DefaultApproval is ERC721Upgradeable {
         emit DefaultApproval(operator, hasApproval);
     }
 
-    function _isApprovedOrOwner(address spender, uint256 tokenId)
-        internal
-        view
-        virtual
-        override
-        returns (bool)
-    {
+    function _isApprovedOrOwner(address spender, uint256 tokenId) internal view virtual override returns (bool) {
         return
             defaultApprovals[spender] ||
             super._isApprovedOrOwner(spender, tokenId);
     }
 
-    function isApprovedForAll(address owner, address operator)
-        public
-        view
-        virtual
-        override
-        returns (bool)
-    {
+    function isApprovedForAll(address owner, address operator) public view virtual override returns (bool) {
         return
             defaultApprovals[operator] ||
             super.isApprovedForAll(owner, operator);

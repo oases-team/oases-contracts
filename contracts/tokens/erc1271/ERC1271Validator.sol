@@ -18,7 +18,10 @@ abstract contract ERC1271Validator is EIP712Upgradeable {
         address signer,
         bytes32 structHash,
         bytes memory signature
-    ) internal view {
+    ) 
+    internal 
+    view 
+    {
         bytes32 hash = _hashTypedDataV4(structHash);
 
         address signerFromSig;

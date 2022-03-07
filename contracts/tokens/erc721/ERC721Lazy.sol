@@ -32,13 +32,7 @@ abstract contract ERC721Lazy is
 
     function __ERC721Lazy_init_unchained() internal initializer {}
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(IERC165Upgradeable, ERC165Upgradeable)
-        returns (bool)
-    {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165Upgradeable, ERC165Upgradeable) returns (bool) {
         // TODO:  change LibRoyaltiesV2 later
         return
             interfaceId ==
@@ -54,7 +48,10 @@ abstract contract ERC721Lazy is
         ERC721LazyMintLibrary.ERC721LazyMintData memory erc721LazyMintData,
         address from,
         address to
-    ) external override {
+    ) 
+    external 
+    override 
+    {
         if (_exists(erc721LazyMintData.tokenId)) {
             safeTransferFrom(from, to, erc721LazyMintData.tokenId);
         } else {
@@ -65,7 +62,11 @@ abstract contract ERC721Lazy is
     function mintAndTransfer(
         ERC721LazyMintLibrary.ERC721LazyMintData memory erc721LazyMintData,
         address to
-    ) public virtual override {
+    ) 
+    public 
+    virtual 
+    override 
+    {
         address minter = address(erc721LazyMintData.tokenId >> 96);
         address sender = _msgSender();
 
@@ -126,7 +127,9 @@ abstract contract ERC721Lazy is
     function _saveCreatorInfos(
         uint256 tokenId,
         PartLibrary.Part[] memory _creatorInfos
-    ) internal {
+    ) 
+    internal 
+    {
         PartLibrary.Part[] storage creatorInfosOfToken = creatorInfos[tokenId];
         uint256 total = 0;
         for (uint256 i = 0; i < _creatorInfos.length; i++) {
@@ -152,16 +155,14 @@ abstract contract ERC721Lazy is
         uint256 _id,
         address _from,
         address _to
-    ) external {
+    ) 
+    external 
+    {
         require(_msgSender() == _from, "not allowed");
         super._updateAccount(_id, _from, _to);
     }
 
-    function getCreatorInfos(uint256 _id)
-        external
-        view
-        returns (LibPart.Part[] memory)
-    {
+    function getCreatorInfos(uint256 _id) external view returns (LibPart.Part[] memory) {
         return creatorInfos[_id];
     }
 

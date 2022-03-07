@@ -22,11 +22,7 @@ library ERC721LazyMintLibrary {
             "ERC721LazyMintData(uint256 tokenId,string tokenURI,Part[] creatorInfos,Part[] royaltyInfos)Part(address account,uint96 value)"
         );
 
-    function getHash(ERC721LazyMintData memory erc721LazyMintData)
-        internal
-        pure
-        returns (bytes32)
-    {
+    function getHash(ERC721LazyMintData memory erc721LazyMintData) internal pure returns (bytes32) {
         bytes32[] memory creatorInfosHashes = new bytes32[](
             erc721LazyMintData.creatorInfos.length
         );
@@ -45,15 +41,13 @@ library ERC721LazyMintLibrary {
             );
         }
 
-        return
-            keccak256(
-                abi.encode(
-                    ERC721_LAZY_MINT_DATA_TYPEHASH,
-                    erc721LazyMintData.tokenId,
-                    keccak256(bytes(erc721LazyMintData.tokenURI)),
-                    keccak256(abi.encodePacked(creatorInfosHashes)),
-                    keccak256(abi.encodePacked(royaltyInfosHashes))
-                )
-            );
+        return keccak256(
+            abi.encode(
+                ERC721_LAZY_MINT_DATA_TYPEHASH,
+                erc721LazyMintData.tokenId,
+                keccak256(bytes(erc721LazyMintData.tokenURI)),
+                keccak256(abi.encodePacked(creatorInfosHashes)),
+                keccak256(abi.encodePacked(royaltyInfosHashes))
+            ));
     }
 }
