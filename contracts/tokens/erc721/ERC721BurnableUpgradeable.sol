@@ -16,7 +16,6 @@ abstract contract ERC721BurnableUpgradeable is
     ERC721Upgradeable
 {
     function __ERC721Burnable_init() internal initializer {
-        __Context_init_unchained();
         __ERC165_init_unchained();
         __ERC721Burnable_init_unchained();
     }

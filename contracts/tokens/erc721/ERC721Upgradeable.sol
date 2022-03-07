@@ -104,7 +104,6 @@ contract ERC721Upgradeable is
         internal
         initializer
     {
-        __Context_init_unchained();
         __ERC165_init_unchained();
         __ERC721_init_unchained(name_, symbol_);
     }
