@@ -91,8 +91,7 @@ contract ERC721Oases is ERC721OasesBase {
     {
         _setBaseURI(baseURI);
         __ERC721Lazy_init_unchained();
-        // TODO: update __RoyaltiesV2Upgradeable_init_unchained
-        __RoyaltiesV2Upgradeable_init_unchained();
+        __RoyaltiesUpgradeable_init_unchained();
         __ERC165_init_unchained();
         __Ownable_init_unchained();
         __ERC721Burnable_init_unchained();

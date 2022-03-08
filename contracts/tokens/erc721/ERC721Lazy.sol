@@ -4,20 +4,17 @@ pragma solidity 0.8.8;
 pragma abicoder v2;
 
 import "./ERC721Upgradeable.sol";
-// TODO: link to Oases royalties contract
-import "../../royalties/contracts/impl/RoyaltiesV2Impl.sol";
-import "../../royalties-upgradeable/contracts/RoyaltiesV2Upgradeable.sol";
-
+import "../../royalties/impl/RoyaltiesImpl.sol";
+import "../../royalties/RoyaltiesUpgradeable.sol";
 import "./interfaces/IERC721LazyMint.sol";
 import "../Mint721Validator.sol";
 
-// TODO: change base contract
 abstract contract ERC721Lazy is
     IERC721LazyMint,
     ERC721Upgradeable,
     Mint721Validator,
-    RoyaltiesV2Upgradeable,
-    RoyaltiesV2Impl
+    RoyaltiesUpgradeable,
+    RoyaltiesImpl
 {
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
     using EnumerableMapUpgradeable for EnumerableMapUpgradeable.UintToAddressMap;
@@ -33,11 +30,10 @@ abstract contract ERC721Lazy is
     function __ERC721Lazy_init_unchained() internal initializer {}
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165Upgradeable, ERC165Upgradeable) returns (bool) {
-        // TODO:  change LibRoyaltiesV2 later
         return
             interfaceId ==
             ERC721LazyMintLibrary._INTERFACE_ID_MINT_AND_TRANSFER ||
-            interfaceId == LibRoyaltiesV2._INTERFACE_ID_ROYALTIES ||
+            interfaceId == RoyaltiesLibrary._INTERFACE_ID_ROYALTIES ||
             interfaceId == _INTERFACE_ID_ERC165 ||
             interfaceId == _INTERFACE_ID_ERC721 ||
             interfaceId == _INTERFACE_ID_ERC721_METADATA ||
@@ -92,7 +88,6 @@ abstract contract ERC721Lazy is
         }
 
         _safeMint(to, erc721LazyMintData.tokenId);
-        // TODO: check
         _saveRoyalties(
             erc721LazyMintData.tokenId,
             erc721LazyMintData.royaltyInfos
@@ -116,6 +111,7 @@ abstract contract ERC721Lazy is
         _tokenOwners.set(tokenId, to);
 
         address minter = address(tokenId >> 96);
+        // TODO: check Transfer event
         if (minter != to) {
             emit Transfer(address(0), minter, tokenId);
             emit Transfer(minter, to, tokenId);
@@ -162,7 +158,7 @@ abstract contract ERC721Lazy is
         super._updateAccount(_id, _from, _to);
     }
 
-    function getCreatorInfos(uint256 _id) external view returns (LibPart.Part[] memory) {
+    function getCreatorInfos(uint256 _id) external view returns (PartLibrary.Part[] memory) {
         return creatorInfos[_id];
     }
 
