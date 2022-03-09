@@ -63,7 +63,7 @@ abstract contract ERC721Lazy is
     virtual 
     override 
     {
-        address minter = address(erc721LazyMintData.tokenId >> 96);
+        address minter = address(uint160(erc721LazyMintData.tokenId >> 96));
         address sender = _msgSender();
 
         require(
@@ -83,7 +83,7 @@ abstract contract ERC721Lazy is
         for (uint256 i = 0; i < erc721LazyMintData.creatorInfos.length; ++i) {
             address creator = erc721LazyMintData.creatorInfos[i].account;
             if (creator != sender) {
-                validate(creator, hash, creatorInfos.signatures[i]);
+                validate(creator, hash, erc721LazyMintData.signatures[i]);
             }
         }
 
@@ -110,7 +110,7 @@ abstract contract ERC721Lazy is
 
         _tokenOwners.set(tokenId, to);
 
-        address minter = address(tokenId >> 96);
+        address minter = address(uint160(tokenId >> 96));
         // TODO: check Transfer event
         if (minter != to) {
             emit Transfer(address(0), minter, tokenId);

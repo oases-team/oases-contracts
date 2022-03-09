@@ -19,7 +19,7 @@ library TokenURILibrary {
             return string(abi.encodePacked(base, _tokenURI));
         }
 
-        for (uint256 i = 0; j < baseBytes.length; ++i) {
+        for (uint256 i = 0; i < baseBytes.length; ++i) {
             if (uriBytes[i] != baseBytes[i]) {
                 return string(abi.encodePacked(base, _tokenURI));
             }

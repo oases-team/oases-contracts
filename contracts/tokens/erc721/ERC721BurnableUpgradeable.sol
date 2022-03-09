@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.8;
 
-import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "./ERC721Upgradeable.sol";
 
@@ -31,7 +31,9 @@ abstract contract ERC721BurnableUpgradeable is
      */
     function burn(uint256 tokenId) public virtual {
         if (!_exists(tokenId)) {
-            address owner = address(tokenId >> 96);
+            // TODO:
+            // address owner = address(tokenId >> 96);
+            address owner = address(uint160(tokenId >> 96));
             require(
                 owner == _msgSender(),
                 "ERC721Burnable: caller is not owner, not burn"

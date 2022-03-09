@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.8;
 
-import "@openzeppelin/contracts-upgradeable/introspection/ERC165Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 
 abstract contract ContractURIUpgradeable is ERC165Upgradeable {
     string public contractURI;
@@ -14,7 +14,8 @@ abstract contract ContractURIUpgradeable is ERC165Upgradeable {
 
     function __ContractURIUpgradeable_init_unchained(string memory _contractURI) internal initializer {
         contractURI = _contractURI;
-        _registerInterface(_INTERFACE_ID_CONTRACT_URI);
+        // TODO: check if needed
+        // _registerInterface(_INTERFACE_ID_CONTRACT_URI);
     }
 
     /**

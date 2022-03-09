@@ -4,15 +4,15 @@ pragma solidity 0.8.8;
 
 import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721MetadataUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721EnumerableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721EnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/introspection/ERC165Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/EnumerableSetUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/EnumerableMapUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableMapUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../libraries/TokenURILibrary.sol";
 
 /**
@@ -110,9 +110,10 @@ contract ERC721Upgradeable is
         _symbol = symbol_;
 
         // register the supported interfaces to conform to ERC721 via ERC165
-        _registerInterface(_INTERFACE_ID_ERC721);
-        _registerInterface(_INTERFACE_ID_ERC721_METADATA);
-        _registerInterface(_INTERFACE_ID_ERC721_ENUMERABLE);
+        // TODO: check if needed
+        // _registerInterface(_INTERFACE_ID_ERC721);
+        // _registerInterface(_INTERFACE_ID_ERC721_METADATA);
+        // _registerInterface(_INTERFACE_ID_ERC721_ENUMERABLE);
     }
 
     /**
@@ -462,7 +463,7 @@ contract ERC721Upgradeable is
     }
 
     /*Returns true if token with tokenId already burned*/
-    function _burned(uint256 tokenId) internal returns (bool) {
+    function _burned(uint256 tokenId) internal view returns (bool) {
         return _burnedTokens[tokenId];
     }
 
