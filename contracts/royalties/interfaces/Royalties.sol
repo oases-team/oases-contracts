@@ -8,5 +8,5 @@ import "../../common_libraries/PartLibrary.sol";
 interface Royalties {
     event RoyaltiesSet(uint256 tokenId, PartLibrary.Part[] royaltyInfos);
 
-    function getOasesRoyalties(uint256 id) external view returns (PartLibrary.Part[] memory);
+    function getOasesRoyaltyInfos(uint256 id) external view returns (PartLibrary.Part[] memory);
 }

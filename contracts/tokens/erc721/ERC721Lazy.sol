@@ -88,7 +88,7 @@ abstract contract ERC721Lazy is
         }
 
         _safeMint(to, erc721LazyMintData.tokenId);
-        _saveRoyalties(
+        _saveRoyaltyInfos(
             erc721LazyMintData.tokenId,
             erc721LazyMintData.royaltyInfos
         );

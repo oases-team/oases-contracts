@@ -8,7 +8,7 @@ import "../interfaces/Royalties.sol";
 
 contract RoyaltiesImpl is AbstractRoyalties, Royalties {
 
-    function getOasesRoyalties(uint256 id) override external view returns (PartLibrary.Part[] memory) {
+    function getOasesRoyaltyInfos(uint256 id) override external view returns (PartLibrary.Part[] memory) {
         return royaltyInfos[id];
     }
 

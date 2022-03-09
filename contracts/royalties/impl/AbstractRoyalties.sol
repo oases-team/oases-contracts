@@ -7,7 +7,7 @@ import "../../common_libraries/PartLibrary.sol";
 abstract contract AbstractRoyalties {
     mapping (uint256 => PartLibrary.Part[]) internal royaltyInfos;
 
-    function _saveRoyalties(uint256 id, PartLibrary.Part[] memory _royaltyInfos) internal {
+    function _saveRoyaltyInfos(uint256 id, PartLibrary.Part[] memory _royaltyInfos) internal {
         uint256 totalValue;
         uint length = _royaltyInfos.length;
         for (uint i = 0; i < length; i++) {
