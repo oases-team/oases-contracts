@@ -111,7 +111,6 @@ abstract contract ERC721Lazy is
         _tokenOwners.set(tokenId, to);
 
         address minter = address(uint160(tokenId >> 96));
-        // TODO: check Transfer event
         if (minter != to) {
             emit Transfer(address(0), minter, tokenId);
             emit Transfer(minter, to, tokenId);

@@ -19,12 +19,7 @@ contract ERC721Oases is ERC721OasesBase {
     event CreateERC721OasesUser(address owner, string name, string symbol);
 
     event PriceChanged(uint256 tokenId, uint256 newPrice);
-    event Trade(
-        uint256 tokenId,
-        uint256 price,
-        address newOwner,
-        address originalOwner
-    );
+    event Trade(uint256 tokenId, uint256 price, address newOwner, address originalOwner);
 
     function __ERC721OasesUser_init(
         string memory _name,
