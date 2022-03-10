@@ -5,21 +5,7 @@ const {generateRandomAddress} = require("./utils/signature");
 const {getRandomInteger} = require("./utils/random");
 const {ERC20_CLASS, ERC721_CLASS} = require("./types/assets");
 
-//todo
 contract("test OrderLibrary.sol", accounts => {
-    const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
-    const ZERO_ASSET_CLASS = '0x00000000'
-    const EMPTY_DATA = '0x'
-    const ZERO_ORDER = order.Order(
-        ZERO_ADDRESS,
-        order.Asset(ZERO_ASSET_CLASS, EMPTY_DATA, 0),
-        ZERO_ADDRESS,
-        order.Asset(ZERO_ASSET_CLASS, EMPTY_DATA, 0),
-        0,
-        0,
-        0,
-        "0xffffffff",
-        EMPTY_DATA)
     let mockOrderLibrary
 
     before(async () => {
@@ -28,7 +14,7 @@ contract("test OrderLibrary.sol", accounts => {
 
     describe("test OrderLibrary.calculateRemainingValuesInOrder()", () => {
         it("should calculate remaining when fill is 0", async () => {
-            let mockOrder = ZERO_ORDER
+            let mockOrder = order.getZeroOrder()
             mockOrder.makeAsset.value = 1000
             mockOrder.takeAsset.value = 2000
             const res = await mockOrderLibrary.calculateRemainingValuesInOrder(mockOrder, 0, false)
@@ -37,7 +23,7 @@ contract("test OrderLibrary.sol", accounts => {
         })
 
         it("should calculate remaining when fill isn't 0", async () => {
-            let mockOrder = ZERO_ORDER
+            let mockOrder = order.getZeroOrder()
             mockOrder.makeAsset.value = 1000
             mockOrder.takeAsset.value = 2000
             let res = await mockOrderLibrary.calculateRemainingValuesInOrder(mockOrder, 5, true)
@@ -50,7 +36,7 @@ contract("test OrderLibrary.sol", accounts => {
         })
 
         it("should revert when fill > asset's values", async () => {
-            let mockOrder = ZERO_ORDER
+            let mockOrder = order.getZeroOrder()
             mockOrder.makeAsset.value = 1000
             mockOrder.takeAsset.value = 2000
             await expectThrow(
@@ -62,7 +48,7 @@ contract("test OrderLibrary.sol", accounts => {
         })
 
         it("should return 0 if it's a full fill", async () => {
-            let mockOrder = ZERO_ORDER
+            let mockOrder = order.getZeroOrder()
             mockOrder.makeAsset.value = 1000
             mockOrder.takeAsset.value = 2000
 
@@ -78,7 +64,7 @@ contract("test OrderLibrary.sol", accounts => {
 
     describe("test OrderLibrary.checkTimeValidity()", () => {
         it("should pass if zero timestamp is set", async () => {
-            let mockOrder = ZERO_ORDER
+            let mockOrder = order.getZeroOrder()
             const now = getCurrentTimestamp()
             // double zero timestamp
             await mockOrderLibrary.checkTimeValidity(mockOrder)
@@ -93,7 +79,7 @@ contract("test OrderLibrary.sol", accounts => {
         })
 
         it("should pass if two timestamps are correctly set", async () => {
-            let mockOrder = ZERO_ORDER
+            let mockOrder = order.getZeroOrder()
             const now = getCurrentTimestamp()
             mockOrder.startTime = now - 1000
             mockOrder.endTime = now + 1000
@@ -101,7 +87,7 @@ contract("test OrderLibrary.sol", accounts => {
         })
 
         it("should revert if start timestamp is incorrectly set", async () => {
-            let mockOrder = ZERO_ORDER
+            let mockOrder = order.getZeroOrder()
             const now = getCurrentTimestamp()
             mockOrder.startTime = now + 100
             mockOrder.endTime = now + 1000
@@ -112,7 +98,7 @@ contract("test OrderLibrary.sol", accounts => {
         })
 
         it("should revert if end timestamp is incorrectly set", async () => {
-            let mockOrder = ZERO_ORDER
+            let mockOrder = order.getZeroOrder()
             const now = getCurrentTimestamp()
             mockOrder.startTime = now - 1000
             mockOrder.endTime = now - 100
@@ -123,7 +109,7 @@ contract("test OrderLibrary.sol", accounts => {
         })
 
         it("should revert if both timestamps are incorrectly set", async () => {
-            let mockOrder = ZERO_ORDER
+            let mockOrder = order.getZeroOrder()
             const now = getCurrentTimestamp()
             mockOrder.startTime = now + 1
             mockOrder.endTime = now
@@ -135,7 +121,7 @@ contract("test OrderLibrary.sol", accounts => {
 
         describe("test OrderLibrary.getHashKey()", () => {
             it("should get hash key for a specific order", async () => {
-                let mockOrder = ZERO_ORDER
+                let mockOrder = order.getZeroOrder()
                 mockOrder.maker = generateRandomAddress()
                 mockOrder.taker = generateRandomAddress()
                 mockOrder.makeAsset.assetType.assetClass = ERC721_CLASS
@@ -155,7 +141,7 @@ contract("test OrderLibrary.sol", accounts => {
 
         describe("test OrderLibrary.getHash()", () => {
             it("should get hash for a specific order", async () => {
-                let mockOrder = ZERO_ORDER
+                let mockOrder = order.getZeroOrder()
                 mockOrder.maker = generateRandomAddress()
                 mockOrder.taker = generateRandomAddress()
                 mockOrder.makeAsset.assetType.assetClass = ERC721_CLASS
