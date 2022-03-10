@@ -1,6 +1,9 @@
 const MockOrderLibrary = artifacts.require("MockOrderLibrary.sol");
 const order = require("./types/order");
 const {expectThrow} = require("./utils/expect_throw");
+const {generateRandomAddress} = require("./utils/signature");
+const {getRandomInteger} = require("./utils/random");
+const {ERC20_CLASS, ERC721_CLASS} = require("./types/assets");
 
 //todo
 contract("test OrderLibrary.sol", accounts => {
@@ -130,6 +133,45 @@ contract("test OrderLibrary.sol", accounts => {
             )
         })
 
+        describe("test OrderLibrary.getHashKey()", () => {
+            it("should get hash key for a specific order", async () => {
+                let mockOrder = ZERO_ORDER
+                mockOrder.maker = generateRandomAddress()
+                mockOrder.taker = generateRandomAddress()
+                mockOrder.makeAsset.assetType.assetClass = ERC721_CLASS
+                mockOrder.takeAsset.assetType.assetClass = ERC20_CLASS
+                mockOrder.makeAsset.value = getRandomInteger(0, 102410241024)
+                mockOrder.takeAsset.value = getRandomInteger(0, 102410241024)
+                const now = getCurrentTimestamp()
+                mockOrder.startTime = now - 100
+                mockOrder.endTime = now - 100
+                mockOrder.salt = 1
+
+                const mockHashKey = await mockOrderLibrary.mockGetHashKey(mockOrder)
+                const hashKey = await mockOrderLibrary.getHashKey(mockOrder)
+                assert.equal(hashKey, mockHashKey)
+            })
+        })
+
+        describe("test OrderLibrary.getHash()", () => {
+            it("should get hash for a specific order", async () => {
+                let mockOrder = ZERO_ORDER
+                mockOrder.maker = generateRandomAddress()
+                mockOrder.taker = generateRandomAddress()
+                mockOrder.makeAsset.assetType.assetClass = ERC721_CLASS
+                mockOrder.takeAsset.assetType.assetClass = ERC20_CLASS
+                mockOrder.makeAsset.value = getRandomInteger(0, 102410241024)
+                mockOrder.takeAsset.value = getRandomInteger(0, 102410241024)
+                const now = getCurrentTimestamp()
+                mockOrder.startTime = now - 100
+                mockOrder.endTime = now - 100
+                mockOrder.salt = 1
+
+                const mockHash = await mockOrderLibrary.mockGetHash(mockOrder)
+                const hash = await mockOrderLibrary.getHash(mockOrder)
+                assert.equal(hash, mockHash)
+            })
+        })
     })
 });
 
