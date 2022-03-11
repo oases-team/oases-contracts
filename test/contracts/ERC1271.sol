@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.8;
 
-abstract contract ERC1271 {
+abstract contract ERC1271Oases {
     bytes4 constant public ERC1271_INTERFACE_ID = 0xfb855dc9; // this.isValidSignature.selector
 
     bytes4 constant public ERC1271_RETURN_VALID_SIGNATURE =   0x1626ba7e;
