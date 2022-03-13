@@ -31,43 +31,44 @@ contract("ERC721Oases", accounts => {
     token = await ERC721Oases.new();
     proxyLazy = await ERC721LazyMintTransferProxy.new();
     transferProxy = await MockTransferProxy.new();
-    // await token.__ERC721Oases_init(name, "OAS", "https://ipfs.oases.com", "https://ipfs.oases.com", whiteListProxy, proxyLazy.address);
-    // await token.transferOwnership(tokenOwner);
+    await token.__ERC721Oases_init(name, "OAS", "https://ipfs.oases.com", "https://ipfs.oases.com", whiteListProxy, proxyLazy.address);
+    // console.log(`owner: ${await token.owner()}`)
+    await token.transferOwnership(tokenOwner);
     erc1271 = await ERC1271.new();
   });
 
-  describe("Burn before ERC721Oases()", () => {
-    it("Run burn from minter, mintAndTransfer by the same minter not possible, token burned, throw", async () => {
-      const minter = accounts[1];
-      let transferTo = accounts[4];
+//   describe("Burn before ERC721Oases()", () => {
+//     it("Run burn from minter, mintAndTransfer by the same minter not possible, token burned, throw", async () => {
+//       const minter = accounts[1];
+//       let transferTo = accounts[4];
 
-      const tokenId = minter + "b00000000000000000000001";
-      const tokenURI = "//uri";
-      //minter burn item, in tokenId minter address contains, ok
-      await token.burn(tokenId, {from: minter});
-      await expectThrow( //try to mint and transfer token, throw, because token was burned
-        token.mintAndTransfer([tokenId, tokenURI, creators([minter]), [], [zeroWord]], transferTo, {from: minter}),
-        "token already burned"
-      );
-    });
+//       const tokenId = minter + "b00000000000000000000001";
+//       const tokenURI = "//uri";
+//       //minter burn item, in tokenId minter address contains, ok
+//       await token.burn(tokenId, {from: minter});
+//       await expectThrow( //try to mint and transfer token, throw, because token was burned
+//         token.mintAndTransfer([tokenId, tokenURI, creators([minter]), [], [zeroWord]], transferTo, {from: minter}),
+//         "token already burned"
+//       );
+//     });
 
-    it("Run burn from another, throw, mintAndTransfer by the same minter is possible", async () => {
-      const minter = accounts[1];
-      let transferTo = accounts[2];
+//     it("Run burn from another, throw, mintAndTransfer by the same minter is possible", async () => {
+//       const minter = accounts[1];
+//       let transferTo = accounts[2];
 
-      const tokenId = minter + "b00000000000000000000001";
-      const tokenURI = "//uri";
-      await expectThrow( //another burn item, in tokenId minter address contains, throw
-        token.burn(tokenId, {from: transferTo}),
-        "ERC721Burnable: caller is not owner, not burn"
-      );
-      //mint and transfer token, ok, because token was not burned, possible to mint to a new user
-      await token.mintAndTransfer([tokenId, tokenURI, creators([minter]), [], [zeroWord]], transferTo, {from: minter});
-      assert.equal(await token.ownerOf(tokenId), transferTo);
-    });
-  });
+//       const tokenId = minter + "b00000000000000000000001";
+//       const tokenURI = "//uri";
+//       await expectThrow( //another burn item, in tokenId minter address contains, throw
+//         token.burn(tokenId, {from: transferTo}),
+//         "ERC721Burnable: caller is not owner, not burn"
+//       );
+//       //mint and transfer token, ok, because token was not burned, possible to mint to a new user
+//       await token.mintAndTransfer([tokenId, tokenURI, creators([minter]), [], [zeroWord]], transferTo, {from: minter});
+//       assert.equal(await token.ownerOf(tokenId), transferTo);
+//     });
+//   });
 
-//   describe("Burn after ERC721Rarible ()", () => {
+//   describe("Burn after ERC721Oases ()", () => {
 //     it("Run mintAndTransfer, burn, mintAndTransfer by the same minter, throw", async () => {
 //       const minter = accounts[1];
 //       let transferTo = accounts[2];
@@ -79,7 +80,8 @@ contract("ERC721Oases", accounts => {
 //       await token.mintAndTransfer([tokenId, tokenURI, creators([minter]), [], [zeroWord]], transferTo, {from: minter});
 //       await token.burn(tokenId, {from: transferTo});
 //       await expectThrow( //try once more mint and transfer
-//         token.mintAndTransfer([tokenId, tokenURI, creators([minter]), [], [zeroWord]], transferTo2, {from: minter})
+//         token.mintAndTransfer([tokenId, tokenURI, creators([minter]), [], [zeroWord]], transferTo2, {from: minter}),
+//         'token already burned'
 //       );
 //     });
 
@@ -94,21 +96,14 @@ contract("ERC721Oases", accounts => {
 //       assert.equal(await token.ownerOf(tokenId), transferTo);
 //       await token.burn(tokenId, {from: transferTo});
 //       await expectThrow(
-//         token.transferFromOrMint([tokenId, tokenURI, creators([minter]), [], [zeroWord]], minter, transferTo, {from: minter})
+//         token.transferFromOrMint([tokenId, tokenURI, creators([minter]), [], [zeroWord]], minter, transferTo, {from: minter}),
+//         'token already burned'
 //       )
 //     });
-
 //   });
 
-//   it("mint and transfer by minter, and token created by ERC721Factory ", async () => {
-//     beacon = await UpgradeableBeacon.new(token.address);
-//     factory = await ERC721Factory.new(beacon.address, transferProxy.address, proxyLazy.address);
-//     const resultCreateToken = await factory.methods['createToken(string,string,string,string,uint256)']("name", "RARI", "https://ipfs.rarible.com", "https://ipfs.rarible.com", 1, {from: tokenOwner});
-//     truffleAssert.eventEmitted(resultCreateToken, 'Create721RaribleProxy', (ev) => {
-//        proxy = ev.proxy;
-//       return true;
-//     });
-//     tokenByProxy = await ERC721Oases.at(proxy);
+//   it("mint and transfer by minter", async () => {
+//     tokenByProxy = token
 
 //     const minter = tokenOwner;
 //     const tokenId = minter + "b00000000000000000000001";
@@ -125,15 +120,18 @@ contract("ERC721Oases", accounts => {
 //   });
 
 //   it("checkPrefix should work correctly, checks for duplicating of the base part of the uri ", async () => {
-//     beacon = await UpgradeableBeacon.new(token.address);
-//     factory = await ERC721Factory.new(beacon.address, transferProxy.address, proxyLazy.address);
-//     const baseURI = "https://ipfs.rarible.com"
-//     const resultCreateToken = await factory.methods['createToken(string,string,string,string,uint256)']("name", "RARI", baseURI, "https://ipfs.rarible.com", 1, {from: tokenOwner});
-//     truffleAssert.eventEmitted(resultCreateToken, 'Create721RaribleProxy', (ev) => {
-//        proxy = ev.proxy;
-//       return true;
-//     });
-//     tokenByProxy = await ERC721Oases.at(proxy);
+//     // beacon = await UpgradeableBeacon.new(token.address);
+//     // factory = await ERC721Factory.new(beacon.address, transferProxy.address, proxyLazy.address);
+//     const baseURI = "https://ipfs.oases.com"
+//     // const resultCreateToken = await factory.methods['createToken(string,string,string,string,uint256)']("name", "RARI", baseURI, "https://ipfs.rarible.com", 1, {from: tokenOwner});
+//     // truffleAssert.eventEmitted(resultCreateToken, 'Create721RaribleProxy', (ev) => {
+//     //    proxy = ev.proxy;
+//     //   return true;
+//     // });
+//     // tokenByProxy = await ERC721Oases.at(proxy);
+//     tokenByProxy = token
+
+//     const baseURI1 = await token.baseURI()
 
 //     const minter = tokenOwner;
 //     const tokenId = minter + "b00000000000000000000001";
@@ -165,7 +163,7 @@ contract("ERC721Oases", accounts => {
 //   });
 
 //   it("check for RoayltiesV2 interface", async () => {
-//   	assert.equal(await token.supportsInterface("0xcad96cca"), true);
+//   	assert.equal(await token.supportsInterface("0xc963b961"), true);
 //   });
 
 //   it("check for ERC721 interfaces", async () => {
@@ -179,55 +177,55 @@ contract("ERC721Oases", accounts => {
 //     assert.equal(await token.isApprovedForAll(accounts[1], proxyLazy.address), true);
 //   });
 
-//   it("mint and transfer by whitelist proxy", async () => {
-//     const minter = accounts[1];
-//     let transferTo = accounts[2];
+  it("mint and transfer by whitelist proxy", async () => {
+    const minter = accounts[1];
+    let transferTo = accounts[2];
 
-//     const tokenId = minter + "b00000000000000000000001";
-//     const tokenURI = "//uri";
-//     let fees = [];
+    const tokenId = minter + "b00000000000000000000001";
+    const tokenURI = "//uri";
+    let fees = [];
 
-//     const signature = await getSignature(tokenId, tokenURI, creators([minter]), fees, minter);
+    const signature = await getSignature(tokenId, tokenURI, creators([minter]), fees, minter);
 
-//     const tx = await token.mintAndTransfer([tokenId, tokenURI, creators([minter]), fees, [signature]], transferTo, {from: whiteListProxy});
-//     const Transfer = await token.getPastEvents("Transfer", {
-//       fromBlock: tx.receipt.blockNumber,
-//       toBlock: tx.receipt.blockNumber
-//     });
-//     assert.equal(Transfer.length, 2, "Transfer.length")
-//     const transferEvent0 = Transfer[0]
-//     const transferEvent1 = Transfer[1]
+    const tx = await token.mintAndTransfer([tokenId, tokenURI, creators([minter]), fees, [signature]], transferTo, {from: whiteListProxy});
+    const Transfer = await token.getPastEvents("Transfer", {
+      fromBlock: tx.receipt.blockNumber,
+      toBlock: tx.receipt.blockNumber
+    });
+    assert.equal(Transfer.length, 2, "Transfer.length")
+    const transferEvent0 = Transfer[0]
+    const transferEvent1 = Transfer[1]
 
-//     assert.equal(transferEvent0.args.from, "0x0000000000000000000000000000000000000000", "transfer 0 from")
-//     assert.equal(transferEvent0.args.to, minter, "transfer 0 to")
-//     assert.equal("0x" + transferEvent0.args.tokenId.toString(16), tokenId.toLowerCase(), "transfer 0 tokenId")
+    assert.equal(transferEvent0.args.from, "0x0000000000000000000000000000000000000000", "transfer 0 from")
+    assert.equal(transferEvent0.args.to, minter, "transfer 0 to")
+    assert.equal("0x" + transferEvent0.args.tokenId.toString(16), tokenId.toLowerCase(), "transfer 0 tokenId")
 
-//     assert.equal(transferEvent1.args.from, minter, "transfer 1 from")
-//     assert.equal(transferEvent1.args.to, transferTo, "transfer 1 to")
-//     assert.equal("0x" + transferEvent1.args.tokenId.toString(16), tokenId.toLowerCase(), "transfer 1 tokenId")
+    assert.equal(transferEvent1.args.from, minter, "transfer 1 from")
+    assert.equal(transferEvent1.args.to, transferTo, "transfer 1 to")
+    assert.equal("0x" + transferEvent1.args.tokenId.toString(16), tokenId.toLowerCase(), "transfer 1 tokenId")
 
-//     assert.equal(await token.ownerOf(tokenId), transferTo);
-//     await checkCreators(tokenId, [minter]);
-//     // assert.equal(await token.getCreators(tokenId), [minter]);
-//   });
+    assert.equal(await token.ownerOf(tokenId), transferTo);
+    await checkCreators(tokenId, [minter]);
+    // assert.equal(await token.getCreators(tokenId), [minter]);
+  });
 
-//   it("mint and transfer by whitelist proxy. several creators", async () => {
-//     const minter = accounts[1];
-//     const creator2 = accounts[3];
-//     let transferTo = accounts[2];
+  it("mint and transfer by whitelist proxy. several creators", async () => {
+    const minter = accounts[1];
+    const creator2 = accounts[3];
+    let transferTo = accounts[2];
 
-//     const tokenId = minter + "b00000000000000000000001";
-//     const tokenURI = "//uri";
-//     let fees = [];
+    const tokenId = minter + "b00000000000000000000001";
+    const tokenURI = "//uri";
+    let fees = [];
 
-//     const signature1 = await getSignature(tokenId, tokenURI, creators([minter, creator2]), fees, minter);
-//     const signature2 = await getSignature(tokenId, tokenURI, creators([minter, creator2]), fees, creator2);
+    const signature1 = await getSignature(tokenId, tokenURI, creators([minter, creator2]), fees, minter);
+    const signature2 = await getSignature(tokenId, tokenURI, creators([minter, creator2]), fees, creator2);
 
-//     await token.mintAndTransfer([tokenId, tokenURI, creators([minter, creator2]), fees, [signature1, signature2]], transferTo, {from: whiteListProxy});
+    await token.mintAndTransfer([tokenId, tokenURI, creators([minter, creator2]), fees, [signature1, signature2]], transferTo, {from: whiteListProxy});
 
-//     assert.equal(await token.ownerOf(tokenId), transferTo);
-//     await checkCreators(tokenId, [minter, creator2]);
-//   });
+    assert.equal(await token.ownerOf(tokenId), transferTo);
+    await checkCreators(tokenId, [minter, creator2]);
+  });
 
 //   it("mint and transfer by whitelist proxy. several creators. minter is not first", async () => {
 //     const minter = accounts[1];
@@ -263,22 +261,22 @@ contract("ERC721Oases", accounts => {
 //     );
 //   });
 
-//   it("mint and transfer by approved proxy for all", async () => {
-//     const minter = accounts[1];
-//     let transferTo = accounts[2];
+  it("mint and transfer by approved proxy for all", async () => {
+    const minter = accounts[1];
+    let transferTo = accounts[2];
 
-//     const tokenId = minter + "b00000000000000000000001";
-//     const tokenURI = "//uri";
+    const tokenId = minter + "b00000000000000000000001";
+    const tokenURI = "//uri";
 
-//     const signature = await getSignature(tokenId, tokenURI, creators([minter]), [], minter);
+    const signature = await getSignature(tokenId, tokenURI, creators([minter]), [], minter);
 
-//     let proxy = accounts[5];
-//     await token.setApprovalForAll(proxy, true, {from: minter});
-//     const ttxx = await token.mintAndTransfer([tokenId, tokenURI, creators([minter]), [], [signature]], transferTo, {from: proxy});
-//     console.log(ttxx.receipt.gasUsed)
+    let proxy = accounts[5];
+    await token.setApprovalForAll(proxy, true, {from: minter});
+    const ttxx = await token.mintAndTransfer([tokenId, tokenURI, creators([minter]), [], [signature]], transferTo, {from: proxy});
+    console.log(ttxx.receipt.gasUsed)
 
-//     assert.equal(await token.ownerOf(tokenId), transferTo);
-//   });
+    assert.equal(await token.ownerOf(tokenId), transferTo);
+  });
 
 //   it("mint and transfer by approved proxy for tokenId", async () => {
 //     const minter = accounts[1];
@@ -454,17 +452,17 @@ contract("ERC721Oases", accounts => {
 //     assert.equal(await token.ownerOf(tokenId), transferTo);
 //   });
 
-//   function getSignature(tokenId, tokenURI, creators, fees, account) {
-// 		return sign(account, tokenId, tokenURI, creators, fees, token.address);
-//   }
+  function getSignature(tokenId, tokenURI, creators, fees, account) {
+		return sign(account, tokenId, tokenURI, creators, fees, token.address);
+  }
 
-//   async function checkCreators(tokenId, exp) {
-//     const creators = await token.getCreators(tokenId);
-//     assert.equal(creators.length, exp.length);
-//     const value = 10000 / exp.length;
-//     for(let i = 0; i < creators.length; i++) {
-//       assert.equal(creators[i][0], exp[i]);
-//       assert.equal(creators[i][1], value);
-//     }
-//   }
+  async function checkCreators(tokenId, exp) {
+    const creators = await token.getCreators(tokenId);
+    assert.equal(creators.length, exp.length);
+    const value = 10000 / exp.length;
+    for(let i = 0; i < creators.length; i++) {
+      assert.equal(creators[i][0], exp[i]);
+      assert.equal(creators[i][1], value);
+    }
+  }
 });

@@ -21,7 +21,6 @@ contract('test ERC721LazyMintLibrary.sol', accounts => {
         const tokenURI = "//uri";
 
         const hash = await mockERC721Library.getHash([tokenId, tokenURI, creators([minter]), [], [zeroWord]], {from: minter})
-        console.log(hash)
         assert.equal(hash, '0xa692fd91b60d44e6716abb3a1cbc575bb17b43b6d07826e800df6971023c55ce');
     });
 });
