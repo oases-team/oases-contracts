@@ -11,7 +11,16 @@ const ERC1155_CLASS = calculateBytes4InContract('ERC1155_CLASS');
 const COLLECTION_CLASS = calculateBytes4InContract('COLLECTION_CLASS');
 const CRYPTO_PUNKS_CLASS = calculateBytes4InContract('CRYPTO_PUNKS_CLASS');
 
+function encode(tokenAddress, tokenId) {
+    if (tokenId) {
+        return web3.eth.abi.encodeParameters(["address", "uint256"], [tokenAddress, tokenId]);
+    } else {
+        return web3.eth.abi.encodeParameter("address", tokenAddress);
+    }
+}
+
 module.exports = {
+    encode,
     ETH_CLASS,
     ERC20_CLASS,
     ERC721_CLASS,
