@@ -62,4 +62,4 @@ function getZeroOrder() {
         EMPTY_DATA)
 }
 
-module.exports = {AssetType, Asset, Order, sign, getZeroOrder}
+module.exports = {AssetType, Asset, Order, sign, getZeroOrder, ZERO_ASSET_CLASS, EMPTY_DATA}
