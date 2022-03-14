@@ -10,10 +10,6 @@ contract MockBadERC721 is ERC721Upgradeable {
     }
 
     function safeTransferFrom(address, address, uint256) public virtual override {
-        revert();
-    }
-
-    function safeTransferFrom(address, address, uint256, bytes memory) public virtual override {
-        revert();
+        revert('bad safeTransferFrom of ERC721');
     }
 }

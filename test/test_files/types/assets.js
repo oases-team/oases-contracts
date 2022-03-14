@@ -21,6 +21,7 @@ function encode(tokenAddress, tokenId) {
 
 module.exports = {
     encode,
+    calculateBytes4InContract,
     ETH_CLASS,
     ERC20_CLASS,
     ERC721_CLASS,
