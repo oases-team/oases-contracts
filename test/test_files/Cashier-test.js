@@ -49,4 +49,25 @@ contract("test Cashier.sol", accounts => {
         assert.equal(await mockERC20.balanceOf(accounts[0]), 24);
         assert.equal(await mockERC20.balanceOf(accounts[1]), 1000);
     })
+
+    it("should transfer ERC721 successfully", async () => {
+        await mockERC721.mint(accounts[1], 1);
+        await mockERC721.approve(mockNFTTransferProxy.address, 1, {from: accounts[1]});
+        await expectThrow(
+            mockCashier.transfer(order.Asset(ERC721_CLASS, encode(mockERC721.address, 1), 2), accounts[1], accounts[2]),
+            "ERC721's strict amount"
+        )
+
+        await mockCashier.transfer(order.Asset(ERC721_CLASS, encode(mockERC721.address, 1), 1), accounts[1], accounts[2])
+        assert.equal(await mockERC721.ownerOf(1), accounts[2]);
+        assert.equal(await mockERC721.balanceOf(accounts[1]), 0);
+    })
+
+    it("should transfer ERC1155 successfully", async () => {
+        await mockERC1155.mint(accounts[1], 1, 1024);
+        await mockERC1155.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]});
+        await mockCashier.transfer(order.Asset(ERC1155_CLASS, encode(mockERC1155.address, 1), 1000), accounts[1], accounts[2])
+        assert.equal(await mockERC1155.balanceOf(accounts[1], 1), 24);
+        assert.equal(await mockERC1155.balanceOf(accounts[2], 1), 1000);
+    })
 })
