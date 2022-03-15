@@ -12,7 +12,7 @@ contract MockERC1271 is ERC1271Oases {
         returnSuccessfulValidSignature = value;
     }
 
-    function isValidSignature(bytes32 _hash, bytes memory _signature) public override view returns (bytes4) {
+    function isValidSignature(bytes32, bytes memory) public override view returns (bytes4) {
         return returnSuccessfulValidSignature ? ERC1271_RETURN_VALID_SIGNATURE : ERC1271_RETURN_INVALID_SIGNATURE;
     }
 }

@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.8;
 
-import "../common_libraries/SignatureLibrary.sol";
-import "./libraries/OrderLibrary.sol";
+import "../../contracts/common_libraries/SignatureLibrary.sol";
+import "../../contracts/oases_exchange/libraries/OrderLibrary.sol";
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
@@ -11,7 +11,7 @@ import "@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgra
 import "@openzeppelin/contracts-upgradeable/interfaces/IERC1271Upgradeable.sol";
 
 
-abstract contract OrderVerifier is ContextUpgradeable, EIP712Upgradeable {
+abstract contract OrderVerifierTest is ContextUpgradeable, EIP712Upgradeable {
     using SignatureLibrary for bytes32;
     using AddressUpgradeable for address;
 
@@ -22,7 +22,9 @@ abstract contract OrderVerifier is ContextUpgradeable, EIP712Upgradeable {
         __EIP712_init_unchained("OasesExchange", "1");
     }
 
-    function verifyOrder(OrderLibrary.Order memory order, bytes memory signature) internal view {
+    event Signer(address signer, address maker);
+
+    function verifyOrder(OrderLibrary.Order memory order, bytes memory signature) internal view returns (address, address){
         if (order.salt == 0) {
             if (order.maker != address(0)) {
                 require(_msgSender() == order.maker, "maker is not tx sender");
@@ -36,21 +38,21 @@ abstract contract OrderVerifier is ContextUpgradeable, EIP712Upgradeable {
                 if (signature.length == 65) {
                     signer = _hashTypedDataV4(orderHash).recover(signature);
                 }
-
-                if (signer != order.maker) {
-                    require(
-                        order.maker.isContract(),
-                        "bad order signature verification"
-                    );
-
-                    require(
-                        IERC1271Upgradeable(order.maker).isValidSignature(
-                            _hashTypedDataV4(orderHash),
-                            signature
-                        ) == MAGIC_VALUE,
-                        "bad signature verification for contract"
-                    );
-                }
+                return (signer, order.maker);
+                //                if (signer != order.maker) {
+                //                    require(
+                //                        order.maker.isContract(),
+                //                        "bad order signature verification"
+                //                    );
+                //
+                //                    require(
+                //                        IERC1271Upgradeable(order.maker).isValidSignature(
+                //                            _hashTypedDataV4(orderHash),
+                //                            signature
+                //                        ) == MAGIC_VALUE,
+                //                        "bad signature verification for contract"
+                //                    );
+                //                }
             }
 
         }

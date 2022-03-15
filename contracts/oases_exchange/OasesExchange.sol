@@ -25,6 +25,6 @@ contract OasesExchange is OasesMatchingCore, OasesCashierManager {
             newDefaultFeeReceiver,
             newRoyaltiesProviderAddress
         );
-        __OrderValidator_init_unchained();
+        __OrderVerifier_init_unchained();
     }
 }
