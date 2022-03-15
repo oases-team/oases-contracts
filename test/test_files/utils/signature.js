@@ -18,6 +18,12 @@ function generateRandomAccount() {
     }
 }
 
+function generateRandomAddress() {
+    let privKey = Buffer.from(generateRandomPrivateKey(), 'hex');
+    return ('0x' + ethUtil.privateToAddress(privKey).toString('hex'))
+
+}
+
 async function signMessage(msg, account) {
     let signature = (await web3.eth.sign(msg, account)).substring(2);
     const v = ethUtil.bufferToInt(Buffer.from(signature.substr(128, 2), 'hex'));
@@ -28,6 +34,6 @@ async function signMessage(msg, account) {
     };
 }
 
-module.exports = {signMessage, generateRandomAccount}
+module.exports = {signMessage, generateRandomAccount, generateRandomAddress}
 
 

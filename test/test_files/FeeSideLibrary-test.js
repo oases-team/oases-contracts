@@ -1,4 +1,4 @@
-const MockFeeSideLibrary = artifacts.require("MockFeeSideLibrary.sol");
+const MockFeeSideLibrary = artifacts.require("MockFeeSideLibrary.sol")
 const {
     ETH_CLASS,
     ERC20_CLASS,
