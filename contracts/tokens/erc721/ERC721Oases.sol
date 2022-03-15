@@ -99,6 +99,19 @@ contract ERC721Oases is ERC721OasesBase {
         _setDefaultApproval(lazyTransferProxy, true);
     }
 
+    function mintWithPrice(
+        ERC721LazyMintLibrary.ERC721LazyMintData memory erc721LazyMintData,
+        address to,
+        uint256 price
+    ) 
+    public 
+    virtual 
+    {
+        require(price > 0, "price is zero");
+        mintAndTransfer(erc721LazyMintData, to);
+        setPrice(erc721LazyMintData.tokenId, price);
+    }
+
     function mintAndTransfer(
         ERC721LazyMintLibrary.ERC721LazyMintData memory erc721LazyMintData,
         address to
