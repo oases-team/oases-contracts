@@ -29,9 +29,9 @@ contract ERC721Oases is ERC721OasesBase {
         address[] memory operators,
         address transferProxy,
         address lazyTransferProxy
-    ) 
-    external 
-    initializer 
+    )
+    external
+    initializer
     {
         __ERC721Oases_init_unchained(
             _name,
@@ -57,9 +57,9 @@ contract ERC721Oases is ERC721OasesBase {
         string memory contractURI,
         address transferProxy,
         address lazyTransferProxy
-    ) 
-    external 
-    initializer 
+    )
+    external
+    initializer
     {
         __ERC721Oases_init_unchained(
             _name,
@@ -81,8 +81,8 @@ contract ERC721Oases is ERC721OasesBase {
         string memory contractURI,
         address transferProxy,
         address lazyTransferProxy
-    ) 
-    internal 
+    )
+    internal
     {
         _setBaseURI(baseURI);
         __ERC721Lazy_init_unchained();
@@ -103,9 +103,8 @@ contract ERC721Oases is ERC721OasesBase {
         ERC721LazyMintLibrary.ERC721LazyMintData memory erc721LazyMintData,
         address to,
         uint256 price
-    ) 
-    public 
-    virtual 
+    )
+    external
     {
         require(price > 0, "price is zero");
         mintAndTransfer(erc721LazyMintData, to);
@@ -115,10 +114,10 @@ contract ERC721Oases is ERC721OasesBase {
     function mintAndTransfer(
         ERC721LazyMintLibrary.ERC721LazyMintData memory erc721LazyMintData,
         address to
-    ) 
-    public 
-    virtual 
-    override 
+    )
+    public
+    virtual
+    override
     {
         if (isPrivate) {
             require(
@@ -131,7 +130,7 @@ contract ERC721Oases is ERC721OasesBase {
 
     // set price by the token's owner
     // NOTE: it means not for sale when the price is set to ZERO
-    function setPrice(uint256 tokenId, uint256 price) external {
+    function setPrice(uint256 tokenId, uint256 price) public {
         require(ownerOf(tokenId) == msg.sender, "no qualification");
         prices[tokenId] = price;
         emit PriceChanged(tokenId, price);
