@@ -9,4 +9,5 @@ truffle test ./test/test_files/Cashier-test.js \
   ./test/contracts/mock_tokens/MockERC721.sol \
   ./test/contracts/mock_tokens/MockERC20.sol \
   ./test/contracts/mock_tokens/MockERC1155.sol \
-  ./test/contracts/mock_tokens/CustomERC20.sol
+  ./test/contracts/mock_tokens/CustomERC20.sol \
+  --compile-all
