@@ -109,7 +109,7 @@ contract ERC721Oases is ERC721OasesBase {
     {
         require(price > 0, "price is zero");
         mintAndTransfer(erc721LazyMintData, to);
-        setPrice(erc721LazyMintData.tokenId, price);
+        this.setPrice(erc721LazyMintData.tokenId, price);
     }
 
     function mintAndTransfer(
