@@ -2,7 +2,7 @@ const MockOrderLibrary = artifacts.require("MockOrderLibrary.sol");
 const order = require("./types/order");
 const {expectThrow} = require("./utils/expect_throw");
 const {generateRandomAddress} = require("./utils/signature");
-const {getRandomInteger} = require("./utils/random");
+const {getRandomInteger, getCurrentTimestamp} = require("./utils/utils");
 const {ERC20_CLASS, ERC721_CLASS} = require("./types/assets");
 
 contract("test OrderLibrary.sol", accounts => {
@@ -160,7 +160,3 @@ contract("test OrderLibrary.sol", accounts => {
         })
     })
 });
-
-function getCurrentTimestamp() {
-    return parseInt(new Date() / 1000);
-}

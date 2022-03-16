@@ -225,7 +225,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         (uint256 rest, uint256 fee) = deductFeeWithBasisPoint(
             totalAmountAndFeesRest,
             amountToCalculateFee,
-            protocolFeeBasisPoint
+            protocolFeeBasisPoint * 2
         );
         if (fee > 0) {
             address paymentAddress = address(0);

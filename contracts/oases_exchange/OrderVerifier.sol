@@ -18,7 +18,7 @@ abstract contract OrderVerifier is ContextUpgradeable, EIP712Upgradeable {
     // bytes4(keccak256("isValidSignature(bytes32,bytes)"))
     bytes4 constant internal MAGIC_VALUE = 0x1626ba7e;
 
-    function __OrderValidator_init_unchained() internal initializer {
+    function __OrderVerifier_init_unchained() internal onlyInitializing {
         __EIP712_init_unchained("OasesExchange", "1");
     }
 
