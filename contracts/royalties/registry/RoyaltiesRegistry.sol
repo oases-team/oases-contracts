@@ -7,23 +7,23 @@ import "../interfaces/IRoyaltiesProvider.sol";
 import "../interfaces/Royalties.sol";
 import "../interfaces/IERC2981.sol";
 import "../libraries/RoyaltiesLibrary.sol";
-import "../libraries/LibRoyalties2981.sol";
+import "../libraries/Royalties2981Library.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract RoyaltiesRegistry is IRoyaltiesProvider, OwnableUpgradeable {
 
     /// @dev emitted when royalties set for token in 
-    event RoyaltiesSetForContract(address indexed token, PartLibrary.Part[] royalties);
+    event RoyaltyInfosSetForContract(address indexed token, PartLibrary.Part[] royalties);
 
     /// @dev struct to store royalties in royaltiesByToken
-    struct RoyaltiesSet {
+    struct RoyaltyInfosSet {
         bool initialized;
         PartLibrary.Part[] royalties;
     }
 
     /// @dev stores royalties for token contract, set in setRoyaltiesByToken() method
-    mapping(address => RoyaltiesSet) public royaltiesByToken;
+    mapping(address => RoyaltyInfosSet) public royaltiesByToken;
     /// @dev stores external provider and royalties type for token contract
     mapping(address => uint256) public royaltiesProviders;
 
@@ -99,7 +99,7 @@ contract RoyaltiesRegistry is IRoyaltiesProvider, OwnableUpgradeable {
         }
         require(sumRoyalties < 10000, "Set by token royalties sum more, than 100%");
         royaltiesByToken[token].initialized = true;
-        emit RoyaltiesSetForContract(token, royalties);
+        emit RoyaltyInfosSetForContract(token, royalties);
     }
 
     /// @dev checks if msg.sender is owner of this contract or owner of the token contract
@@ -117,7 +117,7 @@ contract RoyaltiesRegistry is IRoyaltiesProvider, OwnableUpgradeable {
             }
         } catch { }
         
-        try IERC165Upgradeable(token).supportsInterface(LibRoyalties2981._INTERFACE_ID_ROYALTIES) returns(bool result) {
+        try IERC165Upgradeable(token).supportsInterface(Royalties2981Library._INTERFACE_ID_ROYALTIES) returns(bool result) {
             if (result) {
                 return 5;
             }
@@ -190,8 +190,8 @@ contract RoyaltiesRegistry is IRoyaltiesProvider, OwnableUpgradeable {
 
     /// @dev tries to get royalties EIP-2981 for token and tokenId
     function getRoyaltiesEIP2981(address token, uint tokenId) internal view returns (PartLibrary.Part[] memory) {
-        try IERC2981(token).royaltyInfo(tokenId, LibRoyalties2981._WEIGHT_VALUE) returns (address receiver, uint256 royaltyAmount) {
-            return LibRoyalties2981.calculateRoyalties(receiver, royaltyAmount);
+        try IERC2981(token).royaltyInfo(tokenId, Royalties2981Library._WEIGHT_VALUE) returns (address receiver, uint256 royaltyAmount) {
+            return Royalties2981Library.calculateRoyalties(receiver, royaltyAmount);
         } catch {
             return new PartLibrary.Part[](0);
         }

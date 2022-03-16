@@ -8,8 +8,7 @@ import "./interfaces/Royalties.sol";
 import "./libraries/RoyaltiesLibrary.sol";
 
 abstract contract RoyaltiesUpgradeable is ERC165Upgradeable, Royalties {
-    function __RoyaltiesUpgradeable_init_unchained() internal initializer {
-        // TODO: check if needed
+    function __RoyaltiesUpgradeable_init_unchained() internal onlyInitializing {
         // _registerInterface(RoyaltiesLibrary._INTERFACE_ID_ROYALTIES);
     }
 }
