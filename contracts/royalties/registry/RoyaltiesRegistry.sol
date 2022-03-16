@@ -46,7 +46,7 @@ contract RoyaltiesRegistry is IRoyaltiesProvider, OwnableUpgradeable {
 
     /// @dev returns provider address for token contract from royaltiesProviders mapping
     function getProvider(address token) public view returns(address) {
-        return address(royaltiesProviders[token]);
+        return address(uint160(royaltiesProviders[token]));
     }
 
     /// @dev returns royalties type for token contract
@@ -67,7 +67,7 @@ contract RoyaltiesRegistry is IRoyaltiesProvider, OwnableUpgradeable {
     /// @dev sets royalties type for token contract
     function setRoyaltiesType(address token, uint256 royaltiesType, address royaltiesProvider) internal {
         require(royaltiesType > 0 && royaltiesType <= royaltiesTypesAmount, "wrong royaltiesType");
-        royaltiesProviders[token] = uint256(royaltiesProvider) + 2**(256 - royaltiesType);
+        royaltiesProviders[token] = uint256(uint160(royaltiesProvider)) + 2**(256 - royaltiesType);
     }
 
     /// @dev clears and sets new royalties type for token contract
@@ -79,7 +79,7 @@ contract RoyaltiesRegistry is IRoyaltiesProvider, OwnableUpgradeable {
     /// @dev clears royalties type for token contract
     function clearRoyaltiesType(address token) external {
         checkOwner(token);
-        royaltiesProviders[token] = uint256(getProvider(token));
+        royaltiesProviders[token] = uint256(uint160(getProvider(token)));
     }
 
     /// @dev sets royalties for token contract in royaltiesByToken mapping and royalties type = 1
@@ -135,10 +135,10 @@ contract RoyaltiesRegistry is IRoyaltiesProvider, OwnableUpgradeable {
     }
 
     /// @dev returns royalties for token contract and token id
-    function getRoyalties(address token, uint tokenId) override external returns (PartLibrary.Part[] memory) {
+    function getRoyaltyInfos(address token, uint tokenId) override external returns (PartLibrary.Part[] memory) {
         uint royaltiesProviderData = royaltiesProviders[token];
 
-        address royaltiesProvider = address(royaltiesProviderData);
+        address royaltiesProvider = address(uint160(royaltiesProviderData));
         uint royaltiesType = _getRoyaltiesType(royaltiesProviderData);
 
         // case when royaltiesType is not set
@@ -180,7 +180,7 @@ contract RoyaltiesRegistry is IRoyaltiesProvider, OwnableUpgradeable {
 
     /// @dev tries to get royalties Oases for token and tokenId
     function getRoyaltiesOases(address token, uint tokenId) internal view returns (PartLibrary.Part[] memory) {
-        try Royalties(token).getOasesRoyalties(tokenId) returns (PartLibrary.Part[] memory result) {
+        try Royalties(token).getOasesRoyaltyInfos(tokenId) returns (PartLibrary.Part[] memory result) {
             return result;
         } catch {
             return new PartLibrary.Part[](0);
