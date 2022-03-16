@@ -12,7 +12,7 @@ library LibRoyalties2981 {
     uint96 constant _WEIGHT_VALUE = 1000000;
 
     /*Method for converting amount to percent and forming PartLibrary*/
-    function calculateRoyalties(address to, uint256 amount) internal view returns (PartLibrary.Part[] memory) {
+    function calculateRoyalties(address to, uint256 amount) internal pure returns (PartLibrary.Part[] memory) {
         PartLibrary.Part[] memory result;
         if (amount == 0) {
             return result;
