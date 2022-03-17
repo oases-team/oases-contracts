@@ -12,10 +12,8 @@ abstract contract ContractURIUpgradeable is ERC165Upgradeable {
      */
     bytes4 private constant _INTERFACE_ID_CONTRACT_URI = 0xe8a3d485;
 
-    function __ContractURIUpgradeable_init_unchained(string memory _contractURI) internal initializer {
+    function __ContractURIUpgradeable_init_unchained(string memory _contractURI) internal onlyInitializing {
         contractURI = _contractURI;
-        // TODO: check if needed
-        // _registerInterface(_INTERFACE_ID_CONTRACT_URI);
     }
 
     /**

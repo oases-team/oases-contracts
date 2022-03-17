@@ -17,19 +17,17 @@ abstract contract AbstractRoyalties {
             royaltyInfos[id].push(_royaltyInfos[i]);
         }
         require(totalValue < 10000, "Royalty total value should be < 10000");
-        _onRoyaltiesSet(id, _royaltyInfos);
+        _onRoyaltyInfosSet(id, _royaltyInfos);
     }
 
     function _updateAccount(uint256 _id, address _from, address _to) internal {
         uint length = royaltyInfos[_id].length;
         for(uint i = 0; i < length; i++) {
             if (royaltyInfos[_id][i].account == _from) {
-                // TODO:
-                // royaltyInfos[_id][i].account = address(uint160(_to));
                 royaltyInfos[_id][i].account = payable(address(uint160(_to)));
             }
         }
     }
 
-    function _onRoyaltiesSet(uint256 id, PartLibrary.Part[] memory _royaltyInfos) virtual internal;
+    function _onRoyaltyInfosSet(uint256 id, PartLibrary.Part[] memory _royaltyInfos) virtual internal;
 }

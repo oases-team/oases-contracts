@@ -20,7 +20,7 @@ abstract contract ERC721BurnableUpgradeable is
         __ERC721Burnable_init_unchained();
     }
 
-    function __ERC721Burnable_init_unchained() internal initializer {}
+    function __ERC721Burnable_init_unchained() internal onlyInitializing {}
 
     /**
      * @dev Burns `tokenId`. See {ERC721-_burn}.
