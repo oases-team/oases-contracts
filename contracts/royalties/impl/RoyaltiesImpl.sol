@@ -12,7 +12,7 @@ contract RoyaltiesImpl is AbstractRoyalties, Royalties {
         return royaltyInfos[id];
     }
 
-    function _onRoyaltiesSet(uint256 id, PartLibrary.Part[] memory _royaltyInfos) override internal {
-        emit RoyaltiesSet(id, _royaltyInfos);
+    function _onRoyaltyInfosSet(uint256 id, PartLibrary.Part[] memory _royaltyInfos) override internal {
+        emit RoyaltyInfosSet(id, _royaltyInfos);
     }
 }

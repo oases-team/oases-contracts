@@ -6,7 +6,7 @@ import "./erc1271/ERC1271Validator.sol";
 import "./erc721/libraries/ERC721LazyMintLibrary.sol";
 
 contract Mint721Validator is ERC1271Validator {
-    function __Mint721Validator_init_unchained() internal initializer {
+    function __Mint721Validator_init_unchained() internal onlyInitializing {
         __EIP712_init_unchained("Mint721", "1");
     }
 

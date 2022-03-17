@@ -27,7 +27,7 @@ abstract contract ERC721Lazy is
     // tokenId => creatorInfos
     mapping(uint256 => PartLibrary.Part[]) private creatorInfos;
 
-    function __ERC721Lazy_init_unchained() internal initializer {}
+    function __ERC721Lazy_init_unchained() internal onlyInitializing {}
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165Upgradeable, ERC165Upgradeable) returns (bool) {
         return

@@ -105,15 +105,9 @@ contract ERC721Upgradeable is
         __ERC721_init_unchained(name_, symbol_);
     }
 
-    function __ERC721_init_unchained(string memory name_, string memory symbol_) internal initializer {
+    function __ERC721_init_unchained(string memory name_, string memory symbol_) internal onlyInitializing {
         _name = name_;
         _symbol = symbol_;
-
-        // register the supported interfaces to conform to ERC721 via ERC165
-        // TODO: check if needed
-        // _registerInterface(_INTERFACE_ID_ERC721);
-        // _registerInterface(_INTERFACE_ID_ERC721_METADATA);
-        // _registerInterface(_INTERFACE_ID_ERC721_ENUMERABLE);
     }
 
     /**
