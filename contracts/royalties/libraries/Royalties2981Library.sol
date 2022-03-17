@@ -4,7 +4,7 @@ pragma solidity 0.8.8;
 
 import "../../common_libraries/PartLibrary.sol";
 
-library LibRoyalties2981 {
+library Royalties2981Library {
     /*
      * https://eips.ethereum.org/EIPS/eip-2981: bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
      */

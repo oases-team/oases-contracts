@@ -7,38 +7,40 @@ import "../interfaces/IRoyaltiesProvider.sol";
 import "../interfaces/Royalties.sol";
 import "../interfaces/IERC2981.sol";
 import "../libraries/RoyaltiesLibrary.sol";
-import "../libraries/LibRoyalties2981.sol";
+import "../libraries/Royalties2981Library.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract RoyaltiesRegistry is IRoyaltiesProvider, OwnableUpgradeable {
 
     /// @dev emitted when royalties set for token in 
-    event RoyaltiesSetForContract(address indexed token, PartLibrary.Part[] royalties);
+    event RoyaltyInfosSetForContract(address indexed token, PartLibrary.Part[] royaltyInfos);
 
-    /// @dev struct to store royalties in royaltiesByToken
-    struct RoyaltiesSet {
+    /// @dev struct to store royalties in royaltyInfosByToken
+    struct RoyaltyInfosSet {
         bool initialized;
         PartLibrary.Part[] royalties;
     }
 
-    /// @dev stores royalties for token contract, set in setRoyaltiesByToken() method
-    mapping(address => RoyaltiesSet) public royaltiesByToken;
+    /// @dev stores royalties for token contract, set in setRoyaltyInfosByToken() method
+    mapping(address => RoyaltyInfosSet) public royaltyInfosByToken;
     /// @dev stores external provider and royalties type for token contract
     mapping(address => uint256) public royaltiesProviders;
 
     /// @dev total amount or supported royalties types
     // 0 - royalties type is unset
-    // 1 - royaltiesByToken, 2 - oases,
-    // 4 - external provider, 5 - EIP-2981
-    // 6 - unsupported/nonexistent royalties type
-    uint256 constant royaltiesTypesAmount = 6;
+    // 1 - royaltyInfosByToken
+    // 2 - oases
+    // 3 - external provider
+    // 4 - EIP-2981
+    // 5 - unsupported/nonexistent royalties type
+    uint256 constant royaltiesTypesAmount = 5;
 
     function __RoyaltiesRegistry_init() external initializer {
         __Ownable_init_unchained();
     }
 
-    /// @dev sets external provider for token contract, and royalties type = 4
+    /// @dev sets external provider for token contract, and royalties type = 3
     function setProviderByToken(address token, address provider) external {
         checkOwner(token);
         setRoyaltiesType(token, 4, provider);
@@ -82,24 +84,24 @@ contract RoyaltiesRegistry is IRoyaltiesProvider, OwnableUpgradeable {
         royaltiesProviders[token] = uint256(uint160(getProvider(token)));
     }
 
-    /// @dev sets royalties for token contract in royaltiesByToken mapping and royalties type = 1
-    function setRoyaltiesByToken(address token, PartLibrary.Part[] memory royalties) external {
+    /// @dev sets royalties for token contract in royaltyInfosByToken mapping and royalties type = 1
+    function setRoyaltyInfosByToken(address token, PartLibrary.Part[] memory royalties) external {
         checkOwner(token);
         //clearing royaltiesProviders value for the token
         delete royaltiesProviders[token];
         // setting royaltiesType = 1 for the token
         setRoyaltiesType(token, 1, address(0));
         uint sumRoyalties = 0;
-        delete royaltiesByToken[token];
+        delete royaltyInfosByToken[token];
         for (uint i = 0; i < royalties.length; i++) {
-            require(royalties[i].account != address(0x0), "RoyaltiesByToken recipient should be present");
-            require(royalties[i].value != 0, "Royalty value for RoyaltiesByToken should be > 0");
-            royaltiesByToken[token].royalties.push(royalties[i]);
+            require(royalties[i].account != address(0x0), "RoyaltyInfosByToken recipient should be present");
+            require(royalties[i].value != 0, "Royalty value for RoyaltyInfosByToken should be > 0");
+            royaltyInfosByToken[token].royalties.push(royalties[i]);
             sumRoyalties += royalties[i].value;
         }
         require(sumRoyalties < 10000, "Set by token royalties sum more, than 100%");
-        royaltiesByToken[token].initialized = true;
-        emit RoyaltiesSetForContract(token, royalties);
+        royaltyInfosByToken[token].initialized = true;
+        emit RoyaltyInfosSetForContract(token, royalties);
     }
 
     /// @dev checks if msg.sender is owner of this contract or owner of the token contract
@@ -110,31 +112,31 @@ contract RoyaltiesRegistry is IRoyaltiesProvider, OwnableUpgradeable {
     }
 
     /// @dev calculates royalties type for token contract
-    function calculateRoyaltiesType(address token, address royaltiesProvider ) internal view returns(uint) {   
-        try IERC165Upgradeable(token).supportsInterface(RoyaltiesLibrary._INTERFACE_ID_ROYALTIES) returns(bool result) {
+    function calculateRoyaltiesType(address token, address royaltiesProvider) internal view returns (uint) {   
+        try IERC165Upgradeable(token).supportsInterface(RoyaltiesLibrary._INTERFACE_ID_ROYALTIES) returns (bool result) {
             if (result) {
                 return 2;
             }
         } catch { }
         
-        try IERC165Upgradeable(token).supportsInterface(LibRoyalties2981._INTERFACE_ID_ROYALTIES) returns(bool result) {
+        try IERC165Upgradeable(token).supportsInterface(Royalties2981Library._INTERFACE_ID_ROYALTIES) returns (bool result) {
             if (result) {
-                return 5;
+                return 4;
             }
         } catch { }
         
         if (royaltiesProvider != address(0)) {
-            return 4;
+            return 3;
         }
 
-        if (royaltiesByToken[token].initialized) {
+        if (royaltyInfosByToken[token].initialized) {
             return 1;
         }
 
-        return 6;
+        return 5;
     }
 
-    /// @dev returns royalties for token contract and token id
+    /// @dev returns royaltyInfos for token contract and token id
     function getRoyaltyInfos(address token, uint tokenId) override external returns (PartLibrary.Part[] memory) {
         uint royaltiesProviderData = royaltiesProviders[token];
 
@@ -150,9 +152,9 @@ contract RoyaltiesRegistry is IRoyaltiesProvider, OwnableUpgradeable {
             setRoyaltiesType(token, royaltiesType, royaltiesProvider);
         }
 
-        //case royaltiesType = 1, royalties are set in royaltiesByToken
+        //case royaltiesType = 1, royalties are set in royaltyInfosByToken
         if (royaltiesType == 1) {
-            return royaltiesByToken[token].royalties;
+            return royaltyInfosByToken[token].royalties;
         }
 
         //case royaltiesType = 2, royalties Oases
@@ -160,22 +162,22 @@ contract RoyaltiesRegistry is IRoyaltiesProvider, OwnableUpgradeable {
             return getRoyaltiesOases(token, tokenId);
         }
 
-        //case royaltiesType = 4, royalties from external provider
-        if (royaltiesType == 4) {
+        //case royaltiesType = 3, royalties from external provider
+        if (royaltiesType == 3) {
             return providerExtractor(token, tokenId, royaltiesProvider);
         }
 
-        //case royaltiesType = 5, royalties EIP-2981
-        if (royaltiesType == 5) {
+        //case royaltiesType = 4, royalties EIP-2981
+        if (royaltiesType == 4) {
             return getRoyaltiesEIP2981(token, tokenId);
         }
 
-        // case royaltiesType = 6, unknown/empty royalties
-        if (royaltiesType == 6) {
+        // case royaltiesType = 5, unknown/empty royalties
+        if (royaltiesType == 5) {
             return new PartLibrary.Part[](0);
         } 
 
-        revert("something wrong in getRoyalties");
+        revert("error in getRoyalties");
     }
 
     /// @dev tries to get royalties Oases for token and tokenId
@@ -190,8 +192,8 @@ contract RoyaltiesRegistry is IRoyaltiesProvider, OwnableUpgradeable {
 
     /// @dev tries to get royalties EIP-2981 for token and tokenId
     function getRoyaltiesEIP2981(address token, uint tokenId) internal view returns (PartLibrary.Part[] memory) {
-        try IERC2981(token).royaltyInfo(tokenId, LibRoyalties2981._WEIGHT_VALUE) returns (address receiver, uint256 royaltyAmount) {
-            return LibRoyalties2981.calculateRoyalties(receiver, royaltyAmount);
+        try IERC2981(token).royaltyInfo(tokenId, Royalties2981Library._WEIGHT_VALUE) returns (address receiver, uint256 royaltyAmount) {
+            return Royalties2981Library.calculateRoyalties(receiver, royaltyAmount);
         } catch {
             return new PartLibrary.Part[](0);
         }

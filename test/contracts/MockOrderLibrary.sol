@@ -36,7 +36,7 @@ contract MockOrderLibrary {
                 order.maker,
                 AssetLibrary.getHash(order.makeAsset),
                 order.taker,
-                AssetLibrary.getHash(order.makeAsset),
+                AssetLibrary.getHash(order.takeAsset),
                 order.salt,
                 order.startTime,
                 order.endTime,
