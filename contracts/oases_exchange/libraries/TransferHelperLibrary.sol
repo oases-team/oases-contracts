@@ -6,6 +6,6 @@ library TransferHelperLibrary {
     // helpful library for transfer from contract to an address as the receiver
     function transferEth(address receiver, uint256 amount) internal {
         (bool success,) = receiver.call{value: amount}("");
-        require(success, "bad transfer");
+        require(success, "bad eth transfer");
     }
 }

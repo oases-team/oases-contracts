@@ -1,5 +1,5 @@
 #!/bin/bash
 
 truffle test truffle test/test_files/TransferHelperLibrary-test.js \
-  test/contracts/MockSignatureLibrary.sol \
+  test/contracts/MockTransferHelperLibrary.sol \
   --compile-all
