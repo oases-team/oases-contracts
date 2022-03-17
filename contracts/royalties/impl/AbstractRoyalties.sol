@@ -24,7 +24,7 @@ abstract contract AbstractRoyalties {
         uint length = royaltyInfos[_id].length;
         for(uint i = 0; i < length; i++) {
             if (royaltyInfos[_id][i].account == _from) {
-                royaltyInfos[_id][i].account = payable(address(uint160(_to)));
+                royaltyInfos[_id][i].account = payable(_to);
             }
         }
     }

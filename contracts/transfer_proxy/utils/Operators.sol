@@ -8,8 +8,7 @@ contract Operators is OwnableUpgradeable {
     mapping(address => bool) operators;
 
     function __Operators_init() external initializer {
-        __Context_init_unchained();
-        __Ownable_init_unchained();
+        __Ownable_init();
     }
 
     function addOperator(address operatorAddress) external onlyOwner {
