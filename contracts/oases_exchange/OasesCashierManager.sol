@@ -14,7 +14,6 @@ import "../tokens/erc1155/libraries/ERC1155LazyMintLibrary.sol";
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-// todo: developing. not done
 abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
     using BasisPointLibrary for uint256;
 
@@ -27,7 +26,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         uint256 newProtocolFeeBasisPoint,
         address newDefaultFeeReceiver,
         IRoyaltiesProvider newRoyaltiesProvider
-    ) internal initializer {
+    ) internal onlyInitializing {
         protocolFeeBasisPoint = newProtocolFeeBasisPoint;
         defaultFeeReceiver = newDefaultFeeReceiver;
         royaltiesProvider = newRoyaltiesProvider;
@@ -197,14 +196,14 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
             false,
             rest,
             amountToCalculate,
-            nftType,
+            paymentType,
             nftData.originFeeInfos,
             ORIGIN_FEE,
             direction
         );
         transferPayment(
             payer,
-            amountToCalculate,
+            rest,
             paymentType,
             nftData.payoutInfos,
             direction
@@ -282,7 +281,8 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
                 }),
                     payer,
                     feeInfos[i].account,
-                    transferType, direction
+                    transferType,
+                    direction
                 );
             }
         }
@@ -333,7 +333,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
             ROYALTY,
             direction
         );
-        // todo: confirm the percentage with PD
+
         require(totalFeeBasisPoints <= 5000, "royalties sum exceeds 50%");
 
         return rest;
@@ -363,8 +363,8 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
                 }),
                     payer,
                     paymentInfos[i].account,
-                    direction,
-                    PAYMENT
+                    PAYMENT,
+                    direction
                 );
             }
         }
@@ -381,8 +381,8 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
             }),
                 payer,
                 paymentInfos[lastPartIndex].account,
-                direction,
-                PAYMENT
+                PAYMENT,
+                direction
             );
         }
     }
