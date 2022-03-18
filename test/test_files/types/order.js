@@ -8,6 +8,10 @@ function Part(account, value) {
     return {account, value}
 }
 
+function Data(payoutInfos, originFeeInfos, isMakeFill) {
+    return {payoutInfos, originFeeInfos, isMakeFill}
+}
+
 function AssetType(assetClass, data) {
     return {assetClass, data}
 }
@@ -67,4 +71,4 @@ function getZeroOrder() {
         EMPTY_DATA)
 }
 
-module.exports = {Part, AssetType, Asset, Order, sign, getZeroOrder, ZERO_ASSET_CLASS, EMPTY_DATA, EMPTY_BYTES4}
+module.exports = {Part, AssetType, Data, Asset, Order, sign, getZeroOrder, ZERO_ASSET_CLASS, EMPTY_DATA, EMPTY_BYTES4}

@@ -196,14 +196,14 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
             false,
             rest,
             amountToCalculate,
-            nftType,
+            paymentType,
             nftData.originFeeInfos,
             ORIGIN_FEE,
             direction
         );
         transferPayment(
             payer,
-            amountToCalculate,
+            rest,
             paymentType,
             nftData.payoutInfos,
             direction

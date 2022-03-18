@@ -284,4 +284,29 @@ contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier 
         return rest;
     }
 
+    function mockTransferPaymentWithFeesAndRoyalties(
+        address payer,
+        uint256 amountToCalculate,
+        OrderDataLibrary.Data memory paymentData,
+        OrderDataLibrary.Data memory nftData,
+        AssetLibrary.AssetType memory paymentType,
+        AssetLibrary.AssetType memory nftType,
+        bytes4 direction
+    )
+    external
+    payable
+    returns
+    (uint256 totalAmount)
+    {
+        totalAmount = transferPaymentWithFeesAndRoyalties(
+            payer,
+            amountToCalculate,
+            paymentData,
+            nftData,
+            paymentType,
+            nftType,
+            direction
+        );
+    }
+
 }
