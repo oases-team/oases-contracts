@@ -426,23 +426,24 @@ contract("test OasesCashierManager.sol", accounts => {
             assert.equal(await mockERC20_1.balanceOf(accounts[0]), 100000)
 
             // set royalty info into MockRoyaltiesRegistry
-            let royaltyInfo = [Part(accounts[1], 1000), Part(accounts[2], 2000)]
+            let royaltyInfo = [Part(accounts[1], 1000)]
             await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
             await mockOasesCashierManager.mockTransferRoyalties(
                 accounts[0], 100000, 10000, royaltyType, nftType, EMPTY_BYTES4)
 
-            assert.equal(await mockERC20_1.balanceOf(accounts[0]), 97000)
+            assert.equal(await mockERC20_1.balanceOf(accounts[0]), 99000)
             assert.equal(await mockERC20_1.balanceOf(accounts[1]), 1000)
-            assert.equal(await mockERC20_1.balanceOf(accounts[2]), 2000)
 
-            // set royalty info into MockRoyaltiesRegistry
-            royaltyInfo = [Part(accounts[3], 4999)]
+            // append royalty info into MockRoyaltiesRegistry
+            royaltyInfo = [Part(accounts[2], 1500), Part(accounts[3], 2000)]
             await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
             await mockOasesCashierManager.mockTransferRoyalties(
                 accounts[0], 100000, 10000, royaltyType, nftType, EMPTY_BYTES4)
 
-            assert.equal(await mockERC20_1.balanceOf(accounts[0]), 97000 - 4999)
-            assert.equal(await mockERC20_1.balanceOf(accounts[3]), 4999)
+            assert.equal(await mockERC20_1.balanceOf(accounts[0]), 99000 - 1000 - 1500 - 2000)
+            assert.equal(await mockERC20_1.balanceOf(accounts[1]), 1000 + 1000)
+            assert.equal(await mockERC20_1.balanceOf(accounts[2]), 1500)
+            assert.equal(await mockERC20_1.balanceOf(accounts[3]), 2000)
 
             // sum of royalty bps is over 5000
             // set royalty info into MockRoyaltiesRegistry
@@ -454,20 +455,152 @@ contract("test OasesCashierManager.sol", accounts => {
                 'royalties sum exceeds 50%'
             )
 
-
             /* check returns with function mockTransferRoyaltiesView() */
             // set royalty info into MockRoyaltiesRegistry
-            royaltyInfo = [Part(accounts[1], 1000), Part(accounts[2], 2000)]
+            royaltyInfo = [Part(accounts[1], 1000)]
             await mockOasesCashierManager.setMockNFTRoyaltyInfos(royaltyInfo)
             let res = await mockOasesCashierManager.mockTransferRoyaltiesView(
                 accounts[0], 100000, 10000, royaltyType, nftType, EMPTY_BYTES4)
-            assert.equal(res, 100000 - 1000 - 2000)
+            assert.equal(res, 100000 - 1000)
 
-            royaltyInfo = [Part(accounts[3], 4999)]
+            royaltyInfo = [Part(accounts[2], 1500), Part(accounts[3], 2000)]
             await mockOasesCashierManager.setMockNFTRoyaltyInfos(royaltyInfo)
-            res = await mockOasesCashierManager.mockTransferRoyalties(
+            res = await mockOasesCashierManager.mockTransferRoyaltiesView(
                 accounts[0], 100000, 10000, royaltyType, nftType, EMPTY_BYTES4)
-            assert.equal(res, 100000 - 4999)
+            assert.equal(res, 100000 - 1000 - 1500 - 2000)
+        })
+
+        it("transfer the royalty of erc721 with erc1155 as fee", async () => {
+            await mockERC1155.mint(accounts[0], erc1155TokenId_1, 20000)
+            await mockERC1155.setApprovalForAll(mockNFTTransferProxy.address, true)
+            const royaltyType = AssetType(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1))
+            const nftType = AssetType(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1))
+            // no royalty info in MockRoyaltiesRegistry
+            await mockOasesCashierManager.mockTransferRoyalties(
+                accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4)
+
+            assert.equal(await mockERC1155.balanceOf(accounts[0], erc1155TokenId_1), 20000)
+
+            // set royalty info into MockRoyaltiesRegistry
+            let royaltyInfo = [Part(accounts[1], 1000)]
+            await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
+            await mockOasesCashierManager.mockTransferRoyalties(
+                accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4)
+
+            assert.equal(await mockERC1155.balanceOf(accounts[0], erc1155TokenId_1), 19000)
+            assert.equal(await mockERC1155.balanceOf(accounts[1], erc1155TokenId_1), 1000)
+
+            // append royalty info into MockRoyaltiesRegistry
+            royaltyInfo = [Part(accounts[2], 1500), Part(accounts[3], 2000)]
+            await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
+            await mockOasesCashierManager.mockTransferRoyalties(
+                accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4)
+
+            assert.equal(await mockERC1155.balanceOf(accounts[0], erc1155TokenId_1), 19000 - 1000 - 1500 - 2000)
+            assert.equal(await mockERC1155.balanceOf(accounts[1], erc1155TokenId_1), 1000 + 1000)
+            assert.equal(await mockERC1155.balanceOf(accounts[2], erc1155TokenId_1), 1500)
+            assert.equal(await mockERC1155.balanceOf(accounts[3], erc1155TokenId_1), 2000)
+
+            // sum of royalty bps is over 5000
+            // set royalty info into MockRoyaltiesRegistry
+            royaltyInfo = [Part(accounts[4], 5000)]
+            await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
+            await expectThrow(
+                mockOasesCashierManager.mockTransferRoyalties(
+                    accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4),
+                'royalties sum exceeds 50%'
+            )
+
+            /* check returns with function mockTransferRoyaltiesView() */
+            // set royalty info into MockRoyaltiesRegistry
+            royaltyInfo = [Part(accounts[1], 1000)]
+            await mockOasesCashierManager.setMockNFTRoyaltyInfos(royaltyInfo)
+            let res = await mockOasesCashierManager.mockTransferRoyaltiesView(
+                accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4)
+            assert.equal(res, 20000 - 1000)
+
+            royaltyInfo = [Part(accounts[2], 1500), Part(accounts[3], 2000)]
+            await mockOasesCashierManager.setMockNFTRoyaltyInfos(royaltyInfo)
+            res = await mockOasesCashierManager.mockTransferRoyaltiesView(
+                accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4)
+            assert.equal(res, 19000 - 1500 - 2000)
+        })
+
+        it("transfer the royalty of erc721 with eth as fee", async () => {
+            const royaltyType = AssetType(ETH_CLASS, EMPTY_DATA)
+            const nftType = AssetType(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1))
+            // no royalty info in MockRoyaltiesRegistry
+            await verifyBalanceChange(accounts[0], 10000, () =>
+                verifyBalanceChange(mockOasesCashierManager.address, -10000, () =>
+                    mockOasesCashierManager.mockTransferRoyalties(
+                        accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4, {value: 10000, gasPrice: '0x'}
+                    )
+                )
+            )
+
+            // set royalty info into MockRoyaltiesRegistry
+            let royaltyInfo = [Part(accounts[1], 1000)]
+            await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
+            await verifyBalanceChange(accounts[1], -1000, () =>
+                verifyBalanceChange(accounts[0], 10000, () =>
+                    verifyBalanceChange(mockOasesCashierManager.address, -9000, () =>
+                        mockOasesCashierManager.mockTransferRoyalties(
+                            accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4, {
+                                value: 10000,
+                                gasPrice: '0x'
+                            }
+                        )
+                    )
+                )
+            )
+
+            // append royalty info into MockRoyaltiesRegistry
+            royaltyInfo = [Part(accounts[2], 1500), Part(accounts[3], 2000)]
+            await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
+            await verifyBalanceChange(accounts[0], 10000, () =>
+                verifyBalanceChange(accounts[1], -1000, () =>
+                    verifyBalanceChange(accounts[2], -1500, () =>
+                        verifyBalanceChange(accounts[3], -2000, () =>
+                            verifyBalanceChange(mockOasesCashierManager.address, -5500, () =>
+                                mockOasesCashierManager.mockTransferRoyalties(
+                                    accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4, {
+                                        value: 10000,
+                                        gasPrice: '0x'
+                                    }
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+
+            // sum of royalty bps is over 5000
+            // set royalty info into MockRoyaltiesRegistry
+            royaltyInfo = [Part(accounts[4], 5000)]
+            await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
+            await expectThrow(
+                mockOasesCashierManager.mockTransferRoyalties(
+                    accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4, {
+                        value: 10000,
+                        gasPrice: '0x'
+                    }
+                ),
+                'royalties sum exceeds 50%'
+            )
+
+            /* check returns with function mockTransferRoyaltiesView() */
+            // set royalty info into MockRoyaltiesRegistry
+            royaltyInfo = [Part(accounts[1], 1000)]
+            await mockOasesCashierManager.setMockNFTRoyaltyInfos(royaltyInfo)
+            let res = await mockOasesCashierManager.mockTransferRoyaltiesView(
+                accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4)
+            assert.equal(res, 20000 - 1000)
+
+            royaltyInfo = [Part(accounts[2], 1500), Part(accounts[3], 2000)]
+            await mockOasesCashierManager.setMockNFTRoyaltyInfos(royaltyInfo)
+            res = await mockOasesCashierManager.mockTransferRoyaltiesView(
+                accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4)
+            assert.equal(res, 20000 - 1000 - 1500 - 2000)
         })
     })
     // describe("test allocateAssets()", () => {
