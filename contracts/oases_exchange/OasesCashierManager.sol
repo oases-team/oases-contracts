@@ -281,7 +281,8 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
                 }),
                     payer,
                     feeInfos[i].account,
-                    transferType, direction
+                    transferType,
+                    direction
                 );
             }
         }
@@ -332,7 +333,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
             ROYALTY,
             direction
         );
-        // todo: confirm the percentage with PD
+
         require(totalFeeBasisPoints <= 5000, "royalties sum exceeds 50%");
 
         return rest;
@@ -362,8 +363,8 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
                 }),
                     payer,
                     paymentInfos[i].account,
-                    direction,
-                    PAYMENT
+                    PAYMENT,
+                    direction
                 );
             }
         }
@@ -380,8 +381,8 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
             }),
                 payer,
                 paymentInfos[lastPartIndex].account,
-                direction,
-                PAYMENT
+                PAYMENT,
+                direction
             );
         }
     }

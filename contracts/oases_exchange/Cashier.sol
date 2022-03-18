@@ -32,8 +32,8 @@ abstract contract Cashier is OwnableUpgradeable, ICashier {
         AssetLibrary.Asset memory asset,
         address from,
         address to,
-        bytes4 direction,
-        bytes4 transferType
+        bytes4 transferType,
+        bytes4 direction
     )
     internal
     override
