@@ -1,9 +1,9 @@
-const MockOrderLibrary = artifacts.require("MockOrderLibrary.sol");
-const order = require("./types/order");
-const {expectThrow} = require("./utils/expect_throw");
-const {generateRandomAddress} = require("./utils/signature");
-const {getRandomInteger, getCurrentTimestamp} = require("./utils/utils");
-const {ERC20_CLASS, ERC721_CLASS} = require("./types/assets");
+const MockOrderLibrary = artifacts.require("MockOrderLibrary.sol")
+const order = require("./types/order")
+const {expectThrow} = require("./utils/expect_throw")
+const {generateRandomAddress} = require("./utils/signature")
+const {getRandomInteger, getCurrentTimestamp} = require("./utils/utils")
+const {ERC20_CLASS, ERC721_CLASS} = require("./types/assets")
 
 contract("test OrderLibrary.sol", accounts => {
     let mockOrderLibrary

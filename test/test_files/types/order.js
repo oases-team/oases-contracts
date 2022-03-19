@@ -2,6 +2,15 @@ const Eip712 = require("../utils/eip712");
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 const ZERO_ASSET_CLASS = '0x00000000'
 const EMPTY_DATA = '0x'
+const EMPTY_BYTES4 = ZERO_ASSET_CLASS
+
+function Part(account, value) {
+    return {account, value}
+}
+
+function Data(payoutInfos, originFeeInfos, isMakeFill) {
+    return {payoutInfos, originFeeInfos, isMakeFill}
+}
 
 function AssetType(assetClass, data) {
     return {assetClass, data}
@@ -62,4 +71,4 @@ function getZeroOrder() {
         EMPTY_DATA)
 }
 
-module.exports = {AssetType, Asset, Order, sign, getZeroOrder, ZERO_ASSET_CLASS, EMPTY_DATA}
+module.exports = {Part, AssetType, Data, Asset, Order, sign, getZeroOrder, ZERO_ASSET_CLASS, EMPTY_DATA, EMPTY_BYTES4}
