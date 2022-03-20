@@ -18,7 +18,7 @@ library ERC721LazyMintLibrary {
     bytes4 constant _INTERFACE_ID_MINT_AND_TRANSFER = 0x8486f69f;
     bytes32 public constant ERC721_LAZY_MINT_DATA_TYPEHASH =
         keccak256(
-            "ERC721LazyMintData(uint256 tokenId,string tokenURI,Part[] creatorInfos,Part[] royaltyInfos)Part(address account,uint96 value)"
+            "Mint721(uint256 tokenId,string tokenURI,Part[] creators,Part[] royalties)Part(address account,uint96 value)"
         );
 
     function getHash(ERC721LazyMintData memory erc721LazyMintData) internal pure returns (bytes32) {

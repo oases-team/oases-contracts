@@ -14,7 +14,8 @@ const Types = {
 };
 
 async function sign(account, tokenId, tokenURI, creators, royalties, verifyingContract) {
-	const chainId = Number(await web3.eth.getChainId());
+	// const chainId = Number(await web3.eth.getChainId());
+	const chainId = Number(1);
 	const data = createTypeData({
 		name: "Mint721",
 		chainId,

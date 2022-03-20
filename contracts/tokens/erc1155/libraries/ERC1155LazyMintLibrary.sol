@@ -19,7 +19,7 @@ library ERC1155LazyMintLibrary {
     // todo: rename '_INTERFACE_ID_MINT_AND_TRANSFER' and calculate the value later
     bytes4 constant _INTERFACE_ID_MINT_AND_TRANSFER = 0x6db15a0f;
     bytes32 public constant ERC1155_LAZY_MINT_DATA_TYPEHASH = keccak256(
-        "ERC1155LazyMintData(uint256 tokenId,uint256 supply,string tokenURI,Part[] creatorInfos,Part[] royaltyInfos)Part(address account,uint96 value)"
+        "Mint1155(uint256 tokenId,uint256 supply,string tokenURI,Part[] creators,Part[] royalties)Part(address account,uint96 value)"
     );
 
     function getHash(ERC1155LazyMintData memory erc1155LazyMintData) internal pure returns (bytes32) {
