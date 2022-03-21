@@ -50,7 +50,9 @@ const Types = {
 };
 
 async function sign(order, account, verifyingContract) {
-    const chainId = Number(await web3.eth.getChainId());
+    // const chainId = Number(await web3.eth.getChainId());
+    // for truffle test on ganache-cli
+    const chainId = Number(1);
     const data = Eip712.createTypeData({
         name: "OasesExchange",
         version: "1",

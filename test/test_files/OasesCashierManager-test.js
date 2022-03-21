@@ -23,6 +23,13 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 const ETH_FLAG_ADDRESS = ZERO_ADDRESS
 
 contract("test OasesCashierManager.sol", accounts => {
+    const defaultFeeReceiver = accounts[9]
+    const protocolFeeReceiver = accounts[8]
+    const erc721TokenId_1 = getRandomInteger(0, 10000)
+    const erc721TokenId_2 = erc721TokenId_1 + 1
+    const erc1155TokenId_1 = getRandomInteger(0, 10000)
+    const erc1155TokenId_2 = erc1155TokenId_1 + 1
+
     let mockOasesCashierManager
     let mockERC20_1
     let mockERC20_2
@@ -31,12 +38,6 @@ contract("test OasesCashierManager.sol", accounts => {
     let mockNFTTransferProxy
     let mockERC20TransferProxy
     let mockRoyaltiesRegistry
-    let defaultFeeReceiver = accounts[9]
-    let protocolFeeReceiver = accounts[8]
-    let erc721TokenId_1 = getRandomInteger(0, 10000)
-    let erc721TokenId_2 = erc721TokenId_1 + 1
-    let erc1155TokenId_1 = getRandomInteger(0, 10000)
-    let erc1155TokenId_2 = erc1155TokenId_1 + 1
 
     function encodeDataV1(object) {
         return mockOasesCashierManager.encodeDataV1(object)
