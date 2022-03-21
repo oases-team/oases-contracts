@@ -31,8 +31,6 @@ abstract contract ERC721BurnableUpgradeable is
      */
     function burn(uint256 tokenId) public virtual {
         if (!_exists(tokenId)) {
-            // TODO:
-            // address owner = address(tokenId >> 96);
             address owner = address(uint160(tokenId >> 96));
             require(
                 owner == _msgSender(),

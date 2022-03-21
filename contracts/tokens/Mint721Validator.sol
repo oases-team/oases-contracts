@@ -7,6 +7,8 @@ import "./erc721/libraries/ERC721LazyMintLibrary.sol";
 
 contract Mint721Validator is ERC1271Validator {
     function __Mint721Validator_init_unchained() internal onlyInitializing {
+        // TODO:
+        // FIXME:
         __EIP712_init_unchained("Mint721", "1");
     }
 

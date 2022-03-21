@@ -43,7 +43,7 @@ contract RoyaltiesRegistry is IRoyaltiesProvider, OwnableUpgradeable {
     /// @dev sets external provider for token contract, and royalties type = 3
     function setProviderByToken(address token, address provider) external {
         checkOwner(token);
-        setRoyaltiesType(token, 4, provider);
+        setRoyaltiesType(token, 3, provider);
     }
 
     /// @dev returns provider address for token contract from royaltiesProviders mapping
@@ -208,5 +208,5 @@ contract RoyaltiesRegistry is IRoyaltiesProvider, OwnableUpgradeable {
         }
     }
 
-    uint256[46] private __gap;
+    uint256[50] private __gap;
 }
