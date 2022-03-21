@@ -3,6 +3,7 @@
 pragma solidity 0.8.8;
 pragma abicoder v2;
 
+import "../../contracts/tokens/erc721/ERC721Upgradeable.sol";
 import "../../contracts/royalties/interfaces/IERC2981.sol";
 import "../../contracts/royalties/libraries/Royalties2981Library.sol";
 import "../../contracts/common_libraries/PartLibrary.sol";
