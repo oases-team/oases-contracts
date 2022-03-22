@@ -84,5 +84,5 @@ abstract contract Cashier is OwnableUpgradeable, ICashier {
         emit SetTransferProxy(assetType, transferProxyAddress);
     }
 
-    uint256[49] private __gap;
+    uint256[50] private __gap;
 }
