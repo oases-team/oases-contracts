@@ -130,10 +130,14 @@ contract ERC721Oases is ERC721OasesBase {
         super.mintAndTransfer(erc721LazyMintData, to);
     }
 
-    // set price by the token's owner
+    // set price by the token's owner or approved
     // NOTE: it means not for sale when the price is set to ZERO
     function setPrice(uint256 tokenId, uint256 price) public {
         require(ownerOf(tokenId) == msg.sender, "no qualification");
+        _setPrice(tokenId, price);
+    }
+
+    function _setPrice(uint256 tokenId, uint256 price) internal {
         prices[tokenId] = price;
         emit PriceChanged(tokenId, price);
     }
@@ -160,6 +164,46 @@ contract ERC721Oases is ERC721OasesBase {
     function getPrice(uint256 tokenId) public view returns (uint256) {
         require(_exists(tokenId), "token not exists");
         return prices[tokenId];
+    }
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) 
+    public 
+    virtual 
+    override 
+    {
+        super.transferFrom(from, to, tokenId);
+        _setPrice(tokenId, 0);
+    }
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) 
+    public 
+    virtual 
+    override 
+    {
+        super.safeTransferFrom(from, to, tokenId);
+        _setPrice(tokenId, 0);
+    }
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory _data
+    ) 
+    public 
+    virtual 
+    override 
+    {
+        super.safeTransferFrom(from, to, tokenId, _data);
+        _setPrice(tokenId, 0);
     }
 
     uint256[50] private __gap;

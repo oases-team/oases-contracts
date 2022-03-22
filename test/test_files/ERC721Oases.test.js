@@ -451,6 +451,64 @@ contract("ERC721Oases", accounts => {
     assert.equal(await token.ownerOf(tokenId), transferTo);
   });
 
+  describe("trade onchain", () => {
+    it("mintWithPrice, setPrice", async () => {
+      const minter = accounts[1];
+      const tokenId = minter + "b00000000000000000000001";
+      const tokenURI = "//uri";
+      let result = await token.mintWithPrice([tokenId, tokenURI, creators([minter]), [], [zeroWord]], minter, 1000, {from: minter});
+      assert.equal(await token.ownerOf(tokenId), minter);
+      truffleAssert.eventEmitted(result, 'PriceChanged', (ev) => {
+        const id = ("0x" + BigInt(ev.tokenId).toString(16)).toLowerCase()
+        return id == tokenId.toLowerCase() && +ev.newPrice == 1000;
+      });
+      result = await token.setPrice(tokenId, 0, { from: minter });
+      truffleAssert.eventEmitted(result, 'PriceChanged', (ev) => {
+        const id = ("0x" + BigInt(ev.tokenId).toString(16)).toLowerCase()
+        return id == tokenId.toLowerCase() && +ev.newPrice == 0;
+      });
+    });
+    it("mintWithPrice, price is zero", async () => {
+      const minter = accounts[1];
+      const tokenId = minter + "b00000000000000000000001";
+      const tokenURI = "//uri";
+      await expectThrow(
+        token.mintWithPrice([tokenId, tokenURI, creators([minter]), [], [zeroWord]], minter, 0, {from: minter}),
+        "price is zero"
+      );
+    });
+    it("mintWithPrice, setPrice call by not owner or approved", async () => {
+      const minter = accounts[1];
+      const caller = accounts[2]
+      const tokenId = minter + "b00000000000000000000001";
+      const tokenURI = "//uri";
+      await token.mintWithPrice([tokenId, tokenURI, creators([minter]), [], [zeroWord]], minter, 1000, {from: minter});
+      await expectThrow(
+        token.setPrice(tokenId, 10, { from: caller }),
+        "no qualification"
+      );
+    });
+    it("mintWithPrice, set price to 0 when transfer", async() => {
+      const minter = accounts[1];
+      const transferTo = accounts[2]
+      const tokenId = minter + "b00000000000000000000001";
+      const tokenURI = "//uri";
+      let result = await token.mintWithPrice([tokenId, tokenURI, creators([minter]), [], [zeroWord]], minter, 1000, {from: minter});
+      assert.equal(await token.ownerOf(tokenId), minter);
+      truffleAssert.eventEmitted(result, 'PriceChanged', (ev) => {
+        const id = ("0x" + BigInt(ev.tokenId).toString(16)).toLowerCase()
+        return id == tokenId.toLowerCase() && +ev.newPrice == 1000;
+      });
+      let tx = await token.transferFrom(minter, transferTo, tokenId, { from: minter });
+      assert.equal(await token.ownerOf(tokenId), transferTo);
+      truffleAssert.eventEmitted(tx, 'PriceChanged', (ev) => {
+        const id = ("0x" + BigInt(ev.tokenId).toString(16)).toLowerCase()
+        return id == tokenId.toLowerCase() && +ev.newPrice == 0;
+      });
+      assert.equal(await token.getPrice(tokenId), 0)
+    });
+  });
+
   function getSignature(tokenId, tokenURI, creators, fees, account) {
 		return sign(account, tokenId, tokenURI, creators, fees, token.address);
   }
