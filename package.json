@@ -21,6 +21,7 @@
   "homepage": "https://github.com/l2labs/oases-contracts#readme",
   "dependencies": {
     "@openzeppelin/contracts-upgradeable": "4.4.2",
+    "@truffle/hdwallet-provider": "^2.0.4",
     "ethereumjs-util": "^7.1.4"
   },
   "devDependencies": {
