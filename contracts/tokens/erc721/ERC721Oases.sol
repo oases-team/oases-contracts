@@ -130,7 +130,7 @@ contract ERC721Oases is ERC721OasesBase {
         super.mintAndTransfer(erc721LazyMintData, to);
     }
 
-    // set price by the token's owner or approved
+    // set price by the token's owner
     // NOTE: it means not for sale when the price is set to ZERO
     function setPrice(uint256 tokenId, uint256 price) public {
         require(ownerOf(tokenId) == msg.sender, "no qualification");
