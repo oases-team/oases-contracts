@@ -107,5 +107,5 @@ abstract contract AssetTypeMatcher is OwnableUpgradeable {
         }
     }
 
-    uint256[49] private __gap;
+    uint256[50] private __gap;
 }
