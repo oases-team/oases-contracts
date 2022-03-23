@@ -18,10 +18,10 @@
  *
  */
 
-// const HDWalletProvider = require('@truffle/hdwallet-provider');
-//
-// const fs = require('fs');
-// const mnemonic = fs.readFileSync(".secret").toString().trim();
+const HDWalletProvider = require('@truffle/hdwallet-provider')
+
+const fs = require('fs')
+const mnemonic = fs.readFileSync(".secret").toString().trim()
 
 module.exports = {
     /**
@@ -40,7 +40,15 @@ module.exports = {
         // You should run a client (like ganache-cli, geth or parity) in a separate terminal
         // tab if you use this network and you must also set the `host`, `port` and `network_id`
         // options below to some value.
-        //
+        goerli: {
+            provider: () => new HDWalletProvider(mnemonic, `https://goerli.infura.io/v3/f8325ce89e174f40b4357a79682a46d1`),
+            network_id: 5,
+            gas: 5500000,
+            // confirmations: 2,
+            // timeoutBlocks: 200,
+            gasPrice: 3000000000,  // 20 gwei (in wei) (default: 100 gwei)
+            skipDryRun: true
+        },
         development: {
             host: "127.0.0.1",     // Localhost (default: none)
             port: 8545,            // Standard Ethereum port (default: none)
