@@ -18,15 +18,14 @@ contract RoyaltiesImpl is AbstractRoyalties, Royalties {
         emit RoyaltyInfosSet(id, _royaltyInfos);
     }
     
-    function transferRoyalties(uint256 tokenId, uint256 price) internal returns (uint256 rest, uint256 totalFee) {
-        PartLibrary.Part[] storage royaltyInfo = royaltyInfos[tokenId];
+    function transferRoyalties(uint256 tokenId, uint256 price) internal returns (uint256 rest) {
+        PartLibrary.Part[] memory royaltyInfo = royaltyInfos[tokenId];
         rest = price;
         uint256 fee;
         for (uint256 i = 0; i < royaltyInfo.length; ++i) {
             (rest, fee) = deductFeeWithBasisPoint(rest, price, royaltyInfo[i].value);
             if (fee > 0) {
                 royaltyInfo[i].account.transferEth(fee);
-                totalFee += fee;
             }
         }
     }

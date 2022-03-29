@@ -154,7 +154,7 @@ contract ERC721Oases is ERC721OasesBase {
         // clear price
         prices[tokenId] = 0;
         // transfer payment
-        (uint256 rest,) = transferRoyalties(tokenId, price);
+        uint256 rest = transferRoyalties(tokenId, price);
         if (rest > 0) {
             originalOwner.transferEth(rest);
         }
