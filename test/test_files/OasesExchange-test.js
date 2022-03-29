@@ -54,6 +54,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
     let mockNFTTransferProxy
     let mockERC20TransferProxy
     let mockOrderLibrary
+    let mockRoyaltiesRegistry
 //     let protocol = accounts[9];
 //     let community = accounts[8];
 //     const eth = "0x0000000000000000000000000000000000000000";
@@ -88,11 +89,10 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
         mockERC20_1 = await MockERC20.new()
         mockERC20_2 = await MockERC20.new()
         // ERC721
-        mockERC721 = await MockERC721.new("MockERC721", "M721", "https://erc721mock.com")
+        mockERC721 = await MockERC721.new()
         // ERC1155
-        // mockERC1155 = await MockERC1155.new("https://erc1155mock.com")
+        mockERC1155 = await MockERC1155.new()
         await oasesExchange.setFeeReceiver(ETH_FLAG_ADDRESS, protocolFeeReceiver)
-        // await oasesExchange.setFeeReceiver(t1.address, protocol)
     })
 
     describe("test matchOrders()", () => {
@@ -179,7 +179,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             )
         })
 
-        it("eth orders work. rest is returned to taker (other side) ", async () => {
+        it("eth orders work. rest is returned to taker (other side)", async () => {
             await mockERC20_1.mint(accounts[1], 100)
             await mockERC20_1.approve(mockERC20TransferProxy.address, 100, {from: accounts[1]})
 
@@ -344,7 +344,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
         // })
 
         describe("test matchOrders() with orders dataType == V1", () => {
-            it("From erc20(100) to erc20(200) Protocol, Origin fees, no Royalties ", async () => {
+            it("From erc20(100) to erc20(200) Protocol, Origin fees, no Royalties", async () => {
                 const {leftOrder, rightOrder} = await gen2O_20Orders(11111, 22222, 100, 200)
 
                 await oasesExchange.matchOrders(
@@ -420,8 +420,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 return {leftOrder, rightOrder}
             }
 
-            it("From erc721(DataV1) to erc20(NO DataV1) Protocol, Origin fees, no Royalties ", async () => {
-                const {leftOrder, rightOrder} = await prepare721DV1_20rders(2000)
+            it("From erc721(DataV1) to erc20(NO DataV1) Protocol, Origin fees, no Royalties", async () => {
+                const {leftOrder, rightOrder} = await gen721DV1_20rders(2000)
 
                 await oasesExchange.matchOrders(
                     leftOrder,
@@ -445,7 +445,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 assert.equal(await mockERC20_2.balanceOf(communityAddress), 6)
             })
 
-            async function prepare721DV1_20rders(amount20) {
+            async function gen721DV1_20rders(amount20) {
                 await mockERC721.mint(accounts[1], erc721TokenId_1)
                 await mockERC20_2.mint(accounts[2], amount20)
                 await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
@@ -477,45 +477,74 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 return {leftOrder, rightOrder}
             }
 
-//
-//         it("From ERC20(DataV1) to ERC1155(RoyalytiV2, DataV1) Protocol, Origin fees, Royalties ", async () => {
-//             const { left, right } = await prepare20DV1_1155V2Orders()
-//
-//             await testing.matchOrders(left, await getSignature(left, accounts[1]), right, "0x", { from: accounts[2] });
-//
-//             assert.equal(await testing.fills(await libOrder.hashKey(left)), 7);
-//
-//             assert.equal(await t1.balanceOf(accounts[1]), 10);		//=120 - (100amount + 3byuerFee + 3originLeft + 4originleft)
-//             assert.equal(await t1.balanceOf(accounts[2]), 77);			//=100 - 3sellerFee - (10 +5)Royalties - 5originRight
-//
-//             assert.equal(await t1.balanceOf(accounts[3]), 3);			//originleft
-//             assert.equal(await t1.balanceOf(accounts[4]), 4);			//originleft
-//             assert.equal(await t1.balanceOf(accounts[5]), 5);			//originRight
-//             assert.equal(await t1.balanceOf(accounts[6]), 10);		//Royalties
-//             assert.equal(await t1.balanceOf(accounts[7]), 5);			//Royalties
-//             assert.equal(await erc1155_v2.balanceOf(accounts[1], erc1155TokenId1), 7);
-//             assert.equal(await erc1155_v2.balanceOf(accounts[2], erc1155TokenId1), 3);
-//             assert.equal(await t1.balanceOf(protocol), 6);
-//         })
-//
-//         async function prepare20DV1_1155V2Orders(t1Amount = 120, t2Amount = 10) {
-//             await t1.mint(accounts[1], t1Amount);
-//             await  erc1155_v2.mint(accounts[2], erc1155TokenId1, [], t2Amount);
-//             await t1.approve(erc20TransferProxy.address, 10000000, { from: accounts[1] });
-//             await  erc1155_v2.setApprovalForAll(transferProxy.address, true, {from: accounts[2]});
-//
-//             let addrOriginLeft = [[accounts[3], 300], [accounts[4], 400]];
-//             let addrOriginRight = [[accounts[5], 500]];
-//
-//             let encDataLeft = await encDataV1([ [[accounts[1], 10000]], addrOriginLeft ]);
-//             let encDataRight = await encDataV1([ [[accounts[2], 10000]], addrOriginRight ]);
-//
-//             await royaltiesRegistry.setRoyaltiesByToken(erc1155_v2.address, [[accounts[6], 1000], [accounts[7], 500]]); //set royalties by token
-//             const left = Order(accounts[1], Asset(ERC20, enc(t1.address), 100), ZERO, Asset(ERC1155, enc( erc1155_v2.address, erc1155TokenId1), 7), 1, 0, 0, ORDER_DATA_V1, encDataLeft);
-//             const right = Order(accounts[2], Asset(ERC1155, enc( erc1155_v2.address, erc1155TokenId1), 7), ZERO, Asset(ERC20, enc(t1.address), 100), 1, 0, 0, ORDER_DATA_V1, encDataRight);
-//             return { left, right }
-//         }
-//
+            it("From ERC20(DataV1) to ERC1155(DataV1, Royalties) Protocol, Origin fees, Royalties", async () => {
+                const {leftOrder, rightOrder} = await gen20DV1_1155V1Orders(3000, 100)
+
+                await oasesExchange.matchOrders(
+                    leftOrder,
+                    rightOrder,
+                    await getSignature(leftOrder, accounts[1]),
+                    "0x",
+                    {from: accounts[2]})
+
+                assert.equal(await oasesExchange.getFilledRecords(await mockOrderLibrary.getHashKey(leftOrder)), 1000)
+                assert.equal(await oasesExchange.getFilledRecords(await mockOrderLibrary.getHashKey(rightOrder)), 7)
+
+                assert.equal(await mockERC20_1.balanceOf(accounts[1]), 3000 - 1000 - 30 - 40 - 30)
+                assert.equal(await mockERC20_1.balanceOf(accounts[2]), 0)
+
+                assert.equal(await mockERC20_1.balanceOf(accounts[3]), 30)
+                assert.equal(await mockERC20_1.balanceOf(accounts[4]), 40)
+                assert.equal(await mockERC20_1.balanceOf(accounts[5]), 50)
+                assert.equal(await mockERC20_1.balanceOf(accounts[6]), 100)
+                assert.equal(await mockERC20_1.balanceOf(accounts[7]), 50)
+                assert.equal(await mockERC20_1.balanceOf(accounts[8]), 0)
+                assert.equal(await mockERC20_1.balanceOf(accounts[9]), 1000 - 30 - 50 - 100 - 50 + 30 * 2)
+                assert.equal(await mockERC1155.balanceOf(accounts[1], erc1155TokenId_2), 0)
+                assert.equal(await mockERC1155.balanceOf(accounts[8], erc1155TokenId_2), 7)
+                assert.equal(await mockERC1155.balanceOf(accounts[2], erc1155TokenId_2), 100 - 7)
+            })
+
+            async function gen20DV1_1155V1Orders(amount20, amount1155) {
+                await mockERC20_1.mint(accounts[1], amount20)
+                await mockERC1155.mint(accounts[2], erc1155TokenId_2, amount1155)
+                await mockERC20_1.approve(mockERC20TransferProxy.address, amount20, {from: accounts[1]})
+                await mockERC1155.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[2]})
+
+                const addOriginLeft = [[accounts[3], 300], [accounts[4], 400]]
+                const addOriginRight = [[accounts[5], 500]]
+
+                const encodedDataLeft = await encodeDataV1([[[accounts[8], 10000]], addOriginLeft, true])
+                const encodedDataRight = await encodeDataV1([[[accounts[9], 10000]], addOriginRight, true])
+
+                //set royalties by token
+                await mockRoyaltiesRegistry.setRoyaltiesByToken(mockERC1155.address, [[accounts[6], 1000], [accounts[7], 500]])
+                await oasesExchange.setFeeReceiver(mockERC20_1.address, protocolFeeReceiver)
+                const leftOrder = Order(
+                    accounts[1],
+                    Asset(ERC20_CLASS, encode(mockERC20_1.address), 1000),
+                    ZERO_ADDRESS,
+                    Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_2), 7),
+                    1,
+                    0,
+                    0,
+                    ORDER_V1_DATA_TYPE,
+                    encodedDataLeft
+                )
+                const rightOrder = Order(
+                    accounts[2],
+                    Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_2), 7),
+                    ZERO_ADDRESS,
+                    Asset(ERC20_CLASS, encode(mockERC20_1.address), 1000),
+                    1,
+                    0,
+                    0,
+                    ORDER_V1_DATA_TYPE,
+                    encodedDataRight
+                )
+                return {leftOrder, rightOrder}
+            }
+
 //         it("From ERC1155(RoyalytiV2, DataV1) to ERC20(DataV1):Protocol, Origin fees, Royalties ", async () => {
 //             const { left, right } = await prepare1155V1_20DV1Orders()
 //
