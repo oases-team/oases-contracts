@@ -11,6 +11,16 @@ const ERC1155_CLASS = calculateBytes4InContract('ERC1155_CLASS')
 const COLLECTION_CLASS = calculateBytes4InContract('COLLECTION_CLASS')
 const CRYPTO_PUNKS_CLASS = calculateBytes4InContract('CRYPTO_PUNKS_CLASS')
 
+// transfer direction
+const TO_MAKER_DIRECTION = calculateBytes4InContract("TO_MAKER_DIRECTION")
+const TO_TAKER_DIRECTION = calculateBytes4InContract("TO_TAKER_DIRECTION")
+
+// transfer type
+const PROTOCOL_FEE = calculateBytes4InContract("PROTOCOL_FEE_TYPE")
+const ROYALTY = calculateBytes4InContract("ROYALTY_TYPE")
+const ORIGIN_FEE = calculateBytes4InContract("ORIGIN_FEE_TYPE")
+const PAYMENT = calculateBytes4InContract("PAYMENT_TYPE")
+
 function encode(tokenAddress, tokenId) {
     if (tokenId) {
         return web3.eth.abi.encodeParameters(["address", "uint256"], [tokenAddress, tokenId])
@@ -27,5 +37,11 @@ module.exports = {
     ERC721_CLASS,
     ERC1155_CLASS,
     COLLECTION_CLASS,
-    CRYPTO_PUNKS_CLASS
+    CRYPTO_PUNKS_CLASS,
+    TO_MAKER_DIRECTION,
+    TO_TAKER_DIRECTION,
+    PROTOCOL_FEE,
+    ROYALTY,
+    ORIGIN_FEE,
+    PAYMENT,
 }
