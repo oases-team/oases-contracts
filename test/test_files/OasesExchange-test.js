@@ -1394,7 +1394,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 1,
                 0,
                 0,
-                "0xffffffff", "0x"
+                "0xffffffff",
+                EMPTY_DATA
             )
             return {leftOrder, rightOrder}
         }
@@ -1427,28 +1428,68 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             assert.equal(await mockERC20_2.balanceOf(communityAddress), 6)
         })
 
-//
-//         it("From ERC721(DataV1) to ERC20(NO DataV1) Protocol, Origin fees, no Royalties, payouts: 110%, throw", async () => {
-//             const { left, right } = await prepare721DV1_20_110CentsOrders()
-//
-//             await expectThrow(
-//                 testing.matchOrders(left, await getSignature(left, accounts[1]), right, "0x", { from: accounts[2] })
-//             );
-//
-//         })
-//
-//         async function prepare721DV1_20_110CentsOrders(t2Amount = 105) {
-//             await erc721.mint(accounts[1], erc721TokenId1);
-//             await t2.mint(accounts[2], t2Amount);
-//             await erc721.setApprovalForAll(transferProxy.address, true, {from: accounts[1]});
-//             await t2.approve(erc20TransferProxy.address, 10000000, { from: accounts[2] });
-//             let addrOriginLeft = [[accounts[3], 100], [accounts[4], 200]];
-//             let encDataLeft = await encDataV1([ [[accounts[1], 5000], [accounts[5], 6000]], addrOriginLeft ]);
-//             const left = Order(accounts[1], Asset(ERC721, enc(erc721.address, erc721TokenId1), 1), ZERO, Asset(ERC20, enc(t2.address), 100), 1, 0, 0, ORDER_DATA_V1, encDataLeft);
-//             const right = Order(accounts[2], Asset(ERC20, enc(t2.address), 100), ZERO, Asset(ERC721, enc(erc721.address, erc721TokenId1), 1), 1, 0, 0,  "0xffffffff", "0x");
-//             return { left, right }
-//         }
-//
+        it("From erc721(DataV1) to erc20(NO DataV1) Protocol, Origin fees, no Royalties, payouts: 110%, throw", async () => {
+            const {leftOrder, rightOrder} = await prepare721DV1_20_110CentsOrders(1000)
+
+            await expectThrow(
+                oasesExchange.matchOrders(
+                    leftOrder,
+                    rightOrder,
+                    await getSignature(leftOrder, accounts[1]),
+                    EMPTY_DATA,
+                    {from: accounts[2]}
+                ),
+                "total bp of payment is not 100%"
+            )
+        })
+
+        async function prepare721DV1_20_110CentsOrders(t2Amount) {
+            await mockERC721.mint(accounts[1], erc721TokenId_1)
+            await mockERC20_2.mint(accounts[2], t2Amount)
+            await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
+            await mockERC20_2.approve(mockERC20TransferProxy.address, t2Amount, {from: accounts[2]})
+            let addOriginLeft = [[accounts[3], 100], [accounts[4], 200]]
+            let encodedDataLeft = await encodeDataV1([[[accounts[1], 5000], [accounts[5], 5001]], addOriginLeft, true])
+            const leftOrder = Order(
+                accounts[1],
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                ZERO_ADDRESS,
+                Asset(ERC20_CLASS, encode(mockERC20_2.address), 100),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataLeft
+            )
+            const rightOrder = Order(
+                accounts[2],
+                Asset(ERC20_CLASS, encode(mockERC20_2.address), 100),
+                ZERO_ADDRESS,
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                1,
+                0,
+                0,
+                "0xffffffff",
+                EMPTY_DATA
+            )
+            return {leftOrder, rightOrder}
+        }
+
+        it("From erc20(NO DataV1) to erc721(DataV1) Protocol, Origin fees, no Royalties, payouts: 110%, throw", async () => {
+            const {leftOrder, rightOrder} = await prepare721DV1_20_110CentsOrders(1000)
+
+            await expectThrow(
+                oasesExchange.matchOrders(
+                    rightOrder,
+                    leftOrder,
+                    EMPTY_DATA,
+                    await getSignature(leftOrder, accounts[1]),
+                    {from: accounts[2]}
+                ),
+                "total bp of payment is not 100%"
+            )
+        })
+
 //         it("From ETH(DataV1) to ERC721(DataV1) Protocol, Origin fees,  no Royalties, payouts: 50/50%", async () => {
 //             await erc721.mint(accounts[1], erc721TokenId1);
 //             await erc721.setApprovalForAll(transferProxy.address, true, {from: accounts[1]});
