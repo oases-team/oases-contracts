@@ -11,7 +11,7 @@ import "../../contracts/royalties/interfaces/IRoyaltiesProvider.sol";
 
 contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier {
 
-    function encodeData(OrderDataLibrary.Data memory data) pure external returns (bytes memory) {
+    function encodeDataV1(OrderDataLibrary.Data memory data) pure external returns (bytes memory) {
         return abi.encode(data);
     }
 

@@ -1,8 +1,11 @@
 const Eip712 = require("../utils/eip712");
+const {calculateBytes4InContract} = require("./assets");
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 const ZERO_ASSET_CLASS = '0x00000000'
 const EMPTY_DATA = '0x'
 const EMPTY_BYTES4 = ZERO_ASSET_CLASS
+
+const ORDER_V1_DATA_TYPE = calculateBytes4InContract('V1')
 
 function Part(account, value) {
     return {account, value}
@@ -47,7 +50,9 @@ const Types = {
 };
 
 async function sign(order, account, verifyingContract) {
-    const chainId = Number(await web3.eth.getChainId());
+    // const chainId = Number(await web3.eth.getChainId());
+    // for truffle test on ganache-cli
+    const chainId = Number(1);
     const data = Eip712.createTypeData({
         name: "OasesExchange",
         version: "1",
@@ -71,4 +76,16 @@ function getZeroOrder() {
         EMPTY_DATA)
 }
 
-module.exports = {Part, AssetType, Data, Asset, Order, sign, getZeroOrder, ZERO_ASSET_CLASS, EMPTY_DATA, EMPTY_BYTES4}
+module.exports = {
+    Part,
+    AssetType,
+    Data,
+    Asset,
+    Order,
+    sign,
+    getZeroOrder,
+    ZERO_ASSET_CLASS,
+    EMPTY_DATA,
+    EMPTY_BYTES4,
+    ORDER_V1_DATA_TYPE
+}

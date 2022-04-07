@@ -36,7 +36,9 @@ const goerli = {
     royaltiesRegistry: "0x81C382e3B099fd1cfA49d92ae481AbC13F856f6C"
 }
 
+
 let settings = {
+    'default': goerli,
     "goerli": goerli
     // "default": e2e,
     // "e2e": e2e,
