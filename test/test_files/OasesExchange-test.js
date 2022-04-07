@@ -2696,45 +2696,194 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             assert.equal(await mockERC1155.balanceOf(buyer1, erc1155TokenId_1), 100)
             assert.equal(await mockERC1155.balanceOf(seller, erc1155TokenId_1), 0)
         })
-//
-//         it("should correctly calculate take-side fill for isMakeFill = false ", async () => {
-//             const seller = accounts[1];
-//             const buyer = accounts[2];
-//             const buyer1 = accounts[3];
-//
-//             await erc1155_v2.mint(seller, erc1155TokenId1, [], 200);
-//             await erc1155_v2.setApprovalForAll(transferProxy.address, true, { from: seller });
-//
-//             const encDataLeft = await encDataV2([[], [], false]);
-//             const encDataRight = await encDataV2([[], [], false]);
-//
-//             const left = Order(seller, Asset(ERC1155, enc(erc1155_v2.address, erc1155TokenId1), 200), ZERO, Asset(ETH, "0x", 1000), 1, 0, 0, ORDER_DATA_V2, encDataLeft);
-//             const right = Order(buyer, Asset(ETH, "0x", 500), ZERO, Asset(ERC1155, enc(erc1155_v2.address, erc1155TokenId1), 100), 1, 0, 0, ORDER_DATA_V2, encDataRight);
-//
-//             await verifyBalanceChange(seller, -485, async () =>
-//                 verifyBalanceChange(buyer, 515, async () =>
-//                     testing.matchOrders(left, await getSignature(left, seller), right, "0x", { from: buyer, value: 600, gasPrice: 0 })
-//                 )
-//             )
-//             assert.equal(await erc1155_v2.balanceOf(buyer, erc1155TokenId1), 100);
-//             assert.equal(await erc1155_v2.balanceOf(seller, erc1155TokenId1), 100);
-//
-//             const leftOrderHash = await libOrder.hashKey(left);
-//             assert.equal(await testing.fills(leftOrderHash), 500, "left fill make side")
-//
-//             const left1 = Order(seller, Asset(ERC1155, enc(erc1155_v2.address, erc1155TokenId1), 200), ZERO, Asset(ETH, "0x", 2000), 1, 0, 0, ORDER_DATA_V2, encDataLeft);
-//             const right1 = Order(buyer1, Asset(ETH, "0x", 1000), ZERO, Asset(ERC1155, enc(erc1155_v2.address, erc1155TokenId1), 100), 1, 0, 0, ORDER_DATA_V2, encDataRight);
-//
-//             await verifyBalanceChange(seller, -970, async () =>
-//                 verifyBalanceChange(buyer1, 1030, async () =>
-//                     testing.matchOrders(left1, await getSignature(left1, seller), right1, "0x", { from: buyer1, value: 1100, gasPrice: 0 })
-//                 )
-//             )
-//
-//             assert.equal(await erc1155_v2.balanceOf(buyer1, erc1155TokenId1), 100);
-//             assert.equal(await erc1155_v2.balanceOf(seller, erc1155TokenId1), 0);
-//             assert.equal(await testing.fills(leftOrderHash), 1500, "left fill make side 1")
-//         })
+
+        it("should correctly calculate take-side fill for isMakeFill = false, erc1155 to eth", async () => {
+            const seller = accounts[1]
+            const buyer = accounts[2]
+            const buyer1 = accounts[3]
+
+            await mockERC1155.mint(seller, erc1155TokenId_1, 200)
+            await mockERC1155.setApprovalForAll(mockNFTTransferProxy.address, true, {from: seller})
+
+            const encodedDataLeft = await encodeDataV1([[], [], false])
+            const encodedDataRight = await encodeDataV1([[], [], false])
+
+            const leftOrder = Order(
+                seller,
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1), 200),
+                ZERO_ADDRESS,
+                Asset(ETH_CLASS, "0x", 1000),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataLeft
+            )
+            const rightOrder = Order(
+                buyer,
+                Asset(ETH_CLASS, "0x", 500),
+                ZERO_ADDRESS,
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1), 100),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataRight
+            )
+
+            const signatureLeft = await getSignature(leftOrder, seller)
+            // right order full filled —— 500eth(total amount) 3% protocol fee
+            await verifyBalanceChange(seller, -485, async () =>
+                verifyBalanceChange(buyer, 515, async () =>
+                    oasesExchange.matchOrders(
+                        leftOrder,
+                        rightOrder,
+                        signatureLeft,
+                        EMPTY_DATA,
+                        {
+                            from: buyer,
+                            value: 600,
+                            gasPrice: 0
+                        })
+                )
+            )
+            assert.equal(await mockERC1155.balanceOf(buyer, erc1155TokenId_1), 100)
+            assert.equal(await mockERC1155.balanceOf(seller, erc1155TokenId_1), 100)
+
+            const leftOrderHash = await mockOrderLibrary.getHashKey(leftOrder)
+            assert.equal(
+                await oasesExchange.getFilledRecords(leftOrderHash),
+                500
+            )
+
+            const rightOrder1 = Order(
+                buyer1,
+                Asset(ETH_CLASS, "0x", 1000),
+                ZERO_ADDRESS,
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1), 100),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataRight
+            )
+
+            await verifyBalanceChange(seller, -485, async () =>
+                verifyBalanceChange(buyer1, 515, async () =>
+                    oasesExchange.matchOrders(
+                        leftOrder,
+                        rightOrder1,
+                        signatureLeft,
+                        EMPTY_DATA,
+                        {
+                            from: buyer1,
+                            value: 1100,
+                            gasPrice: 0
+                        })
+                )
+            )
+
+            assert.equal(await mockERC1155.balanceOf(buyer1, erc1155TokenId_1), 100)
+            assert.equal(await mockERC1155.balanceOf(seller, erc1155TokenId_1), 0)
+            assert.equal(
+                await oasesExchange.getFilledRecords(leftOrderHash),
+                1000
+            )
+        })
+
+        it("should correctly calculate take-side fill for isMakeFill = false, eth to erc1155", async () => {
+            const seller = accounts[1]
+            const buyer = accounts[2]
+            const buyer1 = accounts[3]
+
+            await mockERC1155.mint(seller, erc1155TokenId_1, 200)
+            await mockERC1155.setApprovalForAll(mockNFTTransferProxy.address, true, {from: seller})
+
+            const encodedDataLeft = await encodeDataV1([[], [], false])
+            const encodedDataRight = await encodeDataV1([[], [], false])
+
+            const leftOrder = Order(
+                seller,
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1), 200),
+                ZERO_ADDRESS,
+                Asset(ETH_CLASS, "0x", 1000),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataLeft
+            )
+            const rightOrder = Order(
+                buyer,
+                Asset(ETH_CLASS, "0x", 500),
+                ZERO_ADDRESS,
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1), 100),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataRight
+            )
+
+            const signatureLeft = await getSignature(leftOrder, seller)
+            // right order full filled —— 500eth(total amount) 3% protocol fee
+            await verifyBalanceChange(seller, -485, async () =>
+                verifyBalanceChange(buyer, 515, async () =>
+                    oasesExchange.matchOrders(
+                        rightOrder,
+                        leftOrder,
+                        EMPTY_DATA,
+                        signatureLeft,
+                        {
+                            from: buyer,
+                            value: 600,
+                            gasPrice: 0
+                        })
+                )
+            )
+            assert.equal(await mockERC1155.balanceOf(buyer, erc1155TokenId_1), 100)
+            assert.equal(await mockERC1155.balanceOf(seller, erc1155TokenId_1), 100)
+
+            const leftOrderHash = await mockOrderLibrary.getHashKey(leftOrder)
+            assert.equal(
+                await oasesExchange.getFilledRecords(leftOrderHash),
+                500
+            )
+
+            const rightOrder1 = Order(
+                buyer1,
+                Asset(ETH_CLASS, "0x", 1000),
+                ZERO_ADDRESS,
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1), 100),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataRight
+            )
+            // market price deal
+            await verifyBalanceChange(seller, -485, async () =>
+                verifyBalanceChange(buyer1, 515, async () =>
+                    oasesExchange.matchOrders(
+                        rightOrder1,
+                        leftOrder,
+                        EMPTY_DATA,
+                        signatureLeft,
+                        {
+                            from: buyer1,
+                            value: 1100,
+                            gasPrice: 0
+                        })
+                )
+            )
+
+            assert.equal(await mockERC1155.balanceOf(buyer1, erc1155TokenId_1), 50)
+            assert.equal(await mockERC1155.balanceOf(seller, erc1155TokenId_1), 50)
+            assert.equal(
+                await oasesExchange.getFilledRecords(leftOrderHash),
+                1000
+            )
+        })
 //
 //         it("should correctly calculate make-side fill for isMakeFill = true and originFees ", async () => {
 //             const seller = accounts[1];
