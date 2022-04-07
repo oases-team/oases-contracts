@@ -10,6 +10,7 @@ const ERC721_CLASS = calculateBytes4InContract('ERC721_CLASS')
 const ERC1155_CLASS = calculateBytes4InContract('ERC1155_CLASS')
 const COLLECTION_CLASS = calculateBytes4InContract('COLLECTION_CLASS')
 const CRYPTO_PUNKS_CLASS = calculateBytes4InContract('CRYPTO_PUNKS_CLASS')
+const ERC721_LAZY_MINT_CLASS = calculateBytes4InContract('ERC721_LAZY_MINT_CLASS')
 
 // transfer direction
 const TO_MAKER_DIRECTION = calculateBytes4InContract("TO_MAKER_DIRECTION")
