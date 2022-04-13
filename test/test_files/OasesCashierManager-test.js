@@ -94,13 +94,13 @@ contract("test OasesCashierManager.sol", accounts => {
     it("test sumAmountAndFees()", async () => {
         let parts = [Part(ZERO_ADDRESS, 1000), Part(ZERO_ADDRESS, 2000), Part(ZERO_ADDRESS, 3000)]
         let res = await mockOasesCashierManager.mockSumAmountAndFees(100, parts)
-        // 100 + 10 + 20 + 30 +3(protocol)
-        assert.equal(res, 163)
+        // 100 + 10 + 20 + 30
+        assert.equal(res, 160)
 
         parts = [Part(ZERO_ADDRESS, 9000)]
         res = await mockOasesCashierManager.mockSumAmountAndFees(100, parts)
-        // 100 + 90 +3(protocol)
-        assert.equal(res, 193)
+        // 100 + 90
+        assert.equal(res, 190)
     })
 
     describe("test transferPayment()", () => {
@@ -346,14 +346,15 @@ contract("test OasesCashierManager.sol", accounts => {
             await mockOasesCashierManager.mockTransferProtocolFee(
                 accounts[0], 100000, 10000, feeType, EMPTY_BYTES4)
 
-            // double 3% = 6%
-            assert.equal(await mockERC20_1.balanceOf(protocolFeeReceiver), 600)
-            assert.equal(await mockERC20_1.balanceOf(accounts[0]), 9400)
+            // protocol 3%
+            assert.equal(await mockERC20_1.balanceOf(protocolFeeReceiver), 300)
+            assert.equal(await mockERC20_1.balanceOf(accounts[0]), 9700)
 
             // check returns with function mockTransferProtocolFeeView()
-            const res = await mockOasesCashierManager.mockTransferProtocolFeeView(
+            const res = await mockOasesCashierManager.mockTransferProtocolFeeView
+            (
                 accounts[0], 100000, 10000, feeType, EMPTY_BYTES4)
-            assert.equal(res, 99400)
+            assert.equal(res, 99700)
         })
 
         it("protocol fee is erc1155", async () => {
@@ -365,25 +366,24 @@ contract("test OasesCashierManager.sol", accounts => {
             await mockOasesCashierManager.mockTransferProtocolFee(
                 accounts[0], 200, 100, feeType, EMPTY_BYTES4)
 
-            // double 3% = 6%
-            assert.equal(await mockERC1155.balanceOf(protocolFeeReceiver, erc1155TokenId_1), 6)
-            assert.equal(await mockERC1155.balanceOf(accounts[0], erc1155TokenId_1), 94)
+            // protocol fee 3%
+            assert.equal(await mockERC1155.balanceOf(protocolFeeReceiver, erc1155TokenId_1), 3)
+            assert.equal(await mockERC1155.balanceOf(accounts[0], erc1155TokenId_1), 97)
 
             // check returns with function mockTransferProtocolFeeView()
             const res = await mockOasesCashierManager.mockTransferProtocolFeeView(
                 accounts[0], 200, 100, feeType, EMPTY_BYTES4)
-            assert.equal(res, 194)
+            assert.equal(res, 197)
         })
 
         it("protocol fee is eth", async () => {
             // protocol fee 3%
             const feeType = AssetType(ETH_CLASS, EMPTY_DATA)
-            // double 3% = 6%
-            await verifyBalanceChange(accounts[0], 60, () =>
-                verifyBalanceChange(protocolFeeReceiver, -60, () =>
+            await verifyBalanceChange(accounts[0], 30, () =>
+                verifyBalanceChange(protocolFeeReceiver, -30, () =>
                     mockOasesCashierManager.mockTransferProtocolFee(
                         accounts[0], 2000, 1000, feeType, EMPTY_BYTES4, {
-                            value: 60,
+                            value: 30,
                             gasPrice: '0x'
                         }
                     )
@@ -393,7 +393,7 @@ contract("test OasesCashierManager.sol", accounts => {
             // check returns with function mockTransferProtocolFeeView()
             const res = await mockOasesCashierManager.mockTransferProtocolFeeView(
                 accounts[0], 2000, 1000, feeType, EMPTY_BYTES4)
-            assert.equal(res, 1940)
+            assert.equal(res, 1970)
         })
     })
 
@@ -607,12 +607,12 @@ contract("test OasesCashierManager.sol", accounts => {
 
             let royaltyInfo = [Part(accounts[4], 250)]
             await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
-            // seller all spend : amount + protocol fee + payment origin fee = 10000*(1+3%+10%) = 11300
-            // 1. protocol fee 3%: double -> 10000 * 3% *2 = 600
+            // seller all spend : amount + protocol fee + payment origin fee = 10000*(1+10%) = 11000
+            // 1. protocol fee 3%: -> 10000 * 3% = 300
             // 2. royalty 2.5%: -> accounts[4] -> 10000 * 2.5% = 250
             // 3. payment origin fee 10%: -> accounts[3] -> 10000* 10% = 1000
             // 4. nft origin fee 5%: -> accounts[5] -> 10000 * 5% = 500
-            // 5. payment (10000-600-250-1000-500=7650) -> accounts[0] 7650 * 80% = 6120 , accounts[2] 7650*20% = 1530
+            // 5. payment (10000-300-250-500=8950) -> accounts[0] 8950 * 80% = 7160 , accounts[2] 8950*20% = 1790
             await mockOasesCashierManager.mockTransferPaymentWithFeesAndRoyalties(
                 accounts[1],
                 10000,
@@ -624,19 +624,19 @@ contract("test OasesCashierManager.sol", accounts => {
                 {from: accounts[1]}
             )
 
-            // 1. protocol fee 3%: double -> 10000 * 3% * 2 = 600
-            assert.equal(await mockERC20_1.balanceOf(protocolFeeReceiver), 600)
+            // 1. protocol fee 3%: -> 10000 * 3% = 300
+            assert.equal(await mockERC20_1.balanceOf(protocolFeeReceiver), 300)
             // 2. royalty 2.5%: -> accounts[4] -> 10000 * 2.5% = 250
             assert.equal(await mockERC20_1.balanceOf(accounts[4]), 250)
             // 3. payment origin fee 10%: -> accounts[3] -> 10000* 10% = 1000
             assert.equal(await mockERC20_1.balanceOf(accounts[3]), 1000)
             // 4. nft origin fee 5%: -> accounts[5] -> 10000 * 5% = 500
             assert.equal(await mockERC20_1.balanceOf(accounts[5]), 500)
-            // 5. total payment: 11300 - 600 - 1000 - 250 - 500 = 8950 ->
+            // 5. total payment: 10000 - 300 - 250 - 500 = 8950 ->
             //    accounts[0] 8950 * 80% = 7160 , accounts[2] 8950 * 20% = 1790
             assert.equal(await mockERC20_1.balanceOf(accounts[0]), 7160)
             assert.equal(await mockERC20_1.balanceOf(accounts[2]), 1790)
-            assert.equal(await mockERC20_1.balanceOf(accounts[1]), 20000 - 11300)
+            assert.equal(await mockERC20_1.balanceOf(accounts[1]), 20000 - 11000)
         })
 
         it("nft: erc721, payment && royalty: erc1155", async () => {
@@ -657,12 +657,12 @@ contract("test OasesCashierManager.sol", accounts => {
 
             let royaltyInfo = [Part(accounts[4], 250)]
             await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
-            // seller all spend : amount + protocol fee + payment origin fee = 10000*(1+3%+10%) = 11300
-            // 1. protocol fee 3%: double -> 10000 * 3% *2 = 600
-            // 2. royalty 2.5%: -> accounts[4] -> 10000 * 2.5% = 250
-            // 3. payment origin fee 10%: -> accounts[3] -> 10000* 10% = 1000
-            // 4. nft origin fee 5%: -> accounts[5] -> 10000 * 5% = 500
-            // 5. payment (10000-600-250-1000-500=7650) -> accounts[0] 7650 * 80% = 6120 , accounts[2] 7650*20% = 1530
+            // seller all spend : amount + protocol fee + payment origin fee = 1000*(1+10%) = 1100
+            // 1. protocol fee 3%: -> 1000 * 3% = 30
+            // 2. royalty 2.5%: -> accounts[4] -> 1000 * 2.5% = 25
+            // 3. payment origin fee 10%: -> accounts[3] -> 1000* 10% = 100
+            // 4. nft origin fee 5%: -> accounts[5] -> 1000 * 5% = 50
+            // 5. payment (1000-30-25-50=895) -> accounts[0] 895 * 80% = 716 , accounts[2] 895*20% = 179
             await mockOasesCashierManager.mockTransferPaymentWithFeesAndRoyalties(
                 accounts[1],
                 1000,
@@ -674,19 +674,19 @@ contract("test OasesCashierManager.sol", accounts => {
                 {from: accounts[1]}
             )
 
-            // 1. protocol fee 3%: double -> 1000 * 3% * 2 = 60
-            assert.equal(await mockERC1155.balanceOf(protocolFeeReceiver, erc1155TokenId_1), 60)
+            // 1. protocol fee 3%: -> 1000 * 3% = 30
+            assert.equal(await mockERC1155.balanceOf(protocolFeeReceiver, erc1155TokenId_1), 30)
             // 2. royalty 2.5%: -> accounts[4] -> 1000 * 2.5% = 25
             assert.equal(await mockERC1155.balanceOf(accounts[4], erc1155TokenId_1), 25)
             // 3. payment origin fee 10%: -> accounts[3] -> 1000 * 10% = 100
             assert.equal(await mockERC1155.balanceOf(accounts[3], erc1155TokenId_1), 100)
             // 4. nft origin fee 5%: -> accounts[5] -> 1000 * 5% = 50
             assert.equal(await mockERC1155.balanceOf(accounts[5], erc1155TokenId_1), 50)
-            // 5. total payment: 1130 - 60 - 100 - 25 - 50 = 895 ->
+            // 5. total payment: 1000 - 30 - 50 - 25 = 895 ->
             //    accounts[0] 895 * 80% = 716 , accounts[2] 895 * 20% = 179
             assert.equal(await mockERC1155.balanceOf(accounts[0], erc1155TokenId_1), 716)
             assert.equal(await mockERC1155.balanceOf(accounts[2], erc1155TokenId_1), 179)
-            assert.equal(await mockERC1155.balanceOf(accounts[1], erc1155TokenId_1), 2000 - 1130)
+            assert.equal(await mockERC1155.balanceOf(accounts[1], erc1155TokenId_1), 2000 - 1100)
         })
 
         it("nft: erc721, payment && royalty: eth", async () => {
@@ -703,27 +703,27 @@ contract("test OasesCashierManager.sol", accounts => {
 
             let royaltyInfo = [Part(accounts[4], 250)]
             await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
-            // seller all spend : amount + protocol fee + payment origin fee = 10000*(1+3%+10%) = 11300
-            // 1. protocol fee 3%: double -> 10000 * 3% *2 = 600
+            // seller all spend : amount + protocol fee + payment origin fee = 10000*(1+10%) = 11000
+            // 1. protocol fee 3%: -> 10000 * 3% = 300
             // 2. royalty 2.5%: -> accounts[4] -> 10000 * 2.5% = 250
             // 3. payment origin fee 10%: -> accounts[3] -> 10000* 10% = 1000
             // 4. nft origin fee 5%: -> accounts[5] -> 10000 * 5% = 500
-            // 5. payment (10000-600-250-1000-500=7650) -> accounts[0] 7650 * 80% = 6120 , accounts[2] 7650*20% = 1530
+            // 5. payment (10000-300-250-500=8950) -> accounts[0] 8950 * 80% = 7160 , accounts[2] 8950*20% = 1790
 
-            // 1. protocol fee 3%: double -> 10000 * 3% * 2 = 600
-            await verifyBalanceChange(protocolFeeReceiver, -600, () =>
+            // 1. protocol fee 3%: -> 10000 * 3% = 300
+            await verifyBalanceChange(protocolFeeReceiver, -300, () =>
                 // 2. royalty 2.5%: -> accounts[4] -> 10000 * 2.5% = 250
                 verifyBalanceChange(accounts[4], -250, () =>
                     // 3. payment origin fee 10%: -> accounts[3] -> 10000* 10% = 1000
                     verifyBalanceChange(accounts[3], -1000, () =>
                         // 4. nft origin fee 5%: -> accounts[5] -> 10000 * 5% = 500
                         verifyBalanceChange(accounts[5], -500, () =>
-                            // 5. total payment: 11300 - 600 - 1000 - 250 - 500 = 8950 ->
+                            // 5. total payment: 10000 - 300 - 250 - 500 = 8950 ->
                             //    accounts[0] 8950 * 80% = 7160 , accounts[2] 8950 * 20% = 1790
                             verifyBalanceChange(accounts[0], -7160, () =>
                                 verifyBalanceChange(accounts[2], -1790, () =>
                                     verifyBalanceChange(accounts[1], 20000, () =>
-                                        verifyBalanceChange(mockOasesCashierManager.address, -(20000 - 11300), () =>
+                                        verifyBalanceChange(mockOasesCashierManager.address, -(20000 - 11000), () =>
                                             mockOasesCashierManager.mockTransferPaymentWithFeesAndRoyalties(
                                                 accounts[1],
                                                 10000,
@@ -746,19 +746,19 @@ contract("test OasesCashierManager.sol", accounts => {
     })
 
     describe("test allocateAssets()", () => {
-        it("Trade from eth to erc1155 with protocol fee 6% (buyer 3%, seller 3%)", async () => {
+        it("Trade from eth to erc1155 with protocol fee 3% (seller 3%)", async () => {
             const {leftOrder, rightOrder} = await genETH_1155Orders(10)
 
-            await verifyBalanceChange(accounts[0], 103, () =>
+            await verifyBalanceChange(accounts[0], 100, () =>
                 verifyBalanceChange(accounts[1], -97, () =>
-                    verifyBalanceChange(protocolFeeReceiver, -6, () =>
+                    verifyBalanceChange(protocolFeeReceiver, -3, () =>
                         mockOasesCashierManager.mockAllocateAssets(
                             [100, 7],
                             leftOrder.makeAsset.assetType,
                             leftOrder.takeAsset.assetType,
                             leftOrder,
                             rightOrder,
-                            {value: 103, from: accounts[0], gasPrice: 0}
+                            {value: 100, from: accounts[0], gasPrice: 0}
                         )
                     )
                 )
@@ -845,7 +845,7 @@ contract("test OasesCashierManager.sol", accounts => {
             return {leftOrder, rightOrder}
         }
 
-        it("Trade from erc721 to erc1155 with 6% protocol fee(buyer 3%, seller 3%)", async () => {
+        it("Trade from erc721 to erc1155 with 3% protocol fee(seller 3%)", async () => {
             const {leftOrder, rightOrder} = await gen721_1155Orders(150)
 
             await mockOasesCashierManager.mockAllocateAssets(
@@ -856,15 +856,15 @@ contract("test OasesCashierManager.sol", accounts => {
                 rightOrder)
 
             assert.equal(await mockERC721.ownerOf(erc721TokenId_1), accounts[3])
-            assert.equal(await mockERC1155.balanceOf(accounts[1], erc1155TokenId_1), 150 - 103 - 2 - 4)
-            assert.equal(await mockERC1155.balanceOf(accounts[2], erc1155TokenId_1), 97 - 1 - 3)
+            assert.equal(await mockERC1155.balanceOf(accounts[1], erc1155TokenId_1), 150 - 100 - 2 - 4)
+            assert.equal(await mockERC1155.balanceOf(accounts[2], erc1155TokenId_1), 100 - 3 - 1 - 3)
             // check original fee
             assert.equal(await mockERC1155.balanceOf(accounts[4], erc1155TokenId_1), 1)
             assert.equal(await mockERC1155.balanceOf(accounts[5], erc1155TokenId_1), 3)
             assert.equal(await mockERC1155.balanceOf(accounts[6], erc1155TokenId_1), 2)
             assert.equal(await mockERC1155.balanceOf(accounts[7], erc1155TokenId_1), 4)
 
-            assert.equal(await mockERC1155.balanceOf(defaultFeeReceiver, erc1155TokenId_1), 6)
+            assert.equal(await mockERC1155.balanceOf(defaultFeeReceiver, erc1155TokenId_1), 3)
         })
 
         async function gen721_1155Orders(amount1155) {
@@ -904,7 +904,7 @@ contract("test OasesCashierManager.sol", accounts => {
         }
 
 
-        it("Trade from erc1155 to er 1155 with 50% && 50% for payments", async () => {
+        it("Trade from erc1155 to erc1155 with 50% && 50% for payments", async () => {
             const {leftOrder, rightOrder} = await gen1155_1155Orders();
 
             await mockOasesCashierManager.mockAllocateAssets(
@@ -915,8 +915,8 @@ contract("test OasesCashierManager.sol", accounts => {
                 rightOrder
             )
 
-            assert.equal(await mockERC1155.balanceOf(accounts[1], erc1155TokenId_1), 98)
-            assert.equal(await mockERC1155.balanceOf(accounts[2], erc1155TokenId_2), 90)
+            assert.equal(await mockERC1155.balanceOf(accounts[1], erc1155TokenId_1), 100 - 2)
+            assert.equal(await mockERC1155.balanceOf(accounts[2], erc1155TokenId_2), 100 - 10)
             assert.equal(await mockERC1155.balanceOf(accounts[2], erc1155TokenId_1), 0)
             assert.equal(await mockERC1155.balanceOf(accounts[1], erc1155TokenId_2), 0)
 
@@ -924,7 +924,7 @@ contract("test OasesCashierManager.sol", accounts => {
             assert.equal(await mockERC1155.balanceOf(accounts[5], erc1155TokenId_2), 5)
             assert.equal(await mockERC1155.balanceOf(accounts[4], erc1155TokenId_1), 1)
             assert.equal(await mockERC1155.balanceOf(accounts[6], erc1155TokenId_1), 1)
-        });
+        })
 
         async function gen1155_1155Orders() {
             await mockERC1155.mint(accounts[1], erc1155TokenId_1, 100)
@@ -959,7 +959,7 @@ contract("test OasesCashierManager.sol", accounts => {
 
 
         it("Trade(floor rounding) from erc1155 to erc1155 with 50% && 50% for payments", async () => {
-            const {leftOrder, rightOrder} = await gen1155_1155Orders();
+            const {leftOrder, rightOrder} = await gen1155_1155Orders()
 
             await mockOasesCashierManager.mockAllocateAssets(
                 [1, 5],
@@ -983,7 +983,7 @@ contract("test OasesCashierManager.sol", accounts => {
             assert.equal(await mockERC1155.balanceOf(defaultFeeReceiver, erc1155TokenId_1), 0)
         })
 
-        it("Trade from erc1155 to erc721 with protocol fee (buyer 3%, seller 3%) of erc1155 protocol receiver", async () => {
+        it("Trade from erc1155 to erc721 with protocol fee (seller 3%) of erc1155 protocol receiver", async () => {
             const {leftOrder, rightOrder} = await gen1155O_721Orders(110)
 
             await mockOasesCashierManager.mockAllocateAssets(
@@ -996,9 +996,9 @@ contract("test OasesCashierManager.sol", accounts => {
 
             assert.equal(await mockERC721.balanceOf(accounts[2]), 0)
             assert.equal(await mockERC721.balanceOf(accounts[1]), 1)
-            assert.equal(await mockERC1155.balanceOf(accounts[2], erc1155TokenId_1), 97);
-            assert.equal(await mockERC1155.balanceOf(accounts[1], erc1155TokenId_1), 110 - 100 - 3);
-            assert.equal(await mockERC1155.balanceOf(protocolFeeReceiver, erc1155TokenId_1), 6)
+            assert.equal(await mockERC1155.balanceOf(accounts[2], erc1155TokenId_1), 100 - 3)
+            assert.equal(await mockERC1155.balanceOf(accounts[1], erc1155TokenId_1), 110 - 100)
+            assert.equal(await mockERC1155.balanceOf(protocolFeeReceiver, erc1155TokenId_1), 3)
         })
 
         async function gen1155O_721Orders(amount1155) {
@@ -1038,7 +1038,7 @@ contract("test OasesCashierManager.sol", accounts => {
             return {leftOrder, rightOrder}
         }
 
-        it("Trade from erc20 to erc1155, protocol fee 6% (buyer 3%, seller 3%)", async () => {
+        it("Trade from erc20 to erc1155, protocol fee 3% (seller 3%)", async () => {
             const {leftOrder, rightOrder} = await gen20_1155Orders(10000000, 10)
 
             await mockOasesCashierManager.mockAllocateAssets(
@@ -1048,11 +1048,11 @@ contract("test OasesCashierManager.sol", accounts => {
                 leftOrder,
                 rightOrder)
 
-            assert.equal(await mockERC20_1.balanceOf(accounts[1]), 10000000 - 100 - 3)
-            assert.equal(await mockERC20_1.balanceOf(accounts[2]), 97)
+            assert.equal(await mockERC20_1.balanceOf(accounts[1]), 10000000 - 100)
+            assert.equal(await mockERC20_1.balanceOf(accounts[2]), 100 - 3)
             assert.equal(await mockERC1155.balanceOf(accounts[1], erc1155TokenId_1), 7)
             assert.equal(await mockERC1155.balanceOf(accounts[2], erc1155TokenId_1), 10 - 7)
-            assert.equal(await mockERC20_1.balanceOf(defaultFeeReceiver), 6)
+            assert.equal(await mockERC20_1.balanceOf(defaultFeeReceiver), 3)
         })
 
         async function gen20_1155Orders(amount20, amount1155) {
@@ -1086,7 +1086,7 @@ contract("test OasesCashierManager.sol", accounts => {
             return {leftOrder, rightOrder}
         }
 
-        it("Trade from erc1155 to erc20, protocol fee 6% (buyer 3%, seller 3%)", async () => {
+        it("Trade from erc1155 to erc20, protocol fee 3% (seller 3%)", async () => {
             const {leftOrder, rightOrder} = await gen1155_20Orders(200, 99999999)
 
             await mockOasesCashierManager.mockAllocateAssets(
@@ -1097,11 +1097,11 @@ contract("test OasesCashierManager.sol", accounts => {
                 rightOrder
             )
 
-            assert.equal(await mockERC20_2.balanceOf(accounts[3]), 97)
-            assert.equal(await mockERC20_2.balanceOf(accounts[4]), 99999999 - 100 - 3)
+            assert.equal(await mockERC20_2.balanceOf(accounts[3]), 100 - 3)
+            assert.equal(await mockERC20_2.balanceOf(accounts[4]), 99999999 - 100)
             assert.equal(await mockERC1155.balanceOf(accounts[4], erc1155TokenId_2), 7)
             assert.equal(await mockERC1155.balanceOf(accounts[3], erc1155TokenId_2), 200 - 7)
-            assert.equal(await mockERC20_2.balanceOf(defaultFeeReceiver), 6)
+            assert.equal(await mockERC20_2.balanceOf(defaultFeeReceiver), 3)
         })
 
         async function gen1155_20Orders(amount1155, amount20) {
@@ -1135,7 +1135,7 @@ contract("test OasesCashierManager.sol", accounts => {
             return {leftOrder, rightOrder}
         }
 
-        it("Trade from erc20 to erc721, protocol fee 6% (buyer 3%, seller 3%)", async () => {
+        it("Trade from erc20 to erc721, protocol fee 3% (seller 3%)", async () => {
             const {leftOrder, rightOrder} = await gen20_721Orders(300000)
 
             await mockOasesCashierManager.mockAllocateAssets(
@@ -1146,11 +1146,11 @@ contract("test OasesCashierManager.sol", accounts => {
                 rightOrder
             )
 
-            assert.equal(await mockERC20_1.balanceOf(accounts[1]), 300000 - 100 - 3)
-            assert.equal(await mockERC20_1.balanceOf(accounts[2]), 97)
+            assert.equal(await mockERC20_1.balanceOf(accounts[1]), 300000 - 100)
+            assert.equal(await mockERC20_1.balanceOf(accounts[2]), 100 - 3)
             assert.equal(await mockERC721.balanceOf(accounts[1]), 1)
             assert.equal(await mockERC721.balanceOf(accounts[2]), 0)
-            assert.equal(await mockERC20_1.balanceOf(defaultFeeReceiver), 6)
+            assert.equal(await mockERC20_1.balanceOf(defaultFeeReceiver), 3)
         })
 
         async function gen20_721Orders(amount20) {
@@ -1184,7 +1184,7 @@ contract("test OasesCashierManager.sol", accounts => {
             return {leftOrder, rightOrder}
         }
 
-        it("Trade from erc721 to erc20, protocol fee 6% (buyer 3%, seller 3%)", async () => {
+        it("Trade from erc721 to erc20, protocol fee 3% (seller 3%)", async () => {
             const {leftOrder, rightOrder} = await gen721_20Orders(300000)
 
             await mockOasesCashierManager.mockAllocateAssets(
@@ -1195,11 +1195,11 @@ contract("test OasesCashierManager.sol", accounts => {
                 rightOrder
             )
 
-            assert.equal(await mockERC20_2.balanceOf(accounts[1]), 97)
-            assert.equal(await mockERC20_2.balanceOf(accounts[2]), 300000 - 100 - 3)
+            assert.equal(await mockERC20_2.balanceOf(accounts[1]), 100 - 3)
+            assert.equal(await mockERC20_2.balanceOf(accounts[2]), 300000 - 100)
             assert.equal(await mockERC721.balanceOf(accounts[1]), 0)
             assert.equal(await mockERC721.balanceOf(accounts[2]), 1)
-            assert.equal(await mockERC20_2.balanceOf(defaultFeeReceiver), 6)
+            assert.equal(await mockERC20_2.balanceOf(defaultFeeReceiver), 3)
         })
 
         async function gen721_20Orders(amount20) {
@@ -1233,7 +1233,7 @@ contract("test OasesCashierManager.sol", accounts => {
             return {leftOrder, rightOrder}
         }
 
-        it("Trade from erc20 to erc20, protocol fee 6% (buyer 3%, seller 3%)", async () => {
+        it("Trade from erc20 to erc20, protocol fee 3% (seller 3%)", async () => {
             const {leftOrder, rightOrder} = await gen2Orders(2222, 3333)
 
             await mockOasesCashierManager.mockAllocateAssets(
@@ -1244,11 +1244,11 @@ contract("test OasesCashierManager.sol", accounts => {
                 rightOrder
             )
 
-            assert.equal(await mockERC20_1.balanceOf(accounts[1]), 2222 - 100 - 3)
-            assert.equal(await mockERC20_1.balanceOf(accounts[2]), 97)
+            assert.equal(await mockERC20_1.balanceOf(accounts[1]), 2222 - 100)
+            assert.equal(await mockERC20_1.balanceOf(accounts[2]), 100 - 3)
             assert.equal(await mockERC20_2.balanceOf(accounts[1]), 200)
             assert.equal(await mockERC20_2.balanceOf(accounts[2]), 3333 - 200)
-            assert.equal(await mockERC20_1.balanceOf(defaultFeeReceiver), 6)
+            assert.equal(await mockERC20_1.balanceOf(defaultFeeReceiver), 3)
         })
 
         async function gen2Orders(amount1, amount2) {
