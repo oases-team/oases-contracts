@@ -29,7 +29,7 @@ const {
 } = require("./types/assets")
 const {getRandomInteger} = require('./utils/utils')
 
-contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", accounts => {
+contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts => {
     const protocolFeeReceiver = accounts[9]
     const communityAddress = accounts[8]
     const erc721TokenId_1 = getRandomInteger(0, 10000)
@@ -190,9 +190,9 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 EMPTY_DATA)
 
             const signatureRight = await getSignature(rightOrder, accounts[1])
-            await verifyBalanceChange(accounts[2], 206, async () =>
+            await verifyBalanceChange(accounts[2], 200, async () =>
                 verifyBalanceChange(accounts[1], -194, async () =>
-                    verifyBalanceChange(protocolFeeReceiver, -12, () =>
+                    verifyBalanceChange(protocolFeeReceiver, -6, () =>
                         oasesExchange.matchOrders(
                             leftOrder,
                             rightOrder,
@@ -240,9 +240,9 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
 
             let signatureLeft = await getSignature(leftOrder, accounts[1])
             let signatureRight = await getSignature(rightOrder, accounts[2])
-            await verifyBalanceChange(accounts[3], 206, async () =>
+            await verifyBalanceChange(accounts[3], 200, async () =>
                 verifyBalanceChange(accounts[1], -194, async () =>
-                    verifyBalanceChange(protocolFeeReceiver, -12, () =>
+                    verifyBalanceChange(protocolFeeReceiver, -6, () =>
                         // NB! from: accounts[3] - who pay for NFT != order Maker
                         oasesExchange.matchOrders(
                             leftOrder,
@@ -341,13 +341,13 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
 
             assert.equal(await oasesExchange.getFilledRecords(await mockOrderLibrary.getHashKey(leftOrder)), 100)
 
-            assert.equal(await mockERC20_1.balanceOf(accounts[1]), 11111 - 100 - 3 - 1)
+            assert.equal(await mockERC20_1.balanceOf(accounts[1]), 11111 - 100 - 1)
             assert.equal(await mockERC20_1.balanceOf(accounts[2]), 100 - 3 - 2)
             assert.equal(await mockERC20_1.balanceOf(accounts[3]), 1)
             assert.equal(await mockERC20_1.balanceOf(accounts[4]), 2)
             assert.equal(await mockERC20_2.balanceOf(accounts[1]), 200)
             assert.equal(await mockERC20_2.balanceOf(accounts[2]), 22222 - 200)
-            assert.equal(await mockERC20_1.balanceOf(communityAddress), 6)
+            assert.equal(await mockERC20_1.balanceOf(communityAddress), 3)
         })
 
         it("From erc20(10) to erc20(20) Protocol, no fees because of floor rounding", async () => {
@@ -421,12 +421,12 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             )
 
             assert.equal(await mockERC20_2.balanceOf(accounts[5]), 100 - 3 - 1 - 2)
-            assert.equal(await mockERC20_2.balanceOf(accounts[2]), 2000 - 100 - 3)
+            assert.equal(await mockERC20_2.balanceOf(accounts[2]), 2000 - 100)
             assert.equal(await mockERC20_2.balanceOf(accounts[3]), 1)
             assert.equal(await mockERC20_2.balanceOf(accounts[4]), 2)
             assert.equal(await mockERC721.balanceOf(accounts[1]), 0)
             assert.equal(await mockERC721.balanceOf(accounts[2]), 1)
-            assert.equal(await mockERC20_2.balanceOf(communityAddress), 6)
+            assert.equal(await mockERC20_2.balanceOf(communityAddress), 3)
         })
 
         it("From erc20(NO DataV1) to erc721(DataV1) Protocol, Origin fees, no Royalties", async () => {
@@ -446,12 +446,12 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             )
 
             assert.equal(await mockERC20_2.balanceOf(accounts[5]), 100 - 3 - 1 - 2)
-            assert.equal(await mockERC20_2.balanceOf(accounts[2]), 2000 - 100 - 3)
+            assert.equal(await mockERC20_2.balanceOf(accounts[2]), 2000 - 100)
             assert.equal(await mockERC20_2.balanceOf(accounts[3]), 1)
             assert.equal(await mockERC20_2.balanceOf(accounts[4]), 2)
             assert.equal(await mockERC721.balanceOf(accounts[1]), 0)
             assert.equal(await mockERC721.balanceOf(accounts[2]), 1)
-            assert.equal(await mockERC20_2.balanceOf(communityAddress), 6)
+            assert.equal(await mockERC20_2.balanceOf(communityAddress), 3)
         })
 
         async function gen721DV1_20rders(amount20) {
@@ -500,7 +500,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             assert.equal(await oasesExchange.getFilledRecords(await mockOrderLibrary.getHashKey(leftOrder)), 1000)
             assert.equal(await oasesExchange.getFilledRecords(await mockOrderLibrary.getHashKey(rightOrder)), 7)
 
-            assert.equal(await mockERC20_1.balanceOf(accounts[1]), 3000 - 1000 - 30 - 40 - 30)
+            assert.equal(await mockERC20_1.balanceOf(accounts[1]), 3000 - 1000 - 40 - 30)
             assert.equal(await mockERC20_1.balanceOf(accounts[2]), 0)
 
             assert.equal(await mockERC20_1.balanceOf(accounts[3]), 30)
@@ -509,7 +509,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             assert.equal(await mockERC20_1.balanceOf(accounts[6]), 100)
             assert.equal(await mockERC20_1.balanceOf(accounts[7]), 50)
             assert.equal(await mockERC20_1.balanceOf(accounts[8]), 0)
-            assert.equal(await mockERC20_1.balanceOf(accounts[9]), 1000 - 30 - 50 - 100 - 50 + 30 * 2)
+            assert.equal(await mockERC20_1.balanceOf(accounts[9]), 1000 - 30 - 50 - 100 - 50 + 30)
             assert.equal(await mockERC1155.balanceOf(accounts[1], erc1155TokenId_2), 0)
             assert.equal(await mockERC1155.balanceOf(accounts[8], erc1155TokenId_2), 7)
             assert.equal(await mockERC1155.balanceOf(accounts[2], erc1155TokenId_2), 100 - 7)
@@ -528,7 +528,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             assert.equal(await oasesExchange.getFilledRecords(await mockOrderLibrary.getHashKey(leftOrder)), 1000)
             assert.equal(await oasesExchange.getFilledRecords(await mockOrderLibrary.getHashKey(rightOrder)), 7)
 
-            assert.equal(await mockERC20_1.balanceOf(accounts[1]), 3000 - 1000 - 30 - 40 - 30)
+            assert.equal(await mockERC20_1.balanceOf(accounts[1]), 3000 - 1000 - 40 - 30)
             assert.equal(await mockERC20_1.balanceOf(accounts[2]), 0)
 
             assert.equal(await mockERC20_1.balanceOf(accounts[3]), 30)
@@ -537,7 +537,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             assert.equal(await mockERC20_1.balanceOf(accounts[6]), 100)
             assert.equal(await mockERC20_1.balanceOf(accounts[7]), 50)
             assert.equal(await mockERC20_1.balanceOf(accounts[8]), 0)
-            assert.equal(await mockERC20_1.balanceOf(accounts[9]), 1000 - 30 - 50 - 100 - 50 + 30 * 2)
+            assert.equal(await mockERC20_1.balanceOf(accounts[9]), 1000 - 30 - 50 - 100 - 50 + 30)
             assert.equal(await mockERC1155.balanceOf(accounts[1], erc1155TokenId_2), 0)
             assert.equal(await mockERC1155.balanceOf(accounts[8], erc1155TokenId_2), 7)
             assert.equal(await mockERC1155.balanceOf(accounts[2], erc1155TokenId_2), 100 - 7)
@@ -587,14 +587,14 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             const {leftOrder, rightOrder} = await genETHDV1_721V1Orders(1000)
             let signatureRight = await getSignature(rightOrder, accounts[1])
 
-            await verifyBalanceChange(accounts[2], 50 + 60 + 30 + 1000, async () =>
+            await verifyBalanceChange(accounts[2], 50 + 60 + 1000, async () =>
                 verifyBalanceChange(accounts[1], -(1000 - 30 - 70 - 100 - 50), async () =>
                     verifyBalanceChange(accounts[3], -50, async () =>
                         verifyBalanceChange(accounts[4], -60, async () =>
                             verifyBalanceChange(accounts[5], -70, async () =>
                                 verifyBalanceChange(accounts[6], -100, async () =>
                                     verifyBalanceChange(accounts[7], -50, async () =>
-                                        verifyBalanceChange(protocolFeeReceiver, -60, () =>
+                                        verifyBalanceChange(protocolFeeReceiver, -30, () =>
                                             oasesExchange.matchOrders(
                                                 leftOrder,
                                                 rightOrder,
@@ -622,14 +622,14 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             const {leftOrder, rightOrder} = await genETHDV1_721V1Orders(1000)
             let signatureRight = await getSignature(rightOrder, accounts[1])
 
-            await verifyBalanceChange(accounts[2], 50 + 60 + 30 + 1000, async () =>
+            await verifyBalanceChange(accounts[2], 50 + 60 + 1000, async () =>
                 verifyBalanceChange(accounts[1], -(1000 - 30 - 70 - 100 - 50), async () =>
                     verifyBalanceChange(accounts[3], -50, async () =>
                         verifyBalanceChange(accounts[4], -60, async () =>
                             verifyBalanceChange(accounts[5], -70, async () =>
                                 verifyBalanceChange(accounts[6], -100, async () =>
                                     verifyBalanceChange(accounts[7], -50, async () =>
-                                        verifyBalanceChange(protocolFeeReceiver, -60, () =>
+                                        verifyBalanceChange(protocolFeeReceiver, -30, () =>
                                             oasesExchange.matchOrders(
                                                 rightOrder,
                                                 leftOrder,
@@ -724,12 +724,12 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 encodedDataRight
             )
             let signatureRight = await getSignature(rightOrder, accounts[1])
-            await verifyBalanceChange(accounts[2], 200 + 6 + 10 + 12, async () =>
+            await verifyBalanceChange(accounts[2], 200 + 10 + 12, async () =>
                 verifyBalanceChange(accounts[1], -(200 - 6 - 14), async () =>
                     verifyBalanceChange(accounts[5], -10, async () =>
                         verifyBalanceChange(accounts[6], -12, async () =>
                             verifyBalanceChange(accounts[7], -14, async () =>
-                                verifyBalanceChange(protocolFeeReceiver, -12, () =>
+                                verifyBalanceChange(protocolFeeReceiver, -6, () =>
                                     oasesExchange.matchOrders(
                                         leftOrder,
                                         rightOrder,
@@ -783,12 +783,12 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 encodedDataRight
             )
             let signatureRight = await getSignature(rightOrder, accounts[1])
-            await verifyBalanceChange(accounts[2], 200 + 6 + 10 + 12, async () =>
+            await verifyBalanceChange(accounts[2], 200 + 10 + 12, async () =>
                 verifyBalanceChange(accounts[1], -(200 - 6 - 14), async () =>
                     verifyBalanceChange(accounts[5], -10, async () =>
                         verifyBalanceChange(accounts[6], -12, async () =>
                             verifyBalanceChange(accounts[7], -14, async () =>
-                                verifyBalanceChange(protocolFeeReceiver, -12, () =>
+                                verifyBalanceChange(protocolFeeReceiver, -6, () =>
                                     oasesExchange.matchOrders(
                                         rightOrder,
                                         leftOrder,
@@ -841,12 +841,12 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 encodedDataRight
             )
             let signatureRight = await getSignature(rightOrder, accounts[1])
-            await verifyBalanceChange(accounts[2], 200 + 6, async () =>
+            await verifyBalanceChange(accounts[2], 200, async () =>
                 verifyBalanceChange(accounts[1], -(200 - 6 - 10 - 12 - 14), async () =>
                     verifyBalanceChange(accounts[5], -10, async () =>
                         verifyBalanceChange(accounts[6], -12, async () =>
                             verifyBalanceChange(accounts[7], -14, async () =>
-                                verifyBalanceChange(protocolFeeReceiver, -12, () =>
+                                verifyBalanceChange(protocolFeeReceiver, -6, () =>
                                     oasesExchange.matchOrders(
                                         leftOrder,
                                         rightOrder,
@@ -899,12 +899,12 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 encodedDataRight
             )
             let signatureRight = await getSignature(rightOrder, accounts[1])
-            await verifyBalanceChange(accounts[2], 200 + 6, async () =>
+            await verifyBalanceChange(accounts[2], 200, async () =>
                 verifyBalanceChange(accounts[1], -(200 - 6 - 10 - 12 - 14), async () =>
                     verifyBalanceChange(accounts[5], -10, async () =>
                         verifyBalanceChange(accounts[6], -12, async () =>
                             verifyBalanceChange(accounts[7], -14, async () =>
-                                verifyBalanceChange(protocolFeeReceiver, -12, () =>
+                                verifyBalanceChange(protocolFeeReceiver, -6, () =>
                                     oasesExchange.matchOrders(
                                         rightOrder,
                                         leftOrder,
@@ -957,12 +957,12 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 encodedDataRight
             )
             let signatureRight = await getSignature(rightOrder, accounts[1])
-            await verifyBalanceChange(accounts[2], 200 + 6 + 10 + 12 + 14, async () =>
+            await verifyBalanceChange(accounts[2], 200 + 10 + 12 + 14, async () =>
                 verifyBalanceChange(accounts[1], -(200 - 6), async () =>
                     verifyBalanceChange(accounts[5], -10, async () =>
                         verifyBalanceChange(accounts[6], -12, async () =>
                             verifyBalanceChange(accounts[7], -14, async () =>
-                                verifyBalanceChange(protocolFeeReceiver, -12, () =>
+                                verifyBalanceChange(protocolFeeReceiver, -6, () =>
                                     oasesExchange.matchOrders(
                                         leftOrder,
                                         rightOrder,
@@ -1015,12 +1015,12 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 encodedDataRight
             )
             let signatureRight = await getSignature(rightOrder, accounts[1])
-            await verifyBalanceChange(accounts[2], 200 + 6 + 10 + 12 + 14, async () =>
+            await verifyBalanceChange(accounts[2], 200 + 10 + 12 + 14, async () =>
                 verifyBalanceChange(accounts[1], -(200 - 6), async () =>
                     verifyBalanceChange(accounts[5], -10, async () =>
                         verifyBalanceChange(accounts[6], -12, async () =>
                             verifyBalanceChange(accounts[7], -14, async () =>
-                                verifyBalanceChange(protocolFeeReceiver, -12, () =>
+                                verifyBalanceChange(protocolFeeReceiver, -6, () =>
                                     oasesExchange.matchOrders(
                                         leftOrder,
                                         rightOrder,
@@ -1044,9 +1044,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
         it("From eth(DataV1) to erc721(DataV1) Protocol, no Royalties, Origin fees comes from OrderEth NB!!! not enough eth", async () => {
             await mockERC721.mint(accounts[1], erc721TokenId_2)
             await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
-
+            // 200*(5%+6%+7%+30%)=96
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600], [accounts[7], 700], [accounts[3], 3000]]
-
             let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
             let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], true])
 
@@ -1081,7 +1080,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                     EMPTY_DATA,
                     {
                         from: accounts[2],
-                        value: 300,
+                        // total payment:200+96
+                        value: 295,
                         gasPrice: 0
                     }),
                 "bad eth transfer"
@@ -1091,7 +1091,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
         it("From erc721(DataV1) to eth(DataV1) Protocol, no Royalties, Origin fees comes from OrderEth NB!!! not enough eth", async () => {
             await mockERC721.mint(accounts[1], erc721TokenId_2)
             await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
-
+            // 200*(5%+6%+7%+30%)=96
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600], [accounts[7], 700], [accounts[3], 3000]]
 
             let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
@@ -1128,7 +1128,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                     await getSignature(rightOrder, accounts[1]),
                     {
                         from: accounts[2],
-                        value: 300,
+                        // total payment:200+96
+                        value: 295,
                         gasPrice: 0
                     }),
                 "bad eth transfer"
@@ -1139,7 +1140,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             await mockERC721.mint(accounts[1], erc721TokenId_1)
             await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
 
-            let addOriginLeft = [];
+            let addOriginLeft = []
+            // 200*(90%+5%+6%+7%)=200*108%
             let addOriginRight = [[accounts[3], 9000], [accounts[5], 500], [accounts[6], 600], [accounts[7], 700]]
 
             let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
@@ -1169,13 +1171,13 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             )
             let signatureRight = await getSignature(rightOrder, accounts[1])
 
-            await verifyBalanceChange(accounts[2], 206, async () =>			//200 + 6 buyerFee
-                verifyBalanceChange(accounts[1], 0, async () =>				//200 - 6 seller - 180 - 10 - 12(really 10) - 14(really 0) origin left
+            await verifyBalanceChange(accounts[2], 200, async () =>
+                verifyBalanceChange(accounts[1], 0, async () =>				//200 - 6(seller protocol fee) - 180 - 10 - 12(really 4) - 14(really 0) origin left
                     verifyBalanceChange(accounts[3], -180, async () =>
                         verifyBalanceChange(accounts[5], -10, async () =>
                             verifyBalanceChange(accounts[6], -4, async () =>
                                 verifyBalanceChange(accounts[7], 0, async () =>
-                                    verifyBalanceChange(protocolFeeReceiver, -12, () =>
+                                    verifyBalanceChange(protocolFeeReceiver, -6, () =>
                                         oasesExchange.matchOrders(
                                             leftOrder,
                                             rightOrder,
@@ -1197,11 +1199,12 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             assert.equal(await mockERC721.ownerOf(erc721TokenId_1), accounts[2])
         })
 
-        it("From erc721(DataV1) to eth(DataV1) Protocol, no Royalties, Origin fees comes from OrderNFT NB!!! not enough ETH for lastOrigin and seller!", async () => {
+        it("From erc721(DataV1) to eth(DataV1) Protocol, no Royalties, Origin fees comes from OrderNFT NB!!! not enough eth for lastOrigin and seller!", async () => {
             await mockERC721.mint(accounts[1], erc721TokenId_1)
             await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
 
-            let addOriginLeft = [];
+            let addOriginLeft = []
+            // 200*(90%+5%+6%+7%)=200*108%
             let addOriginRight = [[accounts[3], 9000], [accounts[5], 500], [accounts[6], 600], [accounts[7], 700]]
 
             let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
@@ -1231,13 +1234,13 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             )
             let signatureRight = await getSignature(rightOrder, accounts[1])
 
-            await verifyBalanceChange(accounts[2], 206, async () =>			//200 + 6 buyerFee
-                verifyBalanceChange(accounts[1], 0, async () =>				//200 - 6 seller - 180 - 10 - 12(really 10) - 14(really 0) origin left
+            await verifyBalanceChange(accounts[2], 200, async () =>
+                verifyBalanceChange(accounts[1], 0, async () =>				//200 - 6(seller protocol fee) - 180 - 10 - 12(really 4) - 14(really 0) origin left
                     verifyBalanceChange(accounts[3], -180, async () =>
                         verifyBalanceChange(accounts[5], -10, async () =>
                             verifyBalanceChange(accounts[6], -4, async () =>
                                 verifyBalanceChange(accounts[7], 0, async () =>
-                                    verifyBalanceChange(protocolFeeReceiver, -12, () =>
+                                    verifyBalanceChange(protocolFeeReceiver, -6, () =>
                                         oasesExchange.matchOrders(
                                             rightOrder,
                                             leftOrder,
@@ -1278,7 +1281,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 100
             )
 
-            assert.equal(await mockERC20_1.balanceOf(accounts[1]), 1000 - 100 - 3 - 1)
+            assert.equal(await mockERC20_1.balanceOf(accounts[1]), 1000 - 100 - 1)
             assert.equal(await mockERC20_1.balanceOf(accounts[2]), (100 - 3 - 2) * 0.2)
             assert.equal(await mockERC20_1.balanceOf(accounts[6]), (100 - 3 - 2) * 0.8)
             assert.equal(await mockERC20_1.balanceOf(accounts[3]), 1)
@@ -1286,7 +1289,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             assert.equal(await mockERC20_2.balanceOf(accounts[1]), 200 * 0.5)
             assert.equal(await mockERC20_2.balanceOf(accounts[5]), 200 * 0.5)
             assert.equal(await mockERC20_2.balanceOf(accounts[2]), 2000 - 200)
-            assert.equal(await mockERC20_1.balanceOf(communityAddress), 6)
+            assert.equal(await mockERC20_1.balanceOf(communityAddress), 3)
             assert.equal(await mockERC20_2.balanceOf(communityAddress), 0)
         })
 
@@ -1343,13 +1346,13 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             const amount = Math.floor((100 - 3 - 1 - 2 - 3) / 2)
             assert.equal(await mockERC20_2.balanceOf(accounts[1]), amount)
             assert.equal(await mockERC20_2.balanceOf(accounts[6]), 100 - 3 - 1 - 2 - 3 - amount)
-            assert.equal(await mockERC20_2.balanceOf(accounts[2]), 1000 - 100 - 3)
+            assert.equal(await mockERC20_2.balanceOf(accounts[2]), 1000 - 100)
             assert.equal(await mockERC20_2.balanceOf(accounts[3]), 1)
             assert.equal(await mockERC20_2.balanceOf(accounts[4]), 2)
             assert.equal(await mockERC20_2.balanceOf(accounts[5]), 3)
             assert.equal(await mockERC721.balanceOf(accounts[1]), 0)
             assert.equal(await mockERC721.ownerOf(erc721TokenId_1), accounts[2])
-            assert.equal(await mockERC20_2.balanceOf(communityAddress), 6)
+            assert.equal(await mockERC20_2.balanceOf(communityAddress), 3)
         })
 
         async function prepare721DV1_20Orders(t2Amount) {
@@ -1403,13 +1406,13 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             const amount = Math.floor((100 - 3 - 1 - 2 - 3) / 2)
             assert.equal(await mockERC20_2.balanceOf(accounts[1]), amount)
             assert.equal(await mockERC20_2.balanceOf(accounts[6]), 100 - 3 - 1 - 2 - 3 - amount)
-            assert.equal(await mockERC20_2.balanceOf(accounts[2]), 1000 - 100 - 3)
+            assert.equal(await mockERC20_2.balanceOf(accounts[2]), 1000 - 100)
             assert.equal(await mockERC20_2.balanceOf(accounts[3]), 1)
             assert.equal(await mockERC20_2.balanceOf(accounts[4]), 2)
             assert.equal(await mockERC20_2.balanceOf(accounts[5]), 3)
             assert.equal(await mockERC721.balanceOf(accounts[1]), 0)
             assert.equal(await mockERC721.ownerOf(erc721TokenId_1), accounts[2])
-            assert.equal(await mockERC20_2.balanceOf(communityAddress), 6)
+            assert.equal(await mockERC20_2.balanceOf(communityAddress), 3)
         })
 
         it("From erc721(DataV1) to erc20(NO DataV1) Protocol, Origin fees, no Royalties, payouts: 110%, throw", async () => {
@@ -1507,13 +1510,13 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 encodedDataRight
             )
             let signatureRight = await getSignature(rightOrder, accounts[1])
-            await verifyBalanceChange(accounts[2], 200 + 6 + 10 + 12, async () =>
+            await verifyBalanceChange(accounts[2], 200 + 10 + 12, async () =>
                 verifyBalanceChange(accounts[3], -(200 - 6 - 14) / 2, async () =>
                     verifyBalanceChange(accounts[1], -(200 - 6 - 14) / 2, async () =>
                         verifyBalanceChange(accounts[5], -10, async () =>
                             verifyBalanceChange(accounts[6], -12, async () =>
                                 verifyBalanceChange(accounts[7], -14, async () =>
-                                    verifyBalanceChange(protocolFeeReceiver, -12, () =>
+                                    verifyBalanceChange(protocolFeeReceiver, -6, () =>
                                         oasesExchange.matchOrders(
                                             leftOrder,
                                             rightOrder,
@@ -1577,13 +1580,13 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 encodedDataRight
             )
             let signatureRight = await getSignature(rightOrder, accounts[1])
-            await verifyBalanceChange(accounts[2], 200 + 6 + 10 + 12, async () =>
+            await verifyBalanceChange(accounts[2], 200 + 10 + 12, async () =>
                 verifyBalanceChange(accounts[3], -(200 - 6 - 14) / 2, async () =>
                     verifyBalanceChange(accounts[1], -(200 - 6 - 14) / 2, async () =>
                         verifyBalanceChange(accounts[5], -10, async () =>
                             verifyBalanceChange(accounts[6], -12, async () =>
                                 verifyBalanceChange(accounts[7], -14, async () =>
-                                    verifyBalanceChange(protocolFeeReceiver, -12, () =>
+                                    verifyBalanceChange(protocolFeeReceiver, -6, () =>
                                         oasesExchange.matchOrders(
                                             rightOrder,
                                             leftOrder,
@@ -1646,12 +1649,12 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 encodedDataRight
             )
             let signatureRight = await getSignature(rightOrder, accounts[1])
-            await verifyBalanceChange(accounts[2], 200 + 6 + 10 + 12, async () =>
+            await verifyBalanceChange(accounts[2], 200 + 10 + 12, async () =>
                 verifyBalanceChange(accounts[1], -(200 - 6 - 14), async () =>
                     verifyBalanceChange(accounts[5], -10, async () =>
                         verifyBalanceChange(accounts[6], -12, async () =>
                             verifyBalanceChange(accounts[7], -14, async () =>
-                                verifyBalanceChange(protocolFeeReceiver, -12, () =>
+                                verifyBalanceChange(protocolFeeReceiver, -6, () =>
                                     oasesExchange.matchOrders(
                                         leftOrder,
                                         rightOrder,
@@ -1713,12 +1716,12 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 encodedDataRight
             )
             let signatureRight = await getSignature(rightOrder, accounts[1])
-            await verifyBalanceChange(accounts[2], 200 + 6 + 10 + 12, async () =>
+            await verifyBalanceChange(accounts[2], 200 + 10 + 12, async () =>
                 verifyBalanceChange(accounts[1], -(200 - 6 - 14), async () =>
                     verifyBalanceChange(accounts[5], -10, async () =>
                         verifyBalanceChange(accounts[6], -12, async () =>
                             verifyBalanceChange(accounts[7], -14, async () =>
-                                verifyBalanceChange(protocolFeeReceiver, -12, () =>
+                                verifyBalanceChange(protocolFeeReceiver, -6, () =>
                                     oasesExchange.matchOrders(
                                         rightOrder,
                                         leftOrder,
@@ -2253,14 +2256,14 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 encodedDataRight
             )
             let signatureRight = await getSignature(rightOrder, accounts[1])
-            await verifyBalanceChange(accounts[2], 200 + 6 + 10 + 12, async () =>
+            await verifyBalanceChange(accounts[2], 200 + 10 + 12, async () =>
                 verifyBalanceChange(accounts[1], -(200 - 6 - 14 - 10 - 20), async () =>				//200 -6seller - 14 originright
                     verifyBalanceChange(accounts[3], -10, async () =>
                         verifyBalanceChange(accounts[4], -20, async () =>
                             verifyBalanceChange(accounts[5], -10, async () =>
                                 verifyBalanceChange(accounts[6], -12, async () =>
                                     verifyBalanceChange(accounts[7], -14, async () =>
-                                        verifyBalanceChange(protocolFeeReceiver, -12, () =>
+                                        verifyBalanceChange(protocolFeeReceiver, -6, () =>
                                             oasesExchange.matchOrders(
                                                 leftOrder,
                                                 rightOrder,
@@ -2318,14 +2321,14 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 encodedDataRight
             )
             let signatureRight = await getSignature(rightOrder, accounts[1])
-            await verifyBalanceChange(accounts[2], 200 + 6 + 10 + 12, async () =>
+            await verifyBalanceChange(accounts[2], 200 + 10 + 12, async () =>
                 verifyBalanceChange(accounts[1], -(200 - 6 - 14 - 10 - 20), async () =>				//200 -6seller - 14 originright
                     verifyBalanceChange(accounts[3], -10, async () =>
                         verifyBalanceChange(accounts[4], -20, async () =>
                             verifyBalanceChange(accounts[5], -10, async () =>
                                 verifyBalanceChange(accounts[6], -12, async () =>
                                     verifyBalanceChange(accounts[7], -14, async () =>
-                                        verifyBalanceChange(protocolFeeReceiver, -12, () =>
+                                        verifyBalanceChange(protocolFeeReceiver, -6, () =>
                                             oasesExchange.matchOrders(
                                                 rightOrder,
                                                 leftOrder,
@@ -2388,14 +2391,14 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 encodedDataRight
             )
             let signatureRight = await getSignature(rightOrder, accounts[1])
-            await verifyBalanceChange(accounts[2], 200 + 6 + 10 + 12, async () =>
+            await verifyBalanceChange(accounts[2], 200 + 10 + 12, async () =>
                 verifyBalanceChange(accounts[1], -(200 - 6 - 14 - 10 - 20), async () =>
                     verifyBalanceChange(accounts[3], -10, async () =>
                         verifyBalanceChange(accounts[4], -20, async () =>
                             verifyBalanceChange(accounts[5], -10, async () =>
                                 verifyBalanceChange(accounts[6], -12, async () =>
                                     verifyBalanceChange(accounts[7], -14, async () =>
-                                        verifyBalanceChange(protocolFeeReceiver, -12, () =>
+                                        verifyBalanceChange(protocolFeeReceiver, -6, () =>
                                             oasesExchange.matchOrders(
                                                 leftOrder,
                                                 rightOrder,
@@ -2457,14 +2460,14 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
                 encodedDataRight
             )
             let signatureRight = await getSignature(rightOrder, accounts[1])
-            await verifyBalanceChange(accounts[2], 200 + 6 + 10 + 12, async () =>
+            await verifyBalanceChange(accounts[2], 200 + 10 + 12, async () =>
                 verifyBalanceChange(accounts[1], -(200 - 6 - 14 - 10 - 20), async () =>
                     verifyBalanceChange(accounts[3], -10, async () =>
                         verifyBalanceChange(accounts[4], -20, async () =>
                             verifyBalanceChange(accounts[5], -10, async () =>
                                 verifyBalanceChange(accounts[6], -12, async () =>
                                     verifyBalanceChange(accounts[7], -14, async () =>
-                                        verifyBalanceChange(protocolFeeReceiver, -12, () =>
+                                        verifyBalanceChange(protocolFeeReceiver, -6, () =>
                                             oasesExchange.matchOrders(
                                                 rightOrder,
                                                 leftOrder,
@@ -2526,7 +2529,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             const signatureLeft = await getSignature(leftOrder, seller)
             // right order full filled —— 500eth(total amount) 3% protocol fee
             await verifyBalanceChange(seller, -(500 * (1 - 0.03)), async () =>
-                verifyBalanceChange(buyer, 500 * (1 + 0.03), async () =>
+                verifyBalanceChange(buyer, 500, async () =>
                     oasesExchange.matchOrders(
                         rightOrder,
                         leftOrder,
@@ -2563,7 +2566,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
 
             // right order full filled —— 500eth(total amount) 3% protocol fee
             await verifyBalanceChange(seller, -(500 * (1 - 0.03)), async () =>
-                verifyBalanceChange(buyer1, 500 * (1 + 0.03), async () =>
+                verifyBalanceChange(buyer1, 500, async () =>
                     oasesExchange.matchOrders(
                         rightOrder2,
                         leftOrder,
@@ -2622,7 +2625,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             const signatureLeft = await getSignature(leftOrder, seller)
             // right order full filled —— 500eth(total amount) 3% protocol fee
             await verifyBalanceChange(seller, -(500 * (1 - 0.03)), async () =>
-                verifyBalanceChange(buyer, 500 * (1 + 0.03), async () =>
+                verifyBalanceChange(buyer, 500, async () =>
                     oasesExchange.matchOrders(
                         leftOrder,
                         rightOrder,
@@ -2659,7 +2662,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
 
             // right order full filled —— 500eth(total amount) 3% protocol fee
             await verifyBalanceChange(seller, -(500 * (1 - 0.03)), async () =>
-                verifyBalanceChange(buyer1, 500 * (1 + 0.03), async () =>
+                verifyBalanceChange(buyer1, 500, async () =>
                     oasesExchange.matchOrders(
                         leftOrder,
                         rightOrder2,
@@ -2718,7 +2721,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             const signatureLeft = await getSignature(leftOrder, seller)
             // right order full filled —— 500eth(total amount) 3% protocol fee
             await verifyBalanceChange(seller, -485, async () =>
-                verifyBalanceChange(buyer, 515, async () =>
+                verifyBalanceChange(buyer, 500, async () =>
                     oasesExchange.matchOrders(
                         leftOrder,
                         rightOrder,
@@ -2753,7 +2756,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             )
 
             await verifyBalanceChange(seller, -485, async () =>
-                verifyBalanceChange(buyer1, 515, async () =>
+                verifyBalanceChange(buyer1, 500, async () =>
                     oasesExchange.matchOrders(
                         leftOrder,
                         rightOrder1,
@@ -2812,7 +2815,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             const signatureLeft = await getSignature(leftOrder, seller)
             // right order full filled —— 500eth(total amount) 3% protocol fee
             await verifyBalanceChange(seller, -485, async () =>
-                verifyBalanceChange(buyer, 515, async () =>
+                verifyBalanceChange(buyer, 500, async () =>
                     oasesExchange.matchOrders(
                         rightOrder,
                         leftOrder,
@@ -2847,7 +2850,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             )
             // market price deal
             await verifyBalanceChange(seller, -485, async () =>
-                verifyBalanceChange(buyer1, 515, async () =>
+                verifyBalanceChange(buyer1, 500, async () =>
                     oasesExchange.matchOrders(
                         rightOrder1,
                         leftOrder,
@@ -2905,7 +2908,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
 
             const signatureLeft = await getSignature(leftOrder, seller)
             await verifyBalanceChange(seller, -(500 - 15 - 50), async () =>
-                verifyBalanceChange(buyer, 515, async () =>
+                verifyBalanceChange(buyer, 500, async () =>
                     verifyBalanceChange(accounts[5], -50, async () =>
                         oasesExchange.matchOrders(
                             leftOrder,
@@ -2943,7 +2946,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller + buyer = 6%)", 
             )
 
             await verifyBalanceChange(seller, -(500 - 15 - 50), async () =>
-                verifyBalanceChange(buyer1, 515, async () =>
+                verifyBalanceChange(buyer1, 500, async () =>
                     verifyBalanceChange(accounts[5], -50, async () =>
                         oasesExchange.matchOrders(
                             leftOrder,

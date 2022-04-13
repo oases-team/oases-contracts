@@ -224,7 +224,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         (uint256 rest, uint256 fee) = deductFeeWithBasisPoint(
             totalAmountAndFeesRest,
             amountToCalculateFee,
-            protocolFeeBasisPoint * 2
+            protocolFeeBasisPoint
         );
         if (fee > 0) {
             address paymentAddress = address(0);
@@ -397,7 +397,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
     returns
     (uint256 totalSum)
     {
-        totalSum = amount.basisPointCalculate(protocolFeeBasisPoint) + amount;
+        totalSum = amount;
         for (uint256 i = 0; i < orderOriginalFees.length; ++i) {
             totalSum += amount.basisPointCalculate(orderOriginalFees[i].value);
         }
