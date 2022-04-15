@@ -115,19 +115,19 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
         return list.map(member => ({account: member[0], value: member[1]}))
     }
 
-    function getSignatureForLazyMintData(tokenId, tokenURI, creators, fees, signer) {
-        return mint.sign(signer, tokenId, tokenURI, creators, fees, erc721Oases.address)
+    function getSignatureForLazyMintData(tokenId, tokenURI, creatorsInfo, royaltiesInfo, signer) {
+        return mint.sign(signer, tokenId, tokenURI, creatorsInfo, royaltiesInfo, erc721Oases.address)
     }
 
-    async function getERC721OasesAsset(creatorsInfo, feesInfo, signer, tokenId = TOKEN_ID, tokenURI = TOKEN_URI) {
+    async function getERC721OasesAsset(creatorsInfo, royaltiesInfo, signer, tokenId = TOKEN_ID, tokenURI = TOKEN_URI) {
         const signature = await getSignatureForLazyMintData(
             tokenId,
             tokenURI,
             getPartsWithName(creatorsInfo),
-            getPartsWithName(feesInfo),
+            getPartsWithName(royaltiesInfo),
             signer
         )
-        let erc721LazyMintData = [tokenId, tokenURI, creatorsInfo, feesInfo, [signature]]
+        let erc721LazyMintData = [tokenId, tokenURI, creatorsInfo, royaltiesInfo, [signature]]
         return Asset(ERC721_LAZY_MINT_CLASS, encodeERC721LazyMintData(erc721Oases.address, erc721LazyMintData), 1)
     }
 
@@ -406,4 +406,199 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             )
         })
     })
+
+    describe("test matchOrders() with orders dataType == V1", () => {
+        it("From lazy mint erc721(DataV1) to erc20(NO DataV1) Protocol, Origin fees, no Royalties", async () => {
+            const {leftOrder, rightOrder} = await genLM721DV1_20rders(2000)
+
+            await oasesExchange.matchOrders(
+                leftOrder,
+                rightOrder,
+                await getSignature(leftOrder, accounts[0]),
+                EMPTY_DATA,
+                {from: accounts[2]}
+            )
+
+            assert.equal(await oasesExchange.getFilledRecords(
+                await mockOrderLibrary.getHashKey(leftOrder)),
+                1
+            )
+
+            assert.equal(await mockERC20_2.balanceOf(accounts[5]), 100 - 3 - 1 - 2)
+            assert.equal(await mockERC20_2.balanceOf(accounts[2]), 2000 - 100)
+            assert.equal(await mockERC20_2.balanceOf(accounts[3]), 1)
+            assert.equal(await mockERC20_2.balanceOf(accounts[4]), 2)
+            assert.equal(await erc721Oases.balanceOf(accounts[0]), 0)
+            assert.equal(await erc721Oases.balanceOf(accounts[2]), 1)
+            assert.equal(await erc721Oases.ownerOf(TOKEN_ID), accounts[2])
+            assert.equal(await mockERC20_2.balanceOf(communityAddress), 3)
+        })
+
+        it("From erc20(NO DataV1) to lazy mint erc721(DataV1) Protocol, Origin fees, no Royalties", async () => {
+            const {leftOrder, rightOrder} = await genLM721DV1_20rders(2000)
+
+            await oasesExchange.matchOrders(
+                rightOrder,
+                leftOrder,
+                EMPTY_DATA,
+                await getSignature(leftOrder, accounts[0]),
+                {from: accounts[2]}
+            )
+
+            assert.equal(await oasesExchange.getFilledRecords(
+                await mockOrderLibrary.getHashKey(rightOrder)),
+                100
+            )
+
+            assert.equal(await mockERC20_2.balanceOf(accounts[5]), 100 - 3 - 1 - 2)
+            assert.equal(await mockERC20_2.balanceOf(accounts[2]), 2000 - 100)
+            assert.equal(await mockERC20_2.balanceOf(accounts[3]), 1)
+            assert.equal(await mockERC20_2.balanceOf(accounts[4]), 2)
+            assert.equal(await erc721Oases.balanceOf(accounts[0]), 0)
+            assert.equal(await erc721Oases.balanceOf(accounts[2]), 1)
+            assert.equal(await erc721Oases.ownerOf(TOKEN_ID), accounts[2])
+            assert.equal(await mockERC20_2.balanceOf(communityAddress), 3)
+        })
+
+        async function genLM721DV1_20rders(amount20) {
+            const erc721OasesAsset = await getERC721OasesAsset([[accounts[0], 10000]], [], accounts[0])
+            await mockERC20_2.mint(accounts[2], amount20)
+            await mockERC20_2.approve(mockERC20TransferProxy.address, amount20, {from: accounts[2]})
+            const addOriginLeft = [[accounts[3], 100], [accounts[4], 200]]
+            const encodedDataLeft = await encodeDataV1([[[accounts[5], 10000]], addOriginLeft, true])
+            const encodedDataRight = await encodeDataV1([[], [], true])
+            const leftOrder = Order(
+                accounts[0],
+                erc721OasesAsset,
+                ZERO_ADDRESS,
+                Asset(ERC20_CLASS, encode(mockERC20_2.address), 100),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataLeft
+            )
+            const rightOrder = Order(
+                accounts[2],
+                Asset(ERC20_CLASS, encode(mockERC20_2.address), 100),
+                ZERO_ADDRESS,
+                erc721OasesAsset,
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataRight
+            )
+            return {leftOrder, rightOrder}
+        }
+
+        it("From eth(DataV1) to lazy mint erc721(Royalties, DataV1) Protocol, Origin fees, Royalties", async () => {
+            const {leftOrder, rightOrder} = await genETHDV1_LM721V1Orders(1000)
+            let signatureRight = await getSignature(rightOrder, accounts[1])
+
+            await verifyBalanceChange(accounts[2], 50 + 60 + 1000, async () =>
+                verifyBalanceChange(accounts[1], -(1000 - 30 - 70 - 100 - 50), async () =>
+                    verifyBalanceChange(accounts[3], -50, async () =>
+                        verifyBalanceChange(accounts[4], -60, async () =>
+                            verifyBalanceChange(accounts[5], -70, async () =>
+                                verifyBalanceChange(accounts[6], -100, async () =>
+                                    verifyBalanceChange(accounts[7], -50, async () =>
+                                        verifyBalanceChange(protocolFeeReceiver, -30, () =>
+                                            oasesExchange.matchOrders(
+                                                leftOrder,
+                                                rightOrder,
+                                                EMPTY_DATA,
+                                                signatureRight,
+                                                {
+                                                    from: accounts[2],
+                                                    value: 2000,
+                                                    gasPrice: 0
+                                                })
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+
+            assert.equal(await erc721Oases.balanceOf(accounts[1]), 0)
+            assert.equal(await erc721Oases.ownerOf(TOKEN_ID), accounts[2])
+        })
+
+        it("From lazy mint erc721(Royalties, DataV1) to eth(DataV1) to  Protocol, Origin fees, Royalties", async () => {
+            const {leftOrder, rightOrder} = await genETHDV1_LM721V1Orders(1000)
+            let signatureRight = await getSignature(rightOrder, accounts[1])
+
+            await verifyBalanceChange(accounts[2], 50 + 60 + 1000, async () =>
+                verifyBalanceChange(accounts[1], -(1000 - 30 - 70 - 100 - 50), async () =>
+                    verifyBalanceChange(accounts[3], -50, async () =>
+                        verifyBalanceChange(accounts[4], -60, async () =>
+                            verifyBalanceChange(accounts[5], -70, async () =>
+                                verifyBalanceChange(accounts[6], -100, async () =>
+                                    verifyBalanceChange(accounts[7], -50, async () =>
+                                        verifyBalanceChange(protocolFeeReceiver, -30, () =>
+                                            oasesExchange.matchOrders(
+                                                rightOrder,
+                                                leftOrder,
+                                                signatureRight,
+                                                EMPTY_DATA,
+                                                {
+                                                    from: accounts[2],
+                                                    value: 2000,
+                                                    gasPrice: 0
+                                                })
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+
+            assert.equal(await erc721Oases.balanceOf(accounts[1]), 0)
+            assert.equal(await erc721Oases.ownerOf(TOKEN_ID), accounts[2])
+        })
+
+        async function genETHDV1_LM721V1Orders(amountEth) {
+            const erc721OasesAsset = await getERC721OasesAsset(
+                [[accounts[0], 10000]],
+                [[accounts[6], 1000], [accounts[7], 500]],
+                accounts[0]
+            )
+
+            let addOriginLeft = [[accounts[3], 500], [accounts[4], 600]]
+            let addOriginRight = [[accounts[5], 700]]
+
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+
+            const leftOrder = Order(
+                accounts[2],
+                Asset(ETH_CLASS, EMPTY_DATA, amountEth),
+                ZERO_ADDRESS,
+                erc721OasesAsset,
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataLeft
+            )
+            const rightOrder = Order(
+                accounts[1],
+                erc721OasesAsset,
+                ZERO_ADDRESS,
+                Asset(ETH_CLASS, EMPTY_DATA, amountEth),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataRight
+            )
+            return {leftOrder, rightOrder}
+        }
+    })
+
 })
