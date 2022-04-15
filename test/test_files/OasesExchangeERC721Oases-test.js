@@ -362,5 +362,48 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                 "bad order signature verification"
             )
         })
+
+        it("lazy mint erc721 to eth with wrong lazy-mint signature, revert", async () => {
+            // wrong signature
+            let erc721OasesAsset = await getERC721OasesAsset([[accounts[0], 10000]], [], accounts[1])
+            const leftOrder = Order(
+                accounts[0],
+                erc721OasesAsset,
+                ZERO_ADDRESS,
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                1,
+                0,
+                0,
+                "0xffffffff",
+                EMPTY_DATA
+            )
+            const rightOrder = Order(
+                accounts[1],
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                ZERO_ADDRESS,
+                erc721OasesAsset,
+                1,
+                0,
+                0,
+                "0xffffffff",
+                EMPTY_DATA
+            )
+
+            let signatureLeft = await getSignature(leftOrder, accounts[0])
+            await expectThrow(
+                oasesExchange.matchOrders(
+                    leftOrder,
+                    rightOrder,
+                    signatureLeft,
+                    EMPTY_DATA,
+                    {
+                        from: accounts[1],
+                        value: 300,
+                        gasPrice: 0
+                    }
+                ),
+                "signature verification error"
+            )
+        })
     })
 })
