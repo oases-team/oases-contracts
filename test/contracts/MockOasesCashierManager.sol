@@ -69,7 +69,7 @@ contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier 
         PartLibrary.Part[] memory orderOriginalFees
     )
     external
-    view
+    pure
     returns
     (uint256 totalSum)
     {
