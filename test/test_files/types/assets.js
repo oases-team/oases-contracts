@@ -11,6 +11,7 @@ const ERC1155_CLASS = calculateBytes4InContract('ERC1155_CLASS')
 const COLLECTION_CLASS = calculateBytes4InContract('COLLECTION_CLASS')
 const CRYPTO_PUNKS_CLASS = calculateBytes4InContract('CRYPTO_PUNKS_CLASS')
 const ERC721_LAZY_MINT_CLASS = calculateBytes4InContract('ERC721_LAZY_MINT_CLASS')
+const ERC721_PACKAGE_CLASS = calculateBytes4InContract('ERC721_PACKAGE_CLASS')
 
 // transfer direction
 const TO_MAKER_DIRECTION = calculateBytes4InContract("TO_MAKER_DIRECTION")
@@ -30,13 +31,19 @@ function encode(tokenAddress, tokenId) {
     }
 }
 
+function encodePackageTypeData(tokenAddress, tokenIds) {
+    return web3.eth.abi.encodeParameters(["address", "uint256[]"], [tokenAddress, tokenIds])
+}
+
 module.exports = {
     encode,
+    encodePackageTypeData,
     calculateBytes4InContract,
     ETH_CLASS,
     ERC20_CLASS,
     ERC721_CLASS,
     ERC1155_CLASS,
+    ERC721_PACKAGE_CLASS,
     COLLECTION_CLASS,
     CRYPTO_PUNKS_CLASS,
     TO_MAKER_DIRECTION,
