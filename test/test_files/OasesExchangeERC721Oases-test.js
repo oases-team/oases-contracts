@@ -968,5 +968,102 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             assert.equal(await erc721Oases.balanceOf(accounts[2]), 1)
             assert.equal(await erc721Oases.ownerOf(TOKEN_ID), accounts[2])
         })
+
+        it("From eth(DataV1) to lazy mint erc721(DataV1) Protocol, no Royalties, Origin fees comes from OrderEth NB!!! not enough eth", async () => {
+            const erc721OasesAsset = await getERC721OasesAsset(
+                [[accounts[0], 10000]], [], accounts[0]
+            )
+            // 200*(5%+6%+7%+30%)=96
+            let addOriginLeft = [[accounts[5], 500], [accounts[6], 600], [accounts[7], 700], [accounts[3], 3000]]
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], true])
+
+            const leftOrder = Order(
+                accounts[2],
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                ZERO_ADDRESS,
+                erc721OasesAsset,
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataLeft
+            )
+            const rightOrder = Order(
+                accounts[0],
+                erc721OasesAsset,
+                ZERO_ADDRESS,
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataRight
+            )
+
+            await expectThrow(
+                oasesExchange.matchOrders(
+                    rightOrder,
+                    leftOrder,
+                    await getSignature(rightOrder, accounts[0]),
+                    EMPTY_DATA,
+                    {
+                        from: accounts[2],
+                        // total payment:200+96
+                        value: 295,
+                        gasPrice: 0
+                    }),
+                "bad eth transfer"
+            )
+        })
+
+        it("From lazy mint erc721(DataV1) to eth(DataV1) Protocol, no Royalties, Origin fees comes from OrderEth NB!!! not enough eth", async () => {
+            const erc721OasesAsset = await getERC721OasesAsset(
+                [[accounts[0], 10000]], [], accounts[0]
+            )
+            // 200*(5%+6%+7%+30%)=96
+            let addOriginLeft = [[accounts[5], 500], [accounts[6], 600], [accounts[7], 700], [accounts[3], 3000]]
+
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], true])
+
+            const leftOrder = Order(
+                accounts[2],
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                ZERO_ADDRESS,
+                erc721OasesAsset,
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataLeft
+            )
+            const rightOrder = Order(
+                accounts[0],
+                erc721OasesAsset,
+                ZERO_ADDRESS,
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataRight
+            )
+
+            await expectThrow(
+                oasesExchange.matchOrders(
+                    leftOrder,
+                    rightOrder,
+                    EMPTY_DATA,
+                    await getSignature(rightOrder, accounts[0]),
+                    {
+                        from: accounts[2],
+                        // total payment:200+96
+                        value: 295,
+                        gasPrice: 0
+                    }),
+                "bad eth transfer"
+            )
+        })
     })
 })
