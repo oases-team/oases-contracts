@@ -288,13 +288,9 @@ contract("ERC721Oases", accounts => {
 
     let proxy = accounts[5];
 
-    //нельзя дать approval для tokenId, который еще не создали. owner query for nonexistent token.
     await expectThrow(
       token.approve(proxy, tokenId, {from: minter})
     );
-    //todo ничего не проверяет?
-    // await token.mintAndTransfer(tokenId, [], tokenURI, [minter], [signature], transferTo, {from: proxy});
-    // assert.equal(await token.ownerOf(tokenId), transferTo);
   });
 
   it("mint and transfer by minter", async () => {
