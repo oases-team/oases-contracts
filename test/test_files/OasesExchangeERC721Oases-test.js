@@ -1230,7 +1230,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
         async function prepareLM721DV1_20Orders(t2Amount) {
             const erc721OasesAsset = await getERC721OasesAsset(
-                [[accounts[0], 10000]], [], accounts[0])
+                [[accounts[0], 10000]], [], accounts[0]
+            )
 
             await mockERC20_2.mint(accounts[2], t2Amount)
             await mockERC20_2.approve(mockERC20TransferProxy.address, t2Amount, {from: accounts[2]})
@@ -1289,6 +1290,70 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             assert.equal(await erc721Oases.balanceOf(accounts[2]), 1)
             assert.equal(await erc721Oases.ownerOf(TOKEN_ID), accounts[2])
         })
-    })
 
+        it("From lazy mint erc721(DataV1) to erc20(NO DataV1) Protocol, Origin fees, no Royalties, payouts: 110%, throw", async () => {
+            const {leftOrder, rightOrder} = await prepareLM721DV1_20_110CentsOrders(1000)
+
+            await expectThrow(
+                oasesExchange.matchOrders(
+                    leftOrder,
+                    rightOrder,
+                    await getSignature(leftOrder, accounts[0]),
+                    EMPTY_DATA,
+                    {from: accounts[2]}
+                ),
+                "total bp of payment is not 100%"
+            )
+        })
+
+        async function prepareLM721DV1_20_110CentsOrders(t2Amount) {
+            const erc721OasesAsset = await getERC721OasesAsset(
+                [[accounts[0], 10000]], [], accounts[0]
+            )
+
+            await mockERC20_2.mint(accounts[2], t2Amount)
+            await mockERC20_2.approve(mockERC20TransferProxy.address, t2Amount, {from: accounts[2]})
+
+            let addOriginLeft = [[accounts[3], 100], [accounts[4], 200]]
+            let encodedDataLeft = await encodeDataV1([[[accounts[1], 5000], [accounts[5], 5001]], addOriginLeft, true])
+            const leftOrder = Order(
+                accounts[0],
+                erc721OasesAsset,
+                ZERO_ADDRESS,
+                Asset(ERC20_CLASS, encode(mockERC20_2.address), 100),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataLeft
+            )
+            const rightOrder = Order(
+                accounts[2],
+                Asset(ERC20_CLASS, encode(mockERC20_2.address), 100),
+                ZERO_ADDRESS,
+                erc721OasesAsset,
+                1,
+                0,
+                0,
+                "0xffffffff",
+                EMPTY_DATA
+            )
+            return {leftOrder, rightOrder}
+        }
+
+        it("From erc20(NO DataV1) to lazy mint erc721(DataV1) Protocol, Origin fees, no Royalties, payouts: 110%, throw", async () => {
+            const {leftOrder, rightOrder} = await prepareLM721DV1_20_110CentsOrders(1000)
+
+            await expectThrow(
+                oasesExchange.matchOrders(
+                    rightOrder,
+                    leftOrder,
+                    EMPTY_DATA,
+                    await getSignature(leftOrder, accounts[0]),
+                    {from: accounts[2]}
+                ),
+                "total bp of payment is not 100%"
+            )
+        })
+    })
 })
