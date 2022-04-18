@@ -353,6 +353,20 @@ contract("ERC721Oases", accounts => {
     assert.equal(await token.ownerOf(tokenId), accounts[5]);
   });
 
+  it("mint not by minter, throw", async () => {
+    const minter = accounts[1];
+    let transferTo = accounts[2];
+    let transferTo2 = accounts[4];
+
+    const tokenId = minter + "b00000000000000000000001";
+    const tokenURI = "//uri";
+
+    await expectThrow( //try once more mint and transfer
+      token.transferFromOrMint([tokenId, tokenURI, creators([minter]), [], [zeroWord]], transferTo, transferTo2, {from: minter}),
+      'from not minter'
+    );
+  });
+
   it("mint and transfer to self by minter", async () => {
     const minter = accounts[1];
     let transferTo = minter;
