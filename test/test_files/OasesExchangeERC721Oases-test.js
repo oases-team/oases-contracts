@@ -930,7 +930,6 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             assert.equal(await erc721Oases.ownerOf(TOKEN_ID), accounts[2])
         })
 
-        //TODO to fix
         it("From eth(DataV1) to lazy mint erc721(DataV1) Protocol, Origin fees comes from OrderEth, no Royalties", async () => {
             const erc721OasesAsset = await getERC721OasesAsset(
                 [[accounts[0], 10000]], [], accounts[0]
