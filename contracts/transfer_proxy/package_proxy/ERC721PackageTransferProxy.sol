@@ -19,11 +19,21 @@ contract ERC721PackageTransferProxy is Operators, ITransferProxy {
     override
     onlyOperator
     {
-        require(asset.value == 1, "only 1 value for erc721 package");
-        (address tokenAddress, uint256[] memory tokenIds) =
-        abi.decode(asset.assetType.data, (address, uint256[]));
-        for (uint256 i = 0; i < tokenIds.length; ++i) {
-            IERC721Upgradeable(tokenAddress).safeTransferFrom(from, to, tokenIds[i]);
+        require(
+            asset.value == 1,
+            "only 1 value for erc721 package"
+        );
+
+        (address[] memory tokenAddresses, uint256[] memory tokenIds) =
+        abi.decode(asset.assetType.data, (address[], uint256[]));
+
+        require(
+            tokenAddresses.length == tokenIds.length,
+            "unmatched length"
+        );
+
+        for (uint256 i = 0; i < tokenAddresses.length; ++i) {
+            IERC721Upgradeable(tokenAddresses[i]).safeTransferFrom(from, to, tokenIds[i]);
         }
     }
 }

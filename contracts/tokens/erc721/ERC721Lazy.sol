@@ -48,10 +48,12 @@ abstract contract ERC721Lazy is
     external 
     override 
     {
-        if (_exists(erc721LazyMintData.tokenId)) {
-            safeTransferFrom(from, to, erc721LazyMintData.tokenId);
-        } else {
+        if (!_exists(erc721LazyMintData.tokenId)) {
+            address minter = address(uint160(erc721LazyMintData.tokenId >> 96));
+            require(from == minter, "from not minter");
             mintAndTransfer(erc721LazyMintData, to);
+        } else {
+            safeTransferFrom(from, to, erc721LazyMintData.tokenId);
         }
     }
 

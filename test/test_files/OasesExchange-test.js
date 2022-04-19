@@ -79,6 +79,154 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
         await oasesExchange.setFeeReceiver(ETH_FLAG_ADDRESS, protocolFeeReceiver)
     })
 
+    describe("test cancelOrders()", () => {
+        it("cancel orders", async () => {
+            const encodedData = await encodeDataV1([[], [], true])
+
+            const order1 = Order(
+                accounts[1],
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                ZERO_ADDRESS,
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedData
+            )
+
+            const order2 = Order(
+                accounts[1],
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                ZERO_ADDRESS,
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                2,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedData
+            )
+
+            await oasesExchange.cancelOrders([order1, order2], {from: accounts[1]})
+
+            assert.equal(await oasesExchange.getFilledRecords(await mockOrderLibrary.getHashKey(order1)), 2 ** 256 - 1)
+            assert.equal(await oasesExchange.getFilledRecords(await mockOrderLibrary.getHashKey(order2)), 2 ** 256 - 1)
+        })
+
+        it("revert if right order is cancelled", async () => {
+            await mockERC721.mint(accounts[1], erc721TokenId_1)
+            await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
+
+            const encodedDataLeft = await encodeDataV1([[], [], true])
+            const encodedDataRight = await encodeDataV1([[], [], true])
+
+            const leftOrder = Order(
+                accounts[2],
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                ZERO_ADDRESS,
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataLeft
+            )
+            const rightOrder = Order(
+                accounts[1],
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                ZERO_ADDRESS,
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataRight
+            )
+
+            const signatureRight = await getSignature(rightOrder, accounts[1])
+            await oasesExchange.cancelOrders([rightOrder], {from: accounts[1]})
+            assert.equal(await oasesExchange.getFilledRecords(await mockOrderLibrary.getHashKey(rightOrder)), 2 ** 256 - 1)
+
+            await expectThrow(
+                oasesExchange.matchOrders(
+                    leftOrder,
+                    rightOrder,
+                    EMPTY_DATA,
+                    signatureRight,
+                    {
+                        from: accounts[2],
+                        value: 300,
+                        gasPrice: 0
+                    }),
+                "Arithmetic overflow"
+            )
+        })
+
+        it("revert if msg.sender is not the order's maker", async () => {
+            const encodedData = await encodeDataV1([[], [], true])
+            const order1 = Order(
+                accounts[1],
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                ZERO_ADDRESS,
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedData
+            )
+
+            const order2 = Order(
+                accounts[2],
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                ZERO_ADDRESS,
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedData
+            )
+
+            await expectThrow(
+                oasesExchange.cancelOrders([order1, order2], {from: accounts[1]}),
+                'not the order maker'
+            )
+        })
+
+        it("revert if salt in order is 0", async () => {
+            const encodedData = await encodeDataV1([[], [], true])
+            const order1 = Order(
+                accounts[2],
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                ZERO_ADDRESS,
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedData
+            )
+
+            const order2 = Order(
+                accounts[2],
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                ZERO_ADDRESS,
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                0,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedData
+            )
+
+            await expectThrow(
+                oasesExchange.cancelOrders([order1, order2], {from: accounts[2]}),
+                'salt 0 cannot be cancelled'
+            )
+        })
+    })
+
     describe("test matchOrders()", () => {
         it("eth orders work. revert when eth is not enough", async () => {
             await mockERC20_1.mint(accounts[1], 10000)

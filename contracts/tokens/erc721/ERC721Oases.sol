@@ -5,7 +5,6 @@ pragma solidity 0.8.8;
 import "../../oases_exchange/libraries/TransferHelperLibrary.sol";
 import "./ERC721OasesBase.sol";
 
-// todo: just a framework
 contract ERC721Oases is ERC721OasesBase {
     using TransferHelperLibrary for address;
 

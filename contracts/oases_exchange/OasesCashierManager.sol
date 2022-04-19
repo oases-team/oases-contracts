@@ -393,7 +393,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         PartLibrary.Part[] memory orderOriginalFees
     )
     internal
-    view
+    pure
     returns
     (uint256 totalSum)
     {

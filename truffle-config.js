@@ -41,17 +41,19 @@ module.exports = {
         // tab if you use this network and you must also set the `host`, `port` and `network_id`
         // options below to some value.
         goerli: {
-            provider: () => new HDWalletProvider(mnemonic, `https://goerli.infura.io/v3/f8325ce89e174f40b4357a79682a46d1`),
+            provider: () => new HDWalletProvider(mnemonic, `https://rpc.goerli.mudit.blog/`),
             network_id: 5,
             gas: 5500000,
             // confirmations: 2,
             // timeoutBlocks: 200,
             gasPrice: 3000000000,  // 20 gwei (in wei) (default: 100 gwei)
-            skipDryRun: true
+            skipDryRun: true,
+            networkCheckTimeoutnetworkCheckTimeout: 20000,
+            timeoutBlocks: 500
         },
         development: {
             host: "127.0.0.1",     // Localhost (default: none)
-            port: 8545,            // Standard Ethereum port (default: none)
+            port: 7545,            // Standard Ethereum port (default: none)
             network_id: "*",       // Any network (default: none)
         },
         // Another network with more advanced options...
