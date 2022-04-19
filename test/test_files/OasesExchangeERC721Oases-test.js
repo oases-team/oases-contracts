@@ -131,6 +131,98 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
         return sign(order, signer, oasesExchange.address)
     }
 
+    describe("test cancelOrders()", () => {
+        it("revert if right order is cancelled", async () => {
+            let erc721OasesAsset = await getERC721OasesAsset([[accounts[0], 10000]], [], accounts[0])
+
+            const encodedDataLeft = await encodeDataV1([[], [], true])
+            const encodedDataRight = await encodeDataV1([[], [], true])
+
+            const leftOrder = Order(
+                accounts[2],
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                ZERO_ADDRESS,
+                erc721OasesAsset,
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataLeft
+            )
+            const rightOrder = Order(
+                accounts[0],
+                erc721OasesAsset,
+                ZERO_ADDRESS,
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataRight
+            )
+
+            const signatureRight = await getSignature(rightOrder, accounts[0])
+            await oasesExchange.cancelOrder(rightOrder)
+            assert.equal(await oasesExchange.getFilledRecords(await mockOrderLibrary.getHashKey(rightOrder)), 2 ** 256 - 1)
+
+            await expectThrow(
+                oasesExchange.matchOrders(
+                    leftOrder,
+                    rightOrder,
+                    EMPTY_DATA,
+                    signatureRight,
+                    {
+                        from: accounts[2],
+                        value: 300,
+                        gasPrice: 0
+                    }),
+                "Arithmetic overflow"
+            )
+        })
+
+        it("revert if msg.sender is not the order's maker", async () => {
+            let erc721OasesAsset = await getERC721OasesAsset([[accounts[0], 10000]], [], accounts[0])
+            const encodedData = await encodeDataV1([[], [], true])
+            const order = Order(
+                accounts[2],
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                ZERO_ADDRESS,
+                erc721OasesAsset,
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedData
+            )
+
+            await expectThrow(
+                oasesExchange.cancelOrder(order, {from: accounts[1]}),
+                'not the order maker'
+            )
+        })
+
+        it("revert if salt in order is 0", async () => {
+            let erc721OasesAsset = await getERC721OasesAsset([[accounts[0], 10000]], [], accounts[0])
+            const encodedData = await encodeDataV1([[], [], true])
+            const order = Order(
+                accounts[2],
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                ZERO_ADDRESS,
+                erc721OasesAsset,
+                0,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedData
+            )
+
+            await expectThrow(
+                oasesExchange.cancelOrder(order, {from: accounts[2]}),
+                'salt 0 cannot be cancelled'
+            )
+        })
+    })
+
     describe("test matchOrders()", () => {
         it("eth orders work. revert when eth is not enough", async () => {
             let erc721OasesAsset = await getERC721OasesAsset([[accounts[0], 10000]], [], accounts[0])
@@ -861,7 +953,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                 encodedDataLeft
             )
             const rightOrder = Order(
-                accounts[1],
+                accounts[0],
                 erc721OasesAsset,
                 ZERO_ADDRESS,
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
@@ -871,7 +963,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                 ORDER_V1_DATA_TYPE,
                 encodedDataRight
             )
-            let signatureRight = await getSignature(rightOrder, accounts[1])
+            let signatureRight = await getSignature(rightOrder, accounts[0])
             await verifyBalanceChange(accounts[2], 200 + 10 + 12 + 14, async () =>
                 verifyBalanceChange(accounts[1], -(200 - 6), async () =>
                     verifyBalanceChange(accounts[5], -10, async () =>
@@ -898,6 +990,56 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             assert.equal(await erc721Oases.balanceOf(accounts[0]), 0)
             assert.equal(await erc721Oases.balanceOf(accounts[2]), 1)
             assert.equal(await erc721Oases.ownerOf(TOKEN_ID), accounts[2])
+        })
+
+        it("revert if lazy mint erc721 order's maker is not the minter of the token(the head address in token id)", async () => {
+            const erc721OasesAsset = await getERC721OasesAsset(
+                [[accounts[0], 10000]], [], accounts[0]
+            )
+
+            let addOriginLeft = [[accounts[5], 500], [accounts[6], 600], [accounts[7], 700]]
+
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], true])
+
+            const leftOrder = Order(
+                accounts[2],
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                ZERO_ADDRESS,
+                erc721OasesAsset,
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataLeft
+            )
+            const rightOrder = Order(
+                accounts[1],
+                erc721OasesAsset,
+                ZERO_ADDRESS,
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedDataRight
+            )
+            let signatureRight = await getSignature(rightOrder, accounts[1])
+            await expectThrow(
+                oasesExchange.matchOrders(
+                    leftOrder,
+                    rightOrder,
+                    EMPTY_DATA,
+                    signatureRight,
+                    {
+                        from: accounts[2],
+                        value: 300,
+                        gasPrice: 0
+                    })
+                ,
+                "from not minter"
+            )
+
         })
 
         it("From lazy mint erc721(DataV1) to eth(DataV1) Protocol, Origin fees comes from OrderEth, no Royalties", async () => {
