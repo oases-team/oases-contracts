@@ -10,7 +10,6 @@ abstract contract ERC1271Validator is EIP712Upgradeable {
     using AddressUpgradeable for address;
     using SignatureLibrary for bytes32;
 
-    //TODO: check if need change SIGNATURE_ERROR or recalulate MAGICVALUE
     string constant SIGNATURE_ERROR = "signature verification error";
     bytes4 internal constant MAGICVALUE = 0x1626ba7e;
 
