@@ -30,7 +30,18 @@ function encode(tokenAddress, tokenId) {
     }
 }
 
+function encodeERC721LazyMintData(tokenAddress, erc721LazyMintData) {
+    return web3.eth.abi.encodeParameters(
+        ['address', '(uint256,string,(address,uint96)[],(address,uint96)[],bytes[])'],
+        [
+            tokenAddress,
+            erc721LazyMintData
+        ]
+    )
+}
+
 module.exports = {
+    encodeERC721LazyMintData,
     encode,
     calculateBytes4InContract,
     ETH_CLASS,
@@ -39,6 +50,7 @@ module.exports = {
     ERC1155_CLASS,
     COLLECTION_CLASS,
     CRYPTO_PUNKS_CLASS,
+    ERC721_LAZY_MINT_CLASS,
     TO_MAKER_DIRECTION,
     TO_TAKER_DIRECTION,
     PROTOCOL_FEE,
