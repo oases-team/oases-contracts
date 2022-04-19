@@ -37,7 +37,7 @@ abstract contract OasesMatchingCore is AssetTypeMatcher, Cashier, OrderVerifier,
         AssetLibrary.AssetType matchedTakeAssetType
     );
 
-    function cancelOrders(OrderLibrary.Order[] memory orders) external {
+    function cancelOrders(OrderLibrary.Order[] calldata orders) external {
         for (uint256 i = 0; i < orders.length; ++i) {
             require(msg.sender == orders[i].maker, "not the order maker");
             require(orders[i].salt != 0, "salt 0 cannot be cancelled");
