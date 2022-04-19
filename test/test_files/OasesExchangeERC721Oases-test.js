@@ -132,8 +132,42 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
     }
 
     describe("test cancelOrders()", () => {
+        it("cancel orders", async () => {
+            const erc721OasesAsset = await getERC721OasesAsset([[accounts[0], 10000]], [], accounts[0])
+            const encodedData = await encodeDataV1([[], [], true])
+
+            const order1 = Order(
+                accounts[0],
+                erc721OasesAsset,
+                ZERO_ADDRESS,
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedData
+            )
+
+            const order2 = Order(
+                accounts[0],
+                erc721OasesAsset,
+                ZERO_ADDRESS,
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                2,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedData
+            )
+
+            await oasesExchange.cancelOrders([order1, order2])
+
+            assert.equal(await oasesExchange.getFilledRecords(await mockOrderLibrary.getHashKey(order1)), 2 ** 256 - 1)
+            assert.equal(await oasesExchange.getFilledRecords(await mockOrderLibrary.getHashKey(order2)), 2 ** 256 - 1)
+        })
+
         it("revert if right order is cancelled", async () => {
-            let erc721OasesAsset = await getERC721OasesAsset([[accounts[0], 10000]], [], accounts[0])
+            const erc721OasesAsset = await getERC721OasesAsset([[accounts[0], 10000]], [], accounts[0])
 
             const encodedDataLeft = await encodeDataV1([[], [], true])
             const encodedDataRight = await encodeDataV1([[], [], true])
@@ -162,7 +196,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             )
 
             const signatureRight = await getSignature(rightOrder, accounts[0])
-            await oasesExchange.cancelOrder(rightOrder)
+            await oasesExchange.cancelOrders([rightOrder])
             assert.equal(await oasesExchange.getFilledRecords(await mockOrderLibrary.getHashKey(rightOrder)), 2 ** 256 - 1)
 
             await expectThrow(
@@ -181,10 +215,22 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
         })
 
         it("revert if msg.sender is not the order's maker", async () => {
-            let erc721OasesAsset = await getERC721OasesAsset([[accounts[0], 10000]], [], accounts[0])
+            const erc721OasesAsset = await getERC721OasesAsset([[accounts[0], 10000]], [], accounts[0])
             const encodedData = await encodeDataV1([[], [], true])
-            const order = Order(
-                accounts[2],
+            const order1 = Order(
+                accounts[1],
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                ZERO_ADDRESS,
+                erc721OasesAsset,
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedData
+            )
+
+            const order2 = Order(
+                accounts[0],
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 ZERO_ADDRESS,
                 erc721OasesAsset,
@@ -196,15 +242,26 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             )
 
             await expectThrow(
-                oasesExchange.cancelOrder(order, {from: accounts[1]}),
+                oasesExchange.cancelOrders([order1, order2], {from: accounts[1]}),
                 'not the order maker'
             )
         })
 
         it("revert if salt in order is 0", async () => {
-            let erc721OasesAsset = await getERC721OasesAsset([[accounts[0], 10000]], [], accounts[0])
+            const erc721OasesAsset = await getERC721OasesAsset([[accounts[0], 10000]], [], accounts[0])
             const encodedData = await encodeDataV1([[], [], true])
-            const order = Order(
+            const order1 = Order(
+                accounts[2],
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                ZERO_ADDRESS,
+                erc721OasesAsset,
+                1,
+                0,
+                0,
+                ORDER_V1_DATA_TYPE,
+                encodedData
+            )
+            const order2 = Order(
                 accounts[2],
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 ZERO_ADDRESS,
@@ -217,7 +274,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             )
 
             await expectThrow(
-                oasesExchange.cancelOrder(order, {from: accounts[2]}),
+                oasesExchange.cancelOrders([order1, order2], {from: accounts[2]}),
                 'salt 0 cannot be cancelled'
             )
         })
