@@ -22,9 +22,11 @@ const ROYALTY = calculateBytes4InContract("ROYALTY_TYPE")
 const ORIGIN_FEE = calculateBytes4InContract("ORIGIN_FEE_TYPE")
 const PAYMENT = calculateBytes4InContract("PAYMENT_TYPE")
 
-function encode(tokenAddress, tokenId) {
+function encode(tokenAddress, tokenId, royaltyInfo) {
     if (tokenId) {
-        return web3.eth.abi.encodeParameters(["address", "uint256"], [tokenAddress, tokenId])
+        return web3.eth.abi.encodeParameters(
+            ["address", "uint256", "(address,uint96)[]"],
+            [tokenAddress, tokenId, royaltyInfo])
     } else {
         return web3.eth.abi.encodeParameter("address", tokenAddress)
     }

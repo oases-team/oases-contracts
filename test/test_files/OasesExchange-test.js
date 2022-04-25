@@ -365,7 +365,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
             const leftOrder = Order(
                 accounts[1],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 ZERO_ADDRESS,
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 1,
@@ -378,7 +378,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                 accounts[2],
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 1,
                 0,
                 0,
@@ -416,7 +416,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
             const leftOrder = Order(
                 accounts[1],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 ZERO_ADDRESS,
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 1,
@@ -430,7 +430,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                 accounts[2],
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 1,
                 0,
                 0,
@@ -452,6 +452,96 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                     }
                 ),
                 "bad order signature verification"
+            )
+        })
+
+        it("erc721 to eth. Revert if royalty infos in both orders are different", async () => {
+            await mockERC721.mint(accounts[1], erc721TokenId_1)
+            await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
+
+            const leftOrder = Order(
+                accounts[1],
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, [[accounts[3], 1000]]), 1),
+                ZERO_ADDRESS,
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                1,
+                0,
+                0,
+                "0xffffffff",
+                EMPTY_DATA
+            )
+
+            const rightOrer = Order(
+                accounts[2],
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                ZERO_ADDRESS,
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, [[accounts[3], 999]]), 1),
+                1,
+                0,
+                0,
+                "0xffffffff",
+                EMPTY_DATA
+            )
+
+            let signatureLeft = await getSignature(leftOrder, accounts[1])
+            await expectThrow(
+                oasesExchange.matchOrders(
+                    leftOrder,
+                    rightOrer,
+                    signatureLeft,
+                    EMPTY_DATA,
+                    {
+                        from: accounts[2],
+                        value: 300,
+                        gasPrice: 0
+                    }
+                ),
+                "bad match of make asset"
+            )
+        })
+
+        it("eth to erc721. Revert if royalty infos in both orders are different", async () => {
+            await mockERC721.mint(accounts[1], erc721TokenId_1)
+            await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
+
+            const leftOrder = Order(
+                accounts[1],
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, [[accounts[3], 1000]]), 1),
+                ZERO_ADDRESS,
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                1,
+                0,
+                0,
+                "0xffffffff",
+                EMPTY_DATA
+            )
+
+            const rightOrer = Order(
+                accounts[2],
+                Asset(ETH_CLASS, EMPTY_DATA, 200),
+                ZERO_ADDRESS,
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, [[accounts[3], 999]]), 1),
+                1,
+                0,
+                0,
+                "0xffffffff",
+                EMPTY_DATA
+            )
+
+            let signatureLeft = await getSignature(leftOrder, accounts[1])
+            await expectThrow(
+                oasesExchange.matchOrders(
+                    rightOrer,
+                    leftOrder,
+                    EMPTY_DATA,
+                    signatureLeft,
+                    {
+                        from: accounts[2],
+                        value: 300,
+                        gasPrice: 0
+                    }
+                ),
+                "bad match of take asset"
             )
         })
 
@@ -612,7 +702,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             const encodedDataRight = await encodeDataV1([[], [], true])
             const leftOrder = Order(
                 accounts[1],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 ZERO_ADDRESS,
                 Asset(ERC20_CLASS, encode(mockERC20_2.address), 100),
                 1,
@@ -625,7 +715,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                 accounts[2],
                 Asset(ERC20_CLASS, encode(mockERC20_2.address), 100),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 1,
                 0,
                 0,
@@ -703,14 +793,18 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             const encodedDataLeft = await encodeDataV1([[[accounts[8], 10000]], addOriginLeft, true])
             const encodedDataRight = await encodeDataV1([[[accounts[9], 10000]], addOriginRight, true])
 
-            //set royalties by token
-            await mockRoyaltiesRegistry.setRoyaltiesByToken(mockERC1155.address, [[accounts[6], 1000], [accounts[7], 500]])
+            //set royalties by token(useless)
+            await mockRoyaltiesRegistry.setRoyaltiesByToken(mockERC1155.address, [[accounts[8], 1000], [accounts[9], 500]])
             await oasesExchange.setFeeReceiver(mockERC20_1.address, protocolFeeReceiver)
             const leftOrder = Order(
                 accounts[1],
                 Asset(ERC20_CLASS, encode(mockERC20_1.address), 1000),
                 ZERO_ADDRESS,
-                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_2), 7),
+                Asset(
+                    ERC1155_CLASS,
+                    encode(mockERC1155.address, erc1155TokenId_2, [[accounts[6], 1000], [accounts[7], 500]]),
+                    7
+                ),
                 1,
                 0,
                 0,
@@ -719,7 +813,11 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             )
             const rightOrder = Order(
                 accounts[2],
-                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_2), 7),
+                Asset(
+                    ERC1155_CLASS,
+                    encode(mockERC1155.address, erc1155TokenId_2, [[accounts[6], 1000], [accounts[7], 500]]),
+                    7
+                ),
                 ZERO_ADDRESS,
                 Asset(ERC20_CLASS, encode(mockERC20_1.address), 1000),
                 1,
@@ -811,14 +909,18 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
             let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
 
-            // //set royalties by token
-            await mockRoyaltiesRegistry.setRoyaltiesByToken(mockERC721.address, [[accounts[6], 1000], [accounts[7], 500]])
+            // //set royalties by token(useless)
+            await mockRoyaltiesRegistry.setRoyaltiesByToken(mockERC721.address, [[accounts[8], 1000], [accounts[9], 500]])
 
             const leftOrder = Order(
                 accounts[2],
                 Asset(ETH_CLASS, EMPTY_DATA, amountEth),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(
+                    ERC721_CLASS,
+                    encode(mockERC721.address, erc721TokenId_1, [[accounts[6], 1000], [accounts[7], 500]]),
+                    1
+                ),
                 1,
                 0,
                 0,
@@ -827,7 +929,11 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             )
             const rightOrder = Order(
                 accounts[1],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(
+                    ERC721_CLASS,
+                    encode(mockERC721.address, erc721TokenId_1, [[accounts[6], 1000], [accounts[7], 500]]),
+                    1
+                ),
                 ZERO_ADDRESS,
                 Asset(ETH_CLASS, EMPTY_DATA, amountEth),
                 1,
@@ -853,7 +959,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                 accounts[2],
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 1,
                 0,
                 0,
@@ -862,7 +968,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             )
             const rightOrder = Order(
                 accounts[1],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 ZERO_ADDRESS,
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 1,
@@ -912,7 +1018,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                 accounts[2],
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 1,
                 0,
                 0,
@@ -921,7 +1027,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             )
             const rightOrder = Order(
                 accounts[1],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 ZERO_ADDRESS,
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 1,
@@ -970,7 +1076,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                 accounts[2],
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2, []), 1),
                 1,
                 0,
                 0,
@@ -979,7 +1085,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             )
             const rightOrder = Order(
                 accounts[1],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2, []), 1),
                 ZERO_ADDRESS,
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 1,
@@ -1028,7 +1134,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                 accounts[2],
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2, []), 1),
                 1,
                 0,
                 0,
@@ -1037,7 +1143,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             )
             const rightOrder = Order(
                 accounts[1],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2, []), 1),
                 ZERO_ADDRESS,
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 1,
@@ -1086,7 +1192,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                 accounts[2],
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2, []), 1),
                 1,
                 0,
                 0,
@@ -1095,7 +1201,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             )
             const rightOrder = Order(
                 accounts[1],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2, []), 1),
                 ZERO_ADDRESS,
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 1,
@@ -1144,7 +1250,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                 accounts[2],
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2, []), 1),
                 1,
                 0,
                 0,
@@ -1153,7 +1259,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             )
             const rightOrder = Order(
                 accounts[1],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2, []), 1),
                 ZERO_ADDRESS,
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 1,
@@ -1201,7 +1307,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                 accounts[2],
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2, []), 1),
                 1,
                 0,
                 0,
@@ -1210,7 +1316,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             )
             const rightOrder = Order(
                 accounts[1],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2, []), 1),
                 ZERO_ADDRESS,
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 1,
@@ -1249,7 +1355,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                 accounts[2],
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2, []), 1),
                 1,
                 0,
                 0,
@@ -1258,7 +1364,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             )
             const rightOrder = Order(
                 accounts[1],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2, []), 1),
                 ZERO_ADDRESS,
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
                 1,
@@ -1299,7 +1405,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                 accounts[2],
                 Asset(ETH_CLASS, "0x", 200),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 1,
                 0,
                 0,
@@ -1308,7 +1414,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             )
             const rightOrder = Order(
                 accounts[1],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 ZERO_ADDRESS,
                 Asset(ETH_CLASS, "0x", 200),
                 1,
@@ -1362,7 +1468,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                 accounts[2],
                 Asset(ETH_CLASS, "0x", 200),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 1,
                 0,
                 0,
@@ -1371,7 +1477,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             )
             const rightOrder = Order(
                 accounts[1],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 ZERO_ADDRESS,
                 Asset(ETH_CLASS, "0x", 200),
                 1,
