@@ -9,6 +9,7 @@ import "../interfaces/INFTTransferProxy.sol";
 import "../interfaces/ITransferProxy.sol";
 import "../common_libraries/AssetLibrary.sol";
 import "./libraries/TransferHelperLibrary.sol";
+import "../common_libraries/PartLibrary.sol";
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
@@ -51,7 +52,10 @@ abstract contract Cashier is OwnableUpgradeable, ICashier {
             );
         } else if (asset.assetType.assetClass == AssetLibrary.ERC721_ASSET_CLASS) {
             // decode ERC721 address and token id
-            (address addressERC721, uint256 tokenId) = abi.decode(asset.assetType.data, (address, uint256));
+            (address addressERC721, uint256 tokenId,) = abi.decode(
+                asset.assetType.data,
+                (address, uint256, PartLibrary.Part[])
+            );
             require(asset.value == 1, "ERC721's strict amount");
             INFTTransferProxy(transferProxies[AssetLibrary.ERC721_ASSET_CLASS]).safeTransferFromERC721(
                 IERC721Upgradeable(addressERC721),
@@ -61,7 +65,10 @@ abstract contract Cashier is OwnableUpgradeable, ICashier {
             );
         } else if (asset.assetType.assetClass == AssetLibrary.ERC1155_ASSET_CLASS) {
             // decode ERC1155 address and id
-            (address addressERC1155, uint256 id) = abi.decode(asset.assetType.data, (address, uint256));
+            (address addressERC1155, uint256 id,) = abi.decode(
+                asset.assetType.data,
+                (address, uint256, PartLibrary.Part[])
+            );
             INFTTransferProxy(transferProxies[AssetLibrary.ERC1155_ASSET_CLASS]).safeTransferFromERC1155(
                 IERC1155Upgradeable(addressERC1155),
                 from,
