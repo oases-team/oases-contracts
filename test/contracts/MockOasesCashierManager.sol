@@ -234,7 +234,7 @@ contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier 
         }
     }
 
-    function mockTransferRoyaltiesView(
+    function mockTransferRoyaltiesPure(
         address payer,
         uint256 totalAmountAndFeesRest,
         uint256 amountToCalculateRoyalties,
@@ -243,15 +243,15 @@ contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier 
         bytes4 direction
     )
     external
-    view
+    pure
     returns
     (uint256)
     {
         PartLibrary.Part[] memory royaltyInfos;
         // get infos of royalties
         if (nftType.assetClass == AssetLibrary.ERC721_ASSET_CLASS || nftType.assetClass == AssetLibrary.ERC1155_ASSET_CLASS) {
-            // mock royaltyInfos for nft
-            royaltyInfos = mockNFTRoyaltyInfos;
+            // decode nft address, token id and royalty info
+            (,, royaltyInfos) = abi.decode(nftType.data, (address, uint256, PartLibrary.Part[]));
         } else if (nftType.assetClass == ERC721LazyMintLibrary.ERC721_LAZY_MINT_ASSET_CLASS) {
             // decode the royaltyInfos of lazy mint erc721
             (, ERC721LazyMintLibrary.ERC721LazyMintData memory erc721LazyMintData) = abi.decode(

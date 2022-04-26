@@ -170,7 +170,7 @@ contract("test OasesCashierManager.sol", accounts => {
         it("payment is erc1155", async () => {
             await mockERC1155.mint(accounts[0], erc1155TokenId_1, 1000)
             await mockERC1155.setApprovalForAll(mockNFTTransferProxy.address, true)
-            const paymentType = AssetType(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1))
+            const paymentType = AssetType(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1, []))
             let paymentInfos = [Part(accounts[1], 2000), Part(accounts[2], 3000), Part(accounts[3], 5000)]
             await mockOasesCashierManager.mockTransferPayment(accounts[0], 100, paymentType, paymentInfos, EMPTY_BYTES4)
 
@@ -297,7 +297,7 @@ contract("test OasesCashierManager.sol", accounts => {
         it("fee is erc1155", async () => {
             await mockERC1155.mint(accounts[0], erc1155TokenId_1, 1000)
             await mockERC1155.setApprovalForAll(mockNFTTransferProxy.address, true)
-            const feeType = AssetType(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1))
+            const feeType = AssetType(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1, []))
             let feeInfos = [Part(accounts[1], 2000), Part(accounts[2], 3000), Part(accounts[3], 4000)]
             await mockOasesCashierManager.mockTransferFees(
                 accounts[0], true, 1000, 100, feeType, feeInfos, EMPTY_BYTES4, EMPTY_BYTES4)
@@ -362,7 +362,7 @@ contract("test OasesCashierManager.sol", accounts => {
             // protocol fee 3%
             await mockERC1155.mint(accounts[0], erc1155TokenId_1, 100)
             await mockERC1155.setApprovalForAll(mockNFTTransferProxy.address, true)
-            const feeType = AssetType(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1))
+            const feeType = AssetType(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1, []))
             await mockOasesCashierManager.mockTransferProtocolFee(
                 accounts[0], 200, 100, feeType, EMPTY_BYTES4)
 
@@ -402,25 +402,29 @@ contract("test OasesCashierManager.sol", accounts => {
             await mockERC20_1.mint(accounts[0], 100000)
             await mockERC20_1.approve(mockERC20TransferProxy.address, 100000)
             const royaltyType = AssetType(ERC20_CLASS, encode(mockERC20_1.address))
-            const nftType = AssetType(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1))
-            // no royalty info in MockRoyaltiesRegistry
+            let nftType = AssetType(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []))
+            // no royalty info in MockRoyaltiesRegistry( doesn't work )
             await mockOasesCashierManager.mockTransferRoyalties(
                 accounts[0], 100000, 10000, royaltyType, nftType, EMPTY_BYTES4)
 
             assert.equal(await mockERC20_1.balanceOf(accounts[0]), 100000)
 
-            // set royalty info into MockRoyaltiesRegistry
-            let royaltyInfo = [Part(accounts[1], 1000)]
+            // set royalty info into MockRoyaltiesRegistry( doesn't work )
+            let royaltyInfo = [Part(accounts[1], 2000)]
             await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
+
+            nftType.data = encode(mockERC721.address, erc721TokenId_1, [[accounts[1], 1000]])
             await mockOasesCashierManager.mockTransferRoyalties(
                 accounts[0], 100000, 10000, royaltyType, nftType, EMPTY_BYTES4)
 
             assert.equal(await mockERC20_1.balanceOf(accounts[0]), 99000)
             assert.equal(await mockERC20_1.balanceOf(accounts[1]), 1000)
 
-            // append royalty info into MockRoyaltiesRegistry
-            royaltyInfo = [Part(accounts[2], 1500), Part(accounts[3], 2000)]
+            // append royalty info into MockRoyaltiesRegistry( doesn't work)
+            royaltyInfo = [Part(accounts[2], 2500), Part(accounts[3], 3000)]
             await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
+
+            nftType.data = encode(mockERC721.address, erc721TokenId_1, [[accounts[1], 1000], [accounts[2], 1500], [accounts[3], 2000]])
             await mockOasesCashierManager.mockTransferRoyalties(
                 accounts[0], 100000, 10000, royaltyType, nftType, EMPTY_BYTES4)
 
@@ -430,8 +434,7 @@ contract("test OasesCashierManager.sol", accounts => {
             assert.equal(await mockERC20_1.balanceOf(accounts[3]), 2000)
 
             // sum of royalty bps is over 5000
-            // set royalty info into MockRoyaltiesRegistry
-            royaltyInfo = [Part(accounts[1], 3000), Part(accounts[2], 2001)]
+            nftType.data = encode(mockERC721.address, erc721TokenId_1, [[accounts[2], 3000], [accounts[3], 2001]])
             await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
             await expectThrow(
                 mockOasesCashierManager.mockTransferRoyalties(
@@ -439,17 +442,22 @@ contract("test OasesCashierManager.sol", accounts => {
                 'royalties sum exceeds 50%'
             )
 
-            /* check returns with function mockTransferRoyaltiesView() */
-            // set royalty info into MockRoyaltiesRegistry
-            royaltyInfo = [Part(accounts[1], 1000)]
+            /* check returns with function mockTransferRoyaltiesPure() */
+            // set royalty info into MockRoyaltiesRegistry( doesn't work )
+            royaltyInfo = [Part(accounts[1], 2000)]
             await mockOasesCashierManager.setMockNFTRoyaltyInfos(royaltyInfo)
-            let res = await mockOasesCashierManager.mockTransferRoyaltiesView(
+
+            nftType.data = encode(mockERC721.address, erc721TokenId_1, [[accounts[1], 1000]])
+            let res = await mockOasesCashierManager.mockTransferRoyaltiesPure(
                 accounts[0], 100000, 10000, royaltyType, nftType, EMPTY_BYTES4)
             assert.equal(res, 100000 - 1000)
 
-            royaltyInfo = [Part(accounts[2], 1500), Part(accounts[3], 2000)]
+            // doesn't work
+            royaltyInfo = [Part(accounts[2], 500), Part(accounts[3], 100)]
             await mockOasesCashierManager.setMockNFTRoyaltyInfos(royaltyInfo)
-            res = await mockOasesCashierManager.mockTransferRoyaltiesView(
+
+            nftType.data = encode(mockERC721.address, erc721TokenId_1, [[accounts[1], 1000], [accounts[2], 1500], [accounts[3], 2000]])
+            res = await mockOasesCashierManager.mockTransferRoyaltiesPure(
                 accounts[0], 100000, 10000, royaltyType, nftType, EMPTY_BYTES4)
             assert.equal(res, 100000 - 1000 - 1500 - 2000)
         })
@@ -457,17 +465,19 @@ contract("test OasesCashierManager.sol", accounts => {
         it("transfer the royalty of erc721 with erc1155 as fee", async () => {
             await mockERC1155.mint(accounts[0], erc1155TokenId_1, 20000)
             await mockERC1155.setApprovalForAll(mockNFTTransferProxy.address, true)
-            const royaltyType = AssetType(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1))
-            const nftType = AssetType(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1))
-            // no royalty info in MockRoyaltiesRegistry
+            const royaltyType = AssetType(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1, []))
+            let nftType = AssetType(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []))
+            // no royalty
             await mockOasesCashierManager.mockTransferRoyalties(
                 accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4)
 
             assert.equal(await mockERC1155.balanceOf(accounts[0], erc1155TokenId_1), 20000)
 
-            // set royalty info into MockRoyaltiesRegistry
-            let royaltyInfo = [Part(accounts[1], 1000)]
+            // set royalty info into MockRoyaltiesRegistry( doesn't work )
+            let royaltyInfo = [Part(accounts[1], 2000)]
             await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
+
+            nftType = AssetType(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, [[accounts[1], 1000]]))
             await mockOasesCashierManager.mockTransferRoyalties(
                 accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4)
 
@@ -475,8 +485,10 @@ contract("test OasesCashierManager.sol", accounts => {
             assert.equal(await mockERC1155.balanceOf(accounts[1], erc1155TokenId_1), 1000)
 
             // append royalty info into MockRoyaltiesRegistry
-            royaltyInfo = [Part(accounts[2], 1500), Part(accounts[3], 2000)]
+            royaltyInfo = [Part(accounts[2], 500), Part(accounts[3], 1000)]
             await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
+
+            nftType = AssetType(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, [[accounts[1], 1000], [accounts[2], 1500], [accounts[3], 2000]]))
             await mockOasesCashierManager.mockTransferRoyalties(
                 accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4)
 
@@ -486,33 +498,32 @@ contract("test OasesCashierManager.sol", accounts => {
             assert.equal(await mockERC1155.balanceOf(accounts[3], erc1155TokenId_1), 2000)
 
             // sum of royalty bps is over 5000
-            // set royalty info into MockRoyaltiesRegistry
-            royaltyInfo = [Part(accounts[4], 5000)]
-            await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
+            nftType = AssetType(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, [[accounts[1], 1000], [accounts[2], 1500], [accounts[3], 2000], [accounts[4], 501]]))
             await expectThrow(
                 mockOasesCashierManager.mockTransferRoyalties(
                     accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4),
                 'royalties sum exceeds 50%'
             )
 
-            /* check returns with function mockTransferRoyaltiesView() */
-            // set royalty info into MockRoyaltiesRegistry
-            royaltyInfo = [Part(accounts[1], 1000)]
+            /* check returns with function mockTransferRoyaltiesPure() */
+            // set royalty info into MockRoyaltiesRegistry( doesn't work )
+            royaltyInfo = [Part(accounts[1], 2000)]
             await mockOasesCashierManager.setMockNFTRoyaltyInfos(royaltyInfo)
-            let res = await mockOasesCashierManager.mockTransferRoyaltiesView(
+
+            nftType = AssetType(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, [[accounts[1], 1000]]))
+            let res = await mockOasesCashierManager.mockTransferRoyaltiesPure(
                 accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4)
             assert.equal(res, 20000 - 1000)
 
-            royaltyInfo = [Part(accounts[2], 1500), Part(accounts[3], 2000)]
-            await mockOasesCashierManager.setMockNFTRoyaltyInfos(royaltyInfo)
-            res = await mockOasesCashierManager.mockTransferRoyaltiesView(
+            nftType.data = encode(mockERC721.address, erc721TokenId_1, [[accounts[1], 1000], [accounts[2], 1500], [accounts[3], 2000]])
+            res = await mockOasesCashierManager.mockTransferRoyaltiesPure(
                 accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4)
-            assert.equal(res, 19000 - 1500 - 2000)
+            assert.equal(res, 20000 - 1000 - 1500 - 2000)
         })
 
         it("transfer the royalty of erc721 with eth as fee", async () => {
             const royaltyType = AssetType(ETH_CLASS, EMPTY_DATA)
-            const nftType = AssetType(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1))
+            let nftType = AssetType(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []))
             // no royalty info in MockRoyaltiesRegistry
             await verifyBalanceChange(accounts[0], 10000, () =>
                 verifyBalanceChange(mockOasesCashierManager.address, -10000, () =>
@@ -522,9 +533,11 @@ contract("test OasesCashierManager.sol", accounts => {
                 )
             )
 
-            // set royalty info into MockRoyaltiesRegistry
-            let royaltyInfo = [Part(accounts[1], 1000)]
+            // set royalty info into MockRoyaltiesRegistry( doesn't work )
+            let royaltyInfo = [Part(accounts[1], 2000)]
             await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
+
+            nftType.data = encode(mockERC721.address, erc721TokenId_1, [[accounts[1], 1000]])
             await verifyBalanceChange(accounts[1], -1000, () =>
                 verifyBalanceChange(accounts[0], 10000, () =>
                     verifyBalanceChange(mockOasesCashierManager.address, -9000, () =>
@@ -538,9 +551,11 @@ contract("test OasesCashierManager.sol", accounts => {
                 )
             )
 
-            // append royalty info into MockRoyaltiesRegistry
-            royaltyInfo = [Part(accounts[2], 1500), Part(accounts[3], 2000)]
+            // append royalty info into MockRoyaltiesRegistry( doesn't work )
+            royaltyInfo = [Part(accounts[2], 500), Part(accounts[3], 1000)]
             await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
+
+            nftType.data = encode(mockERC721.address, erc721TokenId_1, [[accounts[1], 1000], [accounts[2], 1500], [accounts[3], 2000]])
             await verifyBalanceChange(accounts[0], 10000, () =>
                 verifyBalanceChange(accounts[1], -1000, () =>
                     verifyBalanceChange(accounts[2], -1500, () =>
@@ -559,9 +574,11 @@ contract("test OasesCashierManager.sol", accounts => {
             )
 
             // sum of royalty bps is over 5000
-            // set royalty info into MockRoyaltiesRegistry
-            royaltyInfo = [Part(accounts[4], 5000)]
+            // set royalty info into MockRoyaltiesRegistry( doesn't work )
+            royaltyInfo = [Part(accounts[4], 100)]
             await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
+
+            nftType.data = encode(mockERC721.address, erc721TokenId_1, [[accounts[1], 1000], [accounts[2], 1500], [accounts[3], 2000], [accounts[4], 501]])
             await expectThrow(
                 mockOasesCashierManager.mockTransferRoyalties(
                     accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4, {
@@ -572,17 +589,22 @@ contract("test OasesCashierManager.sol", accounts => {
                 'royalties sum exceeds 50%'
             )
 
-            /* check returns with function mockTransferRoyaltiesView() */
-            // set royalty info into MockRoyaltiesRegistry
-            royaltyInfo = [Part(accounts[1], 1000)]
+            /* check returns with function mockTransferRoyaltiesPure() */
+            // set royalty info into MockRoyaltiesRegistry( doesn't work )
+            royaltyInfo = [Part(accounts[1], 500)]
             await mockOasesCashierManager.setMockNFTRoyaltyInfos(royaltyInfo)
-            let res = await mockOasesCashierManager.mockTransferRoyaltiesView(
+
+            nftType.data = encode(mockERC721.address, erc721TokenId_1, [[accounts[1], 1000]])
+            let res = await mockOasesCashierManager.mockTransferRoyaltiesPure(
                 accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4)
             assert.equal(res, 20000 - 1000)
 
-            royaltyInfo = [Part(accounts[2], 1500), Part(accounts[3], 2000)]
+            // doesn't work
+            royaltyInfo = [Part(accounts[2], 500), Part(accounts[3], 1000)]
             await mockOasesCashierManager.setMockNFTRoyaltyInfos(royaltyInfo)
-            res = await mockOasesCashierManager.mockTransferRoyaltiesView(
+
+            nftType.data = encode(mockERC721.address, erc721TokenId_1, [[accounts[1], 1000], [accounts[2], 1500], [accounts[3], 2000]])
+            res = await mockOasesCashierManager.mockTransferRoyaltiesPure(
                 accounts[0], 20000, 10000, royaltyType, nftType, EMPTY_BYTES4)
             assert.equal(res, 20000 - 1000 - 1500 - 2000)
         })
@@ -593,19 +615,20 @@ contract("test OasesCashierManager.sol", accounts => {
             await mockERC20_1.mint(accounts[1], 20000, {from: accounts[1]})
             await mockERC20_1.approve(mockERC20TransferProxy.address, 20000, {from: accounts[1]})
             const paymentType = AssetType(ERC20_CLASS, encode(mockERC20_1.address))
-            const nftType = AssetType(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1))
-            let paymentData = Data(
+            const nftType = AssetType(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, [[accounts[4], 250]]))
+            const paymentData = Data(
                 [],
                 [Part(accounts[3], 1000)],
                 false)
-            let nftData = Data(
+            const nftData = Data(
                 [Part(accounts[0], 8000), Part(accounts[2], 2000)],
                 [Part(accounts[5], 500)],
                 false)
 
             await mockOasesCashierManager.setFeeReceiver(mockERC20_1.address, protocolFeeReceiver)
 
-            let royaltyInfo = [Part(accounts[4], 250)]
+            // doesn't work
+            let royaltyInfo = [Part(accounts[4], 100)]
             await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
             // seller all spend : amount + protocol fee + payment origin fee = 10000*(1+10%) = 11000
             // 1. protocol fee 3%: -> 10000 * 3% = 300
@@ -642,20 +665,21 @@ contract("test OasesCashierManager.sol", accounts => {
         it("nft: erc721, payment && royalty: erc1155", async () => {
             await mockERC1155.mint(accounts[1], erc1155TokenId_1, 2000, {from: accounts[1]})
             await mockERC1155.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
-            const paymentType = AssetType(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1))
-            const nftType = AssetType(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1))
-            let paymentData = Data(
+            const paymentType = AssetType(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1, []))
+            const nftType = AssetType(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, [[accounts[4], 250]]))
+            const paymentData = Data(
                 [],
                 [Part(accounts[3], 1000)],
                 false)
-            let nftData = Data(
+            const nftData = Data(
                 [Part(accounts[0], 8000), Part(accounts[2], 2000)],
                 [Part(accounts[5], 500)],
                 false)
 
             await mockOasesCashierManager.setFeeReceiver(mockERC1155.address, protocolFeeReceiver)
 
-            let royaltyInfo = [Part(accounts[4], 250)]
+            // doesn't work
+            const royaltyInfo = [Part(accounts[4], 100)]
             await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
             // seller all spend : amount + protocol fee + payment origin fee = 1000*(1+10%) = 1100
             // 1. protocol fee 3%: -> 1000 * 3% = 30
@@ -691,17 +715,18 @@ contract("test OasesCashierManager.sol", accounts => {
 
         it("nft: erc721, payment && royalty: eth", async () => {
             const paymentType = AssetType(ETH_CLASS, EMPTY_DATA)
-            const nftType = AssetType(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1))
+            const nftType = AssetType(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, [[accounts[4], 250]]))
             let paymentData = Data(
                 [],
                 [Part(accounts[3], 1000)],
                 false)
-            let nftData = Data(
+            const nftData = Data(
                 [Part(accounts[0], 8000), Part(accounts[2], 2000)],
                 [Part(accounts[5], 500)],
                 false)
 
-            let royaltyInfo = [Part(accounts[4], 250)]
+            // doesn't work
+            const royaltyInfo = [Part(accounts[4], 100)]
             await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC721.address, erc721TokenId_1, royaltyInfo)
             // seller all spend : amount + protocol fee + payment origin fee = 10000*(1+10%) = 11000
             // 1. protocol fee 3%: -> 10000 * 3% = 300
@@ -780,7 +805,7 @@ contract("test OasesCashierManager.sol", accounts => {
                 accounts[0],
                 Asset(ETH_CLASS, "0x", 100),
                 ZERO_ADDRESS,
-                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1), 7),
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1, []), 7),
                 1,
                 0,
                 0,
@@ -789,7 +814,7 @@ contract("test OasesCashierManager.sol", accounts => {
             )
             const rightOrder = Order(
                 accounts[1],
-                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1), 7),
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1, []), 7),
                 ZERO_ADDRESS,
                 Asset(ETH_CLASS, "0x", 100),
                 1,
@@ -824,9 +849,9 @@ contract("test OasesCashierManager.sol", accounts => {
             const encodedData = await encodeDataV1([[], [], true]);
             const leftOrder = Order(
                 accounts[0],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2, []), 1),
                 1,
                 0,
                 0,
@@ -834,9 +859,9 @@ contract("test OasesCashierManager.sol", accounts => {
                 encodedData)
             const rightOrder = Order(
                 accounts[1],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2, []), 1),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 1,
                 0,
                 0,
@@ -882,9 +907,9 @@ contract("test OasesCashierManager.sol", accounts => {
             const encodedDataRight = await encodeDataV1([[[accounts[3], 10000]], addOriginRightOrder, true])
             const leftOrder = Order(
                 accounts[0],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 ZERO_ADDRESS,
-                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1), 100),
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1, []), 100),
                 1,
                 0,
                 0,
@@ -892,9 +917,9 @@ contract("test OasesCashierManager.sol", accounts => {
                 encodedDataLeft)
             const rightOrder = Order(
                 accounts[1],
-                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1), 100),
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1, []), 100),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 1,
                 0,
                 0,
@@ -935,9 +960,9 @@ contract("test OasesCashierManager.sol", accounts => {
             const encodedDataRight = await encodeDataV1([[[accounts[4], 5000], [accounts[6], 5000]], [], true])
             const leftOrder = Order(
                 accounts[1],
-                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1), 2),
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1, []), 2),
                 ZERO_ADDRESS,
-                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_2), 10),
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_2, []), 10),
                 1,
                 0,
                 0,
@@ -946,9 +971,9 @@ contract("test OasesCashierManager.sol", accounts => {
 
             const rightOrder = Order(
                 accounts[2],
-                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_2), 10),
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_2, []), 10),
                 ZERO_ADDRESS,
-                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1), 2),
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1, []), 2),
                 1,
                 0,
                 0,
@@ -1015,9 +1040,9 @@ contract("test OasesCashierManager.sol", accounts => {
 
             const leftOrder = Order(
                 accounts[1],
-                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1), 100),
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1, []), 100),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 1,
                 0,
                 0,
@@ -1026,9 +1051,9 @@ contract("test OasesCashierManager.sol", accounts => {
             )
             const rightOrder = Order(
                 accounts[2],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 ZERO_ADDRESS,
-                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1), 100),
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1, []), 100),
                 1,
                 0,
                 0,
@@ -1065,7 +1090,7 @@ contract("test OasesCashierManager.sol", accounts => {
                 accounts[1],
                 Asset(ERC20_CLASS, encode(mockERC20_1.address), 100),
                 ZERO_ADDRESS,
-                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1), 7),
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1, []), 7),
                 1,
                 0,
                 0,
@@ -1074,7 +1099,7 @@ contract("test OasesCashierManager.sol", accounts => {
             )
             const rightOrder = Order(
                 accounts[2],
-                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1), 7),
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_1, []), 7),
                 ZERO_ADDRESS,
                 Asset(ERC20_CLASS, encode(mockERC20_1.address), 100),
                 1,
@@ -1112,7 +1137,7 @@ contract("test OasesCashierManager.sol", accounts => {
 
             const leftOrder = Order(
                 accounts[3],
-                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_2), 7),
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_2, []), 7),
                 ZERO_ADDRESS,
                 Asset(ERC20_CLASS, encode(mockERC20_2.address), 100),
                 1,
@@ -1125,7 +1150,7 @@ contract("test OasesCashierManager.sol", accounts => {
                 accounts[4],
                 Asset(ERC20_CLASS, encode(mockERC20_2.address), 100),
                 ZERO_ADDRESS,
-                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_2), 7),
+                Asset(ERC1155_CLASS, encode(mockERC1155.address, erc1155TokenId_2, []), 7),
                 1,
                 0,
                 0,
@@ -1163,7 +1188,7 @@ contract("test OasesCashierManager.sol", accounts => {
                 accounts[1],
                 Asset(ERC20_CLASS, encode(mockERC20_1.address), 100),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2, []), 1),
                 1,
                 0,
                 0,
@@ -1172,7 +1197,7 @@ contract("test OasesCashierManager.sol", accounts => {
             )
             const rightOrder = Order(
                 accounts[2],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1, []), 1),
                 ZERO_ADDRESS,
                 Asset(ERC20_CLASS, encode(mockERC20_1.address), 100),
                 1,
@@ -1210,7 +1235,7 @@ contract("test OasesCashierManager.sol", accounts => {
 
             const leftOrder = Order(
                 accounts[1],
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2, []), 1),
                 ZERO_ADDRESS,
                 Asset(ERC20_CLASS, encode(mockERC20_2.address), 100),
                 1,
@@ -1223,7 +1248,7 @@ contract("test OasesCashierManager.sol", accounts => {
                 accounts[2],
                 Asset(ERC20_CLASS, encode(mockERC20_2.address), 100),
                 ZERO_ADDRESS,
-                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2), 1),
+                Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_2, []), 1),
                 1,
                 0,
                 0,
