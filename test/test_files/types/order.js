@@ -11,8 +11,8 @@ function Part(account, value) {
     return {account, value}
 }
 
-function Data(payoutInfos, originFeeInfos, isMakeFill) {
-    return {payoutInfos, originFeeInfos, isMakeFill}
+function Data(payoutInfos, royaltyInfos, originFeeInfos, isMakeFill) {
+    return {payoutInfos, royaltyInfos, originFeeInfos, isMakeFill}
 }
 
 function AssetType(assetClass, data) {
