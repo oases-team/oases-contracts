@@ -81,7 +81,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
     describe("test cancelOrders()", () => {
         it("cancel orders", async () => {
-            const encodedData = await encodeDataV1([[], [], true])
+            const encodedData = await encodeDataV1([[], [[accounts[2], 1000], [accounts[3], 2000]], [], true])
 
             const order1 = Order(
                 accounts[1],
@@ -117,8 +117,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             await mockERC721.mint(accounts[1], erc721TokenId_1)
             await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
 
-            const encodedDataLeft = await encodeDataV1([[], [], true])
-            const encodedDataRight = await encodeDataV1([[], [], true])
+            const encodedDataLeft = await encodeDataV1([[], [[accounts[2], 1000], [accounts[3], 2000]], [], true])
+            const encodedDataRight = await encodeDataV1([[], [[accounts[2], 1000], [accounts[3], 2000]], [], true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -163,7 +163,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
         })
 
         it("revert if msg.sender is not the order's maker", async () => {
-            const encodedData = await encodeDataV1([[], [], true])
+            const encodedData = await encodeDataV1([[], [[accounts[2], 1000], [accounts[3], 2000]], [], true])
             const order1 = Order(
                 accounts[1],
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
@@ -195,7 +195,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
         })
 
         it("revert if salt in order is 0", async () => {
-            const encodedData = await encodeDataV1([[], [], true])
+            const encodedData = await encodeDataV1([[], [[accounts[2], 1000], [accounts[3], 2000]], [], true])
             const order1 = Order(
                 accounts[2],
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
