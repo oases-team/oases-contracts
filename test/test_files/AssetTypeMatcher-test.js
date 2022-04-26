@@ -123,7 +123,7 @@ contract("test AssetTypeMatcher.sol", accounts => {
 
     describe("match ERC721", () => {
         it("should return ERC721 type if both are ERC721 with the same address and token id", async () => {
-            const encodedData = encode(generateRandomAddress(), 1024)
+            const encodedData = encode(generateRandomAddress(), 1024, [[accounts[0], 1000], [accounts[1], 200]])
             const matchedAssetType = await mockAssetTypeMatcher.mockMatchAssetTypes(
                 order.AssetType(ERC721_CLASS, encodedData),
                 order.AssetType(ERC721_CLASS, encodedData))
@@ -133,8 +133,8 @@ contract("test AssetTypeMatcher.sol", accounts => {
 
         it("should return zero type if token ids don't match", async () => {
             const erc721Address = generateRandomAddress()
-            const encodedData1 = encode(erc721Address, 1024)
-            const encodedData2 = encode(erc721Address, 2048)
+            const encodedData1 = encode(erc721Address, 1024, [])
+            const encodedData2 = encode(erc721Address, 2048, [])
             assert.notEqual(encodedData1, encodedData2)
 
             let matchedAssetType = await mockAssetTypeMatcher.mockMatchAssetTypes(
@@ -151,8 +151,27 @@ contract("test AssetTypeMatcher.sol", accounts => {
         });
 
         it("should return zero type if addresses don't match", async () => {
-            const encodedData1 = encode(generateRandomAddress(), 1024)
-            const encodedData2 = encode(generateRandomAddress(), 1024)
+            const encodedData1 = encode(generateRandomAddress(), 1024, [])
+            const encodedData2 = encode(generateRandomAddress(), 1024, [])
+            assert.notEqual(encodedData1, encodedData2)
+
+            let matchedAssetType = await mockAssetTypeMatcher.mockMatchAssetTypes(
+                order.AssetType(ERC721_CLASS, encodedData1),
+                order.AssetType(ERC721_CLASS, encodedData2))
+            assert.equal(matchedAssetType[0], order.ZERO_ASSET_CLASS)
+            assert.equal(matchedAssetType[1], order.EMPTY_DATA)
+
+            matchedAssetType = await mockAssetTypeMatcher.mockMatchAssetTypes(
+                order.AssetType(ERC721_CLASS, encodedData2),
+                order.AssetType(ERC721_CLASS, encodedData1))
+            assert.equal(matchedAssetType[0], order.ZERO_ASSET_CLASS)
+            assert.equal(matchedAssetType[1], order.EMPTY_DATA)
+        });
+
+        it("should return zero type if royaltyInfos don't match", async () => {
+            const erc721Address = generateRandomAddress()
+            const encodedData1 = encode(erc721Address, 1024, [[accounts[0], 100]])
+            const encodedData2 = encode(erc721Address, 1024, [[accounts[0], 99]])
             assert.notEqual(encodedData1, encodedData2)
 
             let matchedAssetType = await mockAssetTypeMatcher.mockMatchAssetTypes(
@@ -170,7 +189,7 @@ contract("test AssetTypeMatcher.sol", accounts => {
 
         it("should return zero type if other type is not ERC721", async () => {
             const encodedAddress = encode(generateRandomAddress())
-            const encodedData = encode(generateRandomAddress(), 1024)
+            const encodedData = encode(generateRandomAddress(), 1024, [])
             let matchedAssetType = await mockAssetTypeMatcher.mockMatchAssetTypes(
                 order.AssetType(ERC721_CLASS, encodedData),
                 order.AssetType(ERC20_CLASS, encodedAddress))
@@ -196,7 +215,7 @@ contract("test AssetTypeMatcher.sol", accounts => {
 
     describe("match ERC1155", () => {
         it("should return ERC1155 type if both are the same", async () => {
-            const encodedData = encode(generateRandomAddress(), 1024)
+            const encodedData = encode(generateRandomAddress(), 1024, [[accounts[0], 100], [accounts[1], 200]])
             const matchedAssetType = await mockAssetTypeMatcher.mockMatchAssetTypes(
                 order.AssetType(ERC1155_CLASS, encodedData),
                 order.AssetType(ERC1155_CLASS, encodedData))
@@ -206,8 +225,8 @@ contract("test AssetTypeMatcher.sol", accounts => {
 
         it("should return zero type if token ids don't match", async () => {
             const erc1155Address = generateRandomAddress()
-            const encodedData1 = encode(erc1155Address, 1024)
-            const encodedData2 = encode(erc1155Address, 2048)
+            const encodedData1 = encode(erc1155Address, 1024, [[accounts[0], 100]])
+            const encodedData2 = encode(erc1155Address, 2048, [[accounts[0], 100]])
             assert.notEqual(encodedData1, encodedData2)
 
             let matchedAssetType = await mockAssetTypeMatcher.mockMatchAssetTypes(
@@ -224,8 +243,27 @@ contract("test AssetTypeMatcher.sol", accounts => {
         });
 
         it("should return zero type if addresses don't match", async () => {
-            const encodedData1 = encode(generateRandomAddress(), 1024)
-            const encodedData2 = encode(generateRandomAddress(), 1024)
+            const encodedData1 = encode(generateRandomAddress(), 1024, [[accounts[0], 100]])
+            const encodedData2 = encode(generateRandomAddress(), 1024, [[accounts[0], 100]])
+            assert.notEqual(encodedData1, encodedData2)
+
+            let matchedAssetType = await mockAssetTypeMatcher.mockMatchAssetTypes(
+                order.AssetType(ERC1155_CLASS, encodedData1),
+                order.AssetType(ERC1155_CLASS, encodedData2))
+            assert.equal(matchedAssetType[0], order.ZERO_ASSET_CLASS)
+            assert.equal(matchedAssetType[1], order.EMPTY_DATA)
+
+            matchedAssetType = await mockAssetTypeMatcher.mockMatchAssetTypes(
+                order.AssetType(ERC1155_CLASS, encodedData2),
+                order.AssetType(ERC1155_CLASS, encodedData1))
+            assert.equal(matchedAssetType[0], order.ZERO_ASSET_CLASS)
+            assert.equal(matchedAssetType[1], order.EMPTY_DATA)
+        });
+
+        it("should return zero type if royaltyInfos don't match", async () => {
+            const erc1155Address = generateRandomAddress()
+            const encodedData1 = encode(erc1155Address, 1024, [[accounts[0], 100]])
+            const encodedData2 = encode(erc1155Address, 1024, [[accounts[0], 101]])
             assert.notEqual(encodedData1, encodedData2)
 
             let matchedAssetType = await mockAssetTypeMatcher.mockMatchAssetTypes(
@@ -243,8 +281,8 @@ contract("test AssetTypeMatcher.sol", accounts => {
 
         it("should return nothing if other type is not erc1155", async () => {
             const encodedAddress = encode(generateRandomAddress())
-            const encodedData1 = encode(generateRandomAddress(), 1024)
-            const encodedData2 = encode(generateRandomAddress(), 2048)
+            const encodedData1 = encode(generateRandomAddress(), 1024, [[accounts[0], 100]])
+            const encodedData2 = encode(generateRandomAddress(), 2048, [[accounts[0], 100]])
             let matchedAssetType = await mockAssetTypeMatcher.mockMatchAssetTypes(
                 order.AssetType(ERC1155_CLASS, encodedData1),
                 order.AssetType(ERC20_CLASS, encodedAddress))
