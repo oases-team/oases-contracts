@@ -8,14 +8,14 @@ const MockERC721 = artifacts.require("MockERC721.sol")
 const MockERC1155 = artifacts.require("MockERC1155.sol")
 const MockNFTTransferProxy = artifacts.require("MockNFTTransferProxy.sol")
 const MockERC20TransferProxy = artifacts.require("MockERC20TransferProxy.sol")
-const MockRoyaltiesRegistry = artifacts.require("MockRoyaltiesRegistry.sol")
 const MockOasesCashierManager = artifacts.require("MockOasesCashierManager.sol")
 const MockOrderLibrary = artifacts.require("MockOrderLibrary.sol")
 
 const {Order, Asset, sign, EMPTY_DATA, ORDER_V1_DATA_TYPE} = require("./types/order")
 const mint = require("./utils/mint")
-
 const {expectThrow, verifyBalanceChange} = require("./utils/expect_throw")
+const {generateRandomAddress} = require("./utils/signature")
+
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 const ETH_FLAG_ADDRESS = ZERO_ADDRESS
 const {
@@ -32,7 +32,7 @@ const {
     ERC721_LAZY_MINT_CLASS
 } = require("./types/assets")
 
-contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts => {
+contract("test OasesExchange.sol for lazy mint erc721 (protocol fee 3% —— seller 3%)", accounts => {
     const TOKEN_ID = accounts[0] + '000000000000000000000001'
     const TOKEN_URI = 'test tokenURI'
 
@@ -48,20 +48,18 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
     let mockNFTTransferProxy
     let mockERC20TransferProxy
     let mockOrderLibrary
-    let mockRoyaltiesRegistry
     let mockERC721LazyMintTransferProxy
     let erc721Oases
 
     beforeEach(async () => {
         mockNFTTransferProxy = await MockNFTTransferProxy.new()
         mockERC20TransferProxy = await MockERC20TransferProxy.new()
-        mockRoyaltiesRegistry = await MockRoyaltiesRegistry.new()
         oasesExchange = await deployProxy(
             OasesExchange,
             [
                 300,
                 communityAddress,
-                mockRoyaltiesRegistry.address,
+                generateRandomAddress(), // royaltiesProvider is out of work now
                 mockERC20TransferProxy.address,
                 mockNFTTransferProxy.address
             ],
