@@ -8,6 +8,8 @@ library OrderDataLibrary {
 
     struct Data {
         PartLibrary.Part[] payoutInfos;
+        // explicit royalty infos
+        PartLibrary.Part[] royaltyInfos;
         PartLibrary.Part[] originFeeInfos;
         bool isMakeFill;
     }

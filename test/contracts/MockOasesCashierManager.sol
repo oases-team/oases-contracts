@@ -19,8 +19,7 @@ contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier 
         IERC20TransferProxy ERC20TransferProxyAddress,
         INFTTransferProxy NFTTransferProxyAddress,
         uint256 newProtocolFeeBasisPoint,
-        address newDefaultFeeReceiver,
-        IRoyaltiesProvider newRoyaltiesProvider
+        address newDefaultFeeReceiver
     ) external initializer {
         __Context_init_unchained();
         __Ownable_init_unchained();
@@ -28,7 +27,7 @@ contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier 
         __OasesCashierManager_init_unchained(
             newProtocolFeeBasisPoint,
             newDefaultFeeReceiver,
-            newRoyaltiesProvider
+            IRoyaltiesProvider(address(0)) // royaltiesProvider is useless
         );
         __OrderVerifier_init_unchained();
     }
@@ -209,6 +208,7 @@ contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier 
         uint256 amountToCalculateRoyalties,
         AssetLibrary.AssetType memory royaltyType,
         AssetLibrary.AssetType memory nftType,
+        PartLibrary.Part[] memory royaltyInfosForExistedNFT,
         bytes4 direction
     )
     external
@@ -222,36 +222,29 @@ contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier 
             amountToCalculateRoyalties,
             royaltyType,
             nftType,
+            royaltyInfosForExistedNFT,
             direction
         );
     }
 
-    PartLibrary.Part[] mockNFTRoyaltyInfos;
-
-    function setMockNFTRoyaltyInfos(PartLibrary.Part[] memory NFTRoyaltyInfos) external {
-        for (uint256 i; i < NFTRoyaltyInfos.length; ++i) {
-            mockNFTRoyaltyInfos.push(NFTRoyaltyInfos[i]);
-        }
-    }
-
-    function mockTransferRoyaltiesView(
+    function mockTransferRoyaltiesPure(
         address payer,
         uint256 totalAmountAndFeesRest,
         uint256 amountToCalculateRoyalties,
         AssetLibrary.AssetType memory royaltyType,
         AssetLibrary.AssetType memory nftType,
+        PartLibrary.Part[] memory royaltyInfosForExistedNFT,
         bytes4 direction
     )
     external
-    view
+    pure
     returns
     (uint256)
     {
         PartLibrary.Part[] memory royaltyInfos;
         // get infos of royalties
         if (nftType.assetClass == AssetLibrary.ERC721_ASSET_CLASS || nftType.assetClass == AssetLibrary.ERC1155_ASSET_CLASS) {
-            // mock royaltyInfos for nft
-            royaltyInfos = mockNFTRoyaltyInfos;
+            royaltyInfos = royaltyInfosForExistedNFT;
         } else if (nftType.assetClass == ERC721LazyMintLibrary.ERC721_LAZY_MINT_ASSET_CLASS) {
             // decode the royaltyInfos of lazy mint erc721
             (, ERC721LazyMintLibrary.ERC721LazyMintData memory erc721LazyMintData) = abi.decode(
@@ -268,7 +261,7 @@ contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier 
             royaltyInfos = erc1155LazyMintData.royaltyInfos;
         }
 
-        (uint256 rest,uint256 totalFeeBasisPoints) = mockTransferFeesPure(
+        (uint256 rest, uint256 totalFeeBasisPoints) = mockTransferFeesPure(
             payer,
             true,
             totalAmountAndFeesRest,

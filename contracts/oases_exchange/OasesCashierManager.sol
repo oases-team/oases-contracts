@@ -179,6 +179,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
             amountToCalculate,
             paymentType,
             nftType,
+            nftData.royaltyInfos,
             direction
         );
         (rest,) = transferFees(
@@ -295,6 +296,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         uint256 amountToCalculateRoyalties,
         AssetLibrary.AssetType memory royaltyType,
         AssetLibrary.AssetType memory nftType,
+        PartLibrary.Part[] memory royaltyInfosForExistedNFT,
         bytes4 direction
     )
     internal
@@ -304,9 +306,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         PartLibrary.Part[] memory royaltyInfos;
         // get infos of royalties
         if (nftType.assetClass == AssetLibrary.ERC721_ASSET_CLASS || nftType.assetClass == AssetLibrary.ERC1155_ASSET_CLASS) {
-            // decode nft address and token id
-            (address nftAddress,uint256 tokenId) = abi.decode(nftType.data, (address, uint256));
-            royaltyInfos = royaltiesProvider.getRoyaltyInfos(nftAddress, tokenId);
+            royaltyInfos = royaltyInfosForExistedNFT;
         } else if (nftType.assetClass == ERC721LazyMintLibrary.ERC721_LAZY_MINT_ASSET_CLASS) {
             // decode the royaltyInfos of lazy mint erc721
             (, ERC721LazyMintLibrary.ERC721LazyMintData memory erc721LazyMintData) = abi.decode(

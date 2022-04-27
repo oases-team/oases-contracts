@@ -1,4 +1,4 @@
-const {deployProxy, upgradeProxy} = require('@openzeppelin/truffle-upgrades')
+const {deployProxy} = require('@openzeppelin/truffle-upgrades')
 const truffleAssert = require('truffle-assertions')
 const OasesExchange = artifacts.require("OasesExchange.sol")
 const MockERC20 = artifacts.require("MockERC20.sol")
@@ -6,12 +6,12 @@ const MockERC721 = artifacts.require("MockERC721.sol")
 const MockERC1155 = artifacts.require("MockERC1155.sol")
 const MockNFTTransferProxy = artifacts.require("MockNFTTransferProxy.sol")
 const MockERC20TransferProxy = artifacts.require("MockERC20TransferProxy.sol")
-const MockRoyaltiesRegistry = artifacts.require("MockRoyaltiesRegistry.sol")
 const MockOasesCashierManager = artifacts.require("MockOasesCashierManager.sol")
 const MockOrderLibrary = artifacts.require("MockOrderLibrary.sol")
 
 const {Order, Asset, sign, EMPTY_DATA, ORDER_V1_DATA_TYPE} = require("./types/order")
 const {expectThrow, verifyBalanceChange} = require("./utils/expect_throw")
+const {generateRandomAddress} = require("./utils/signature")
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 const ETH_FLAG_ADDRESS = ZERO_ADDRESS
 const {
@@ -46,18 +46,16 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
     let mockNFTTransferProxy
     let mockERC20TransferProxy
     let mockOrderLibrary
-    let mockRoyaltiesRegistry
 
     beforeEach(async () => {
         mockNFTTransferProxy = await MockNFTTransferProxy.new()
         mockERC20TransferProxy = await MockERC20TransferProxy.new()
-        mockRoyaltiesRegistry = await MockRoyaltiesRegistry.new()
         oasesExchange = await deployProxy(
             OasesExchange,
             [
                 300,
                 communityAddress,
-                mockRoyaltiesRegistry.address,
+                generateRandomAddress(), // royaltiesProvider is out of work now
                 mockERC20TransferProxy.address,
                 mockNFTTransferProxy.address
             ],
@@ -81,7 +79,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
     describe("test cancelOrders()", () => {
         it("cancel orders", async () => {
-            const encodedData = await encodeDataV1([[], [], true])
+            const encodedData = await encodeDataV1([[], [[accounts[2], 1000], [accounts[3], 2000]], [], true])
 
             const order1 = Order(
                 accounts[1],
@@ -117,8 +115,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             await mockERC721.mint(accounts[1], erc721TokenId_1)
             await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
 
-            const encodedDataLeft = await encodeDataV1([[], [], true])
-            const encodedDataRight = await encodeDataV1([[], [], true])
+            const encodedDataLeft = await encodeDataV1([[], [[accounts[2], 1000], [accounts[3], 2000]], [], true])
+            const encodedDataRight = await encodeDataV1([[], [[accounts[2], 1000], [accounts[3], 2000]], [], true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -163,7 +161,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
         })
 
         it("revert if msg.sender is not the order's maker", async () => {
-            const encodedData = await encodeDataV1([[], [], true])
+            const encodedData = await encodeDataV1([[], [[accounts[2], 1000], [accounts[3], 2000]], [], true])
             const order1 = Order(
                 accounts[1],
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
@@ -195,7 +193,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
         })
 
         it("revert if salt in order is 0", async () => {
-            const encodedData = await encodeDataV1([[], [], true])
+            const encodedData = await encodeDataV1([[], [[accounts[2], 1000], [accounts[3], 2000]], [], true])
             const order1 = Order(
                 accounts[2],
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
@@ -525,8 +523,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             await mockERC20_2.approve(mockERC20TransferProxy.address, t2Amount, {from: accounts[2]})
             const addOriginLeft = [[accounts[3], makeAmount]]
             const addOriginRight = [[accounts[4], takeAmount]]
-            const encodeDataLeft = await encodeDataV1([[[accounts[1], 10000]], addOriginLeft, true])
-            const encodeDataRight = await encodeDataV1([[[accounts[2], 10000]], addOriginRight, true])
+            const encodeDataLeft = await encodeDataV1([[[accounts[1], 10000]], [], addOriginLeft, true])
+            const encodeDataRight = await encodeDataV1([[[accounts[2], 10000]], [], addOriginRight, true])
             const leftOrder = Order(
                 accounts[1],
                 Asset(ERC20_CLASS, encode(mockERC20_1.address), makeAmount),
@@ -608,8 +606,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
             await mockERC20_2.approve(mockERC20TransferProxy.address, amount20, {from: accounts[2]})
             const addOriginLeft = [[accounts[3], 100], [accounts[4], 200]]
-            const encodedDataLeft = await encodeDataV1([[[accounts[5], 10000]], addOriginLeft, true])
-            const encodedDataRight = await encodeDataV1([[], [], true])
+            const encodedDataLeft = await encodeDataV1([[[accounts[5], 10000]], [], addOriginLeft, true])
+            const encodedDataRight = await encodeDataV1([[], [], [], true])
             const leftOrder = Order(
                 accounts[1],
                 Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
@@ -700,11 +698,9 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             const addOriginLeft = [[accounts[3], 300], [accounts[4], 400]]
             const addOriginRight = [[accounts[5], 500]]
 
-            const encodedDataLeft = await encodeDataV1([[[accounts[8], 10000]], addOriginLeft, true])
-            const encodedDataRight = await encodeDataV1([[[accounts[9], 10000]], addOriginRight, true])
+            const encodedDataLeft = await encodeDataV1([[[accounts[8], 10000]], [], addOriginLeft, true])
+            const encodedDataRight = await encodeDataV1([[[accounts[9], 10000]], [[accounts[6], 1000], [accounts[7], 500]], addOriginRight, true])
 
-            //set royalties by token
-            await mockRoyaltiesRegistry.setRoyaltiesByToken(mockERC1155.address, [[accounts[6], 1000], [accounts[7], 500]])
             await oasesExchange.setFeeReceiver(mockERC20_1.address, protocolFeeReceiver)
             const leftOrder = Order(
                 accounts[1],
@@ -808,11 +804,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             let addOriginLeft = [[accounts[3], 500], [accounts[4], 600]]
             let addOriginRight = [[accounts[5], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
-
-            // //set royalties by token
-            await mockRoyaltiesRegistry.setRoyaltiesByToken(mockERC721.address, [[accounts[6], 1000], [accounts[7], 500]])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [[accounts[6], 1000], [accounts[7], 500]], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -846,8 +839,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -905,8 +898,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -963,8 +956,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
             let addOriginRight = [[accounts[5], 500], [accounts[6], 600], [accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], [], true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1021,8 +1014,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
             let addOriginRight = [[accounts[5], 500], [accounts[6], 600], [accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], [], true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1079,8 +1072,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600], [accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], [], true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1137,8 +1130,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600], [accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], [], true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1194,8 +1187,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
             // 200*(5%+6%+7%+30%)=96
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600], [accounts[7], 700], [accounts[3], 3000]]
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], [], true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1242,8 +1235,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             // 200*(5%+6%+7%+30%)=96
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600], [accounts[7], 700], [accounts[3], 3000]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], [], true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1292,8 +1285,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             // 200*(90%+5%+6%+7%)=200*108%
             let addOriginRight = [[accounts[3], 9000], [accounts[5], 500], [accounts[6], 600], [accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1355,8 +1348,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             // 200*(90%+5%+6%+7%)=200*108%
             let addOriginRight = [[accounts[3], 9000], [accounts[5], 500], [accounts[6], 600], [accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1448,8 +1441,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             await mockERC20_2.approve(mockERC20TransferProxy.address, t2Amount, {from: accounts[2]})
             let addOriginLeft = [[accounts[3], 100]]
             let addOriginRight = [[accounts[4], 200]]
-            let encodedDataLeft = await encodeDataV1([[[accounts[1], 5000], [accounts[5], 5000]], addOriginLeft, true])
-            let encodeDataRight = await encodeDataV1([[[accounts[2], 2000], [accounts[6], 8000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[1], 5000], [accounts[5], 5000]], [], addOriginLeft, true])
+            let encodeDataRight = await encodeDataV1([[[accounts[2], 2000], [accounts[6], 8000]], [], addOriginRight, true])
             const leftOrder = Order(
                 accounts[1],
                 Asset(ERC20_CLASS, encode(mockERC20_1.address), 100),
@@ -1509,7 +1502,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
             await mockERC20_2.approve(mockERC20TransferProxy.address, t2Amount, {from: accounts[2]})
             let addOriginLeft = [[accounts[3], 100], [accounts[4], 200], [accounts[5], 300]]
-            let encodedDataLeft = await encodeDataV1([[[accounts[1], 5000], [accounts[6], 5000]], addOriginLeft, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[1], 5000], [accounts[6], 5000]], [], addOriginLeft, true])
             const leftOrder = Order(
                 accounts[1],
                 Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
@@ -1584,7 +1577,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
             await mockERC20_2.approve(mockERC20TransferProxy.address, t2Amount, {from: accounts[2]})
             let addOriginLeft = [[accounts[3], 100], [accounts[4], 200]]
-            let encodedDataLeft = await encodeDataV1([[[accounts[1], 5000], [accounts[5], 5001]], addOriginLeft, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[1], 5000], [accounts[5], 5001]], [], addOriginLeft, true])
             const leftOrder = Order(
                 accounts[1],
                 Asset(ERC721_CLASS, encode(mockERC721.address, erc721TokenId_1), 1),
@@ -1632,8 +1625,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 5000], [accounts[3], 5000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 5000], [accounts[3], 5000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1702,8 +1695,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 5000], [accounts[3], 5000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 5000], [accounts[3], 5000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1771,8 +1764,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1838,8 +1831,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1912,13 +1905,10 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             await mockERC721.mint(seller, erc721TokenId_1)
             await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: seller})
 
-            // set royalties by token
-            await mockRoyaltiesRegistry.setRoyaltiesByToken(mockERC721.address, [[sellerRoyalty, 1000]])
-
             let addOriginLeft = [[originLeft1, 500], [originLeft2, 600]]
             let addOriginRight = [[originRight, 700]]
-            let encodedDataLeft = await encodeDataV1([[[buyer, 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[seller, 5000], [seller2, 5000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[buyer, 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[seller, 5000], [seller2, 5000]], [[sellerRoyalty, 1000]], addOriginRight, true])
 
             const leftOrder = Order(
                 buyer,
@@ -2031,13 +2021,10 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             await mockERC721.mint(seller, erc721TokenId_1)
             await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: seller})
 
-            // set royalties by token
-            await mockRoyaltiesRegistry.setRoyaltiesByToken(mockERC721.address, [[sellerRoyalty, 1000]])
-
             let addOriginLeft = [[originLeft1, 500], [originLeft2, 600]]
             let addOriginRight = [[originRight, 700]]
-            let encodedDataLeft = await encodeDataV1([[[buyer, 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[seller, 5000], [seller2, 5000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[buyer, 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[seller, 5000], [seller2, 5000]], [[sellerRoyalty, 1000]], addOriginRight, true])
 
             const leftOrder = Order(
                 buyer,
@@ -2149,13 +2136,11 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
             await mockERC1155.mint(seller, erc1155TokenId_1, 10)
             await mockERC1155.setApprovalForAll(mockNFTTransferProxy.address, true, {from: seller})
-            // set royalties by token
-            await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC1155.address, erc1155TokenId_1, [[sellerRoyalty, 1000]])
 
             let addOriginLeft = [[originLeft1, 500], [originLeft2, 600]]
             let addOriginRight = [[originRight, 700]]
-            let encodedDataLeft = await encodeDataV1([[[seller, 5000], [seller2, 5000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[buyer, 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[seller, 5000], [seller2, 5000]], [[sellerRoyalty, 1000]], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[buyer, 10000]], addOriginRight, [], true])
 
             const leftOrder = Order(
                 seller,
@@ -2264,13 +2249,11 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
             await mockERC1155.mint(seller, erc1155TokenId_1, 10)
             await mockERC1155.setApprovalForAll(mockNFTTransferProxy.address, true, {from: seller})
-            // set royalties by token
-            await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(mockERC1155.address, erc1155TokenId_1, [[sellerRoyalty, 1000]])
 
             let addOriginLeft = [[originLeft1, 500], [originLeft2, 600]]
             let addOriginRight = [[originRight, 700]]
-            let encodedDataLeft = await encodeDataV1([[[seller, 5000], [seller2, 5000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[buyer, 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[seller, 5000], [seller2, 5000]], [[sellerRoyalty, 1000]], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[buyer, 10000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 seller,
@@ -2373,13 +2356,11 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
         it("royalties by owner, token erc721 to eth", async () => {
             await mockERC721.mint(accounts[1], erc721TokenId_1)
             await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
-            // set royalties by token
-            await mockRoyaltiesRegistry.setRoyaltiesByToken(mockERC721.address, [[accounts[3], 500], [accounts[4], 1000]])
 
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [[accounts[3], 500], [accounts[4], 1000]], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -2438,13 +2419,11 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
         it("royalties by owner, eth to token erc721", async () => {
             await mockERC721.mint(accounts[1], erc721TokenId_1)
             await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
-            // set royalties by token
-            await mockRoyaltiesRegistry.setRoyaltiesByToken(mockERC721.address, [[accounts[3], 500], [accounts[4], 1000]])
 
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [[accounts[3], 500], [accounts[4], 1000]], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -2503,18 +2482,12 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
         it("royalties(token and tokenId) by owner, erc721 to eth", async () => {
             await mockERC721.mint(accounts[1], erc721TokenId_1)
             await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
-            // set royalties by token and tokenId
-            await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(
-                mockERC721.address,
-                erc721TokenId_1,
-                [[accounts[3], 500], [accounts[4], 1000]]
-            )
 
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [[accounts[3], 500], [accounts[4], 1000]], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -2572,18 +2545,12 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
         it("royalties(token and tokenId) by owner, eth to erc721", async () => {
             await mockERC721.mint(accounts[1], erc721TokenId_1)
             await mockERC721.setApprovalForAll(mockNFTTransferProxy.address, true, {from: accounts[1]})
-            // set royalties by token and tokenId
-            await mockRoyaltiesRegistry.setRoyaltiesByTokenAndTokenId(
-                mockERC721.address,
-                erc721TokenId_1,
-                [[accounts[3], 500], [accounts[4], 1000]]
-            )
 
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [[accounts[3], 500], [accounts[4], 1000]], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -2648,8 +2615,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             await mockERC1155.mint(seller, erc1155TokenId_1, 200)
             await mockERC1155.setApprovalForAll(mockNFTTransferProxy.address, true, {from: seller})
 
-            const encodedDataLeft = await encodeDataV1([[], [], true])
-            const encodedDataRight = await encodeDataV1([[], [], false])
+            const encodedDataLeft = await encodeDataV1([[], [], [], true])
+            const encodedDataRight = await encodeDataV1([[], [], [], false])
 
             const leftOrder = Order(
                 seller,
@@ -2744,8 +2711,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             await mockERC1155.mint(seller, erc1155TokenId_1, 200)
             await mockERC1155.setApprovalForAll(mockNFTTransferProxy.address, true, {from: seller})
 
-            const encodedDataLeft = await encodeDataV1([[], [], true])
-            const encodedDataRight = await encodeDataV1([[], [], false])
+            const encodedDataLeft = await encodeDataV1([[], [], [], true])
+            const encodedDataRight = await encodeDataV1([[], [], [], false])
 
             const leftOrder = Order(
                 seller,
@@ -2840,8 +2807,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             await mockERC1155.mint(seller, erc1155TokenId_1, 200)
             await mockERC1155.setApprovalForAll(mockNFTTransferProxy.address, true, {from: seller})
 
-            const encodedDataLeft = await encodeDataV1([[], [], false])
-            const encodedDataRight = await encodeDataV1([[], [], false])
+            const encodedDataLeft = await encodeDataV1([[], [], [], false])
+            const encodedDataRight = await encodeDataV1([[], [], [], false])
 
             const leftOrder = Order(
                 seller,
@@ -2934,8 +2901,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             await mockERC1155.mint(seller, erc1155TokenId_1, 200)
             await mockERC1155.setApprovalForAll(mockNFTTransferProxy.address, true, {from: seller})
 
-            const encodedDataLeft = await encodeDataV1([[], [], false])
-            const encodedDataRight = await encodeDataV1([[], [], false])
+            const encodedDataLeft = await encodeDataV1([[], [], [], false])
+            const encodedDataRight = await encodeDataV1([[], [], [], false])
 
             const leftOrder = Order(
                 seller,
@@ -3028,8 +2995,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             await mockERC1155.mint(seller, erc1155TokenId_1, 200)
             await mockERC1155.setApprovalForAll(mockNFTTransferProxy.address, true, {from: seller})
 
-            const encodedDataLeft = await encodeDataV1([[[seller, 10000]], [[accounts[5], 1000]], true])
-            const encodedDataRight = await encodeDataV1([[], [], false])
+            const encodedDataLeft = await encodeDataV1([[[seller, 10000]], [], [[accounts[5], 1000]], true])
+            const encodedDataRight = await encodeDataV1([[], [], [], false])
 
             const leftOrder = Order(
                 seller,
