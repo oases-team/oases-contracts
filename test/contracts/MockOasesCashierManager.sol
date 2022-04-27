@@ -244,7 +244,6 @@ contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier 
         PartLibrary.Part[] memory royaltyInfos;
         // get infos of royalties
         if (nftType.assetClass == AssetLibrary.ERC721_ASSET_CLASS || nftType.assetClass == AssetLibrary.ERC1155_ASSET_CLASS) {
-            // mock royaltyInfos for nft
             royaltyInfos = royaltyInfosForExistedNFT;
         } else if (nftType.assetClass == ERC721LazyMintLibrary.ERC721_LAZY_MINT_ASSET_CLASS) {
             // decode the royaltyInfos of lazy mint erc721
