@@ -134,7 +134,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
     describe("test cancelOrders()", () => {
         it("cancel orders", async () => {
             const erc721OasesAsset = await getERC721OasesAsset([[accounts[0], 10000]], [], accounts[0])
-            const encodedData = await encodeDataV1([[], [], true])
+            const encodedData = await encodeDataV1([[], [], [], true])
 
             const order1 = Order(
                 accounts[0],
@@ -169,8 +169,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
         it("revert if right order is cancelled", async () => {
             const erc721OasesAsset = await getERC721OasesAsset([[accounts[0], 10000]], [], accounts[0])
 
-            const encodedDataLeft = await encodeDataV1([[], [], true])
-            const encodedDataRight = await encodeDataV1([[], [], true])
+            const encodedDataLeft = await encodeDataV1([[], [], [], true])
+            const encodedDataRight = await encodeDataV1([[], [], [], true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -216,7 +216,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
         it("revert if msg.sender is not the order's maker", async () => {
             const erc721OasesAsset = await getERC721OasesAsset([[accounts[0], 10000]], [], accounts[0])
-            const encodedData = await encodeDataV1([[], [], true])
+            const encodedData = await encodeDataV1([[], [], [], true])
             const order1 = Order(
                 accounts[1],
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
@@ -249,7 +249,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
         it("revert if salt in order is 0", async () => {
             const erc721OasesAsset = await getERC721OasesAsset([[accounts[0], 10000]], [], accounts[0])
-            const encodedData = await encodeDataV1([[], [], true])
+            const encodedData = await encodeDataV1([[], [], [], true])
             const order1 = Order(
                 accounts[2],
                 Asset(ETH_CLASS, EMPTY_DATA, 200),
@@ -606,8 +606,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             await mockERC20_2.mint(accounts[2], amount20)
             await mockERC20_2.approve(mockERC20TransferProxy.address, amount20, {from: accounts[2]})
             const addOriginLeft = [[accounts[3], 100], [accounts[4], 200]]
-            const encodedDataLeft = await encodeDataV1([[[accounts[5], 10000]], addOriginLeft, true])
-            const encodedDataRight = await encodeDataV1([[], [], true])
+            const encodedDataLeft = await encodeDataV1([[[accounts[5], 10000]], [], addOriginLeft, true])
+            const encodedDataRight = await encodeDataV1([[], [], [], true])
             const leftOrder = Order(
                 accounts[0],
                 erc721OasesAsset,
@@ -714,8 +714,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             let addOriginLeft = [[accounts[3], 500], [accounts[4], 600]]
             let addOriginRight = [[accounts[5], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -749,8 +749,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -811,8 +811,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -872,8 +872,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
             let addOriginRight = [[accounts[5], 500], [accounts[6], 600], [accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], [], true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -933,8 +933,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
             let addOriginRight = [[accounts[5], 500], [accounts[6], 600], [accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], [], true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -994,8 +994,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600], [accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], [], true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1055,8 +1055,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600], [accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], [], true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1105,8 +1105,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600], [accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], [], true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1165,8 +1165,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             )
             // 200*(5%+6%+7%+30%)=96
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600], [accounts[7], 700], [accounts[3], 3000]]
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], [], true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1214,8 +1214,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             // 200*(5%+6%+7%+30%)=96
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600], [accounts[7], 700], [accounts[3], 3000]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], [], true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1265,8 +1265,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             // 200*(90%+5%+6%+7%)=200*108%
             let addOriginRight = [[accounts[3], 9000], [accounts[5], 500], [accounts[6], 600], [accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1331,8 +1331,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             // 200*(90%+5%+6%+7%)=200*108%
             let addOriginRight = [[accounts[3], 9000], [accounts[5], 500], [accounts[6], 600], [accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1427,7 +1427,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             await mockERC20_2.mint(accounts[2], t2Amount)
             await mockERC20_2.approve(mockERC20TransferProxy.address, t2Amount, {from: accounts[2]})
             let addOriginLeft = [[accounts[3], 100], [accounts[4], 200], [accounts[5], 300]]
-            let encodedDataLeft = await encodeDataV1([[[accounts[1], 5000], [accounts[6], 5000]], addOriginLeft, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[1], 5000], [accounts[6], 5000]], [], addOriginLeft, true])
             const leftOrder = Order(
                 accounts[0],
                 erc721OasesAsset,
@@ -1506,7 +1506,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             await mockERC20_2.approve(mockERC20TransferProxy.address, t2Amount, {from: accounts[2]})
 
             let addOriginLeft = [[accounts[3], 100], [accounts[4], 200]]
-            let encodedDataLeft = await encodeDataV1([[[accounts[1], 5000], [accounts[5], 5001]], addOriginLeft, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[1], 5000], [accounts[5], 5001]], [], addOriginLeft, true])
             const leftOrder = Order(
                 accounts[0],
                 erc721OasesAsset,
@@ -1555,8 +1555,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 5000], [accounts[3], 5000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 5000], [accounts[3], 5000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1627,8 +1627,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 5000], [accounts[3], 5000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 5000], [accounts[3], 5000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1698,8 +1698,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1767,8 +1767,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
 
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -1845,8 +1845,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
             let addOriginLeft = [[originLeft1, 500], [originLeft2, 600]]
             let addOriginRight = [[originRight, 700]]
-            let encodedDataLeft = await encodeDataV1([[[buyer, 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[seller, 5000], [seller2, 5000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[buyer, 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[seller, 5000], [seller2, 5000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 buyer,
@@ -1962,8 +1962,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
             let addOriginLeft = [[originLeft1, 500], [originLeft2, 600]]
             let addOriginRight = [[originRight, 700]]
-            let encodedDataLeft = await encodeDataV1([[[buyer, 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[seller, 5000], [seller2, 5000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[buyer, 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[seller, 5000], [seller2, 5000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 buyer,
@@ -2075,8 +2075,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
@@ -2142,8 +2142,8 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
 
             let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
-            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], addOriginLeft, true])
-            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], addOriginRight, true])
+            let encodedDataLeft = await encodeDataV1([[[accounts[2], 10000]], [], addOriginLeft, true])
+            let encodedDataRight = await encodeDataV1([[[accounts[1], 10000]], [], addOriginRight, true])
 
             const leftOrder = Order(
                 accounts[2],
