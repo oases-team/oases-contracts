@@ -6,6 +6,7 @@ const MockNFTTransferProxy = artifacts.require("MockNFTTransferProxy.sol")
 const MockERC20TransferProxy = artifacts.require("MockERC20TransferProxy.sol")
 
 const {getRandomInteger} = require("./utils/utils")
+const {generateRandomAddress} = require("./utils/signature")
 const {expectThrow, verifyBalanceChange} = require("./utils/expect_throw")
 const {
     Part,
@@ -36,7 +37,6 @@ contract("test OasesCashierManager.sol", accounts => {
     let mockERC1155
     let mockNFTTransferProxy
     let mockERC20TransferProxy
-    let mockRoyaltiesRegistry
 
     function encodeDataV1(object) {
         return mockOasesCashierManager.encodeDataV1(object)
@@ -60,6 +60,65 @@ contract("test OasesCashierManager.sol", accounts => {
         // ERC1155
         mockERC1155 = await MockERC1155.new("https://erc1155mock.com")
         await mockOasesCashierManager.setFeeReceiver(ETH_FLAG_ADDRESS, protocolFeeReceiver)
+    })
+
+    describe("test setter function with 'onlyOwner'", async () => {
+        it("test setProtocolFeeBasisPoint()", async () => {
+            const notOwner = accounts[1]
+            const owner = accounts[0]
+            assert.equal(await mockOasesCashierManager.getProtocolFeeBasisPoint(), 300)
+            await expectThrow(
+                mockOasesCashierManager.setProtocolFeeBasisPoint(250, {from: notOwner}),
+                "Ownable: caller is not the owner"
+            )
+
+            await mockOasesCashierManager.setProtocolFeeBasisPoint(250, {from: owner})
+            assert.equal(await mockOasesCashierManager.getProtocolFeeBasisPoint(), 250)
+        })
+
+        it("test setRoyaltiesRegistry()", async () => {
+            const notOwner = accounts[1]
+            const owner = accounts[0]
+            const randomAddress = web3.utils.toChecksumAddress(generateRandomAddress())
+            assert.equal(await mockOasesCashierManager.getRoyaltiesProvider(), ZERO_ADDRESS)
+            await expectThrow(
+                mockOasesCashierManager.setRoyaltiesRegistry(randomAddress, {from: notOwner}),
+                "Ownable: caller is not the owner"
+            )
+
+            await mockOasesCashierManager.setRoyaltiesRegistry(randomAddress, {from: owner})
+            assert.equal(await mockOasesCashierManager.getRoyaltiesProvider(), randomAddress)
+        })
+
+        it("test setDefaultFeeReceiver()", async () => {
+            const notOwner = accounts[1]
+            const owner = accounts[0]
+            const randomAddress = web3.utils.toChecksumAddress(generateRandomAddress())
+            assert.equal(await mockOasesCashierManager.getDefaultFeeReceiver(), defaultFeeReceiver)
+            await expectThrow(
+                mockOasesCashierManager.setDefaultFeeReceiver(randomAddress, {from: notOwner}),
+                "Ownable: caller is not the owner"
+            )
+
+            await mockOasesCashierManager.setDefaultFeeReceiver(randomAddress, {from: owner})
+            assert.equal(await mockOasesCashierManager.getDefaultFeeReceiver(), randomAddress)
+        })
+
+        it("test setFeeReceiver()", async () => {
+            const notOwner = accounts[1]
+            const owner = accounts[0]
+            const assetAddressExisted = generateRandomAddress()
+            const assetAddressNonexistent = generateRandomAddress()
+            assert.equal(await mockOasesCashierManager.getFeeReceiver(assetAddressNonexistent), defaultFeeReceiver)
+            await expectThrow(
+                mockOasesCashierManager.setFeeReceiver(assetAddressExisted, accounts[2], {from: notOwner}),
+                "Ownable: caller is not the owner"
+            )
+
+            assert.equal(await mockOasesCashierManager.getFeeReceiver(assetAddressExisted), defaultFeeReceiver)
+            await mockOasesCashierManager.setFeeReceiver(assetAddressExisted, accounts[2], {from: owner})
+            assert.equal(await mockOasesCashierManager.getFeeReceiver(assetAddressExisted), accounts[2])
+        })
     })
 
     it("test deductFeeWithBasisPoint()", async () => {
@@ -408,7 +467,7 @@ contract("test OasesCashierManager.sol", accounts => {
 
             assert.equal(await mockERC20_1.balanceOf(accounts[0]), 100000)
 
-            // royalty info 
+            // royalty info
             royaltyInfosForExistedNFT = [Part(accounts[1], 1000)]
             await mockOasesCashierManager.mockTransferRoyalties(
                 accounts[0], 100000, 10000, royaltyType, nftType, royaltyInfosForExistedNFT, EMPTY_BYTES4)
