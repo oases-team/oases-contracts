@@ -4,6 +4,7 @@ const MockERC721 = artifacts.require("MockERC721.sol")
 const MockERC1155 = artifacts.require("MockERC1155.sol")
 const MockNFTTransferProxy = artifacts.require("MockNFTTransferProxy.sol")
 const MockERC20TransferProxy = artifacts.require("MockERC20TransferProxy.sol")
+const MockRoyaltiesRegistry = artifacts.require("MockRoyaltiesRegistry.sol")
 
 const {getRandomInteger} = require("./utils/utils")
 const {generateRandomAddress} = require("./utils/signature")
@@ -79,15 +80,25 @@ contract("test OasesCashierManager.sol", accounts => {
         it("test setRoyaltiesRegistry()", async () => {
             const notOwner = accounts[1]
             const owner = accounts[0]
-            const randomAddress = web3.utils.toChecksumAddress(generateRandomAddress())
+            const mockRoyaltiesRegistry = await MockRoyaltiesRegistry.new()
             assert.equal(await mockOasesCashierManager.getRoyaltiesProvider(), ZERO_ADDRESS)
             await expectThrow(
-                mockOasesCashierManager.setRoyaltiesRegistry(randomAddress, {from: notOwner}),
+                mockOasesCashierManager.setRoyaltiesRegistry(mockRoyaltiesRegistry.address, {from: notOwner}),
                 "Ownable: caller is not the owner"
             )
 
-            await mockOasesCashierManager.setRoyaltiesRegistry(randomAddress, {from: owner})
-            assert.equal(await mockOasesCashierManager.getRoyaltiesProvider(), randomAddress)
+            await mockOasesCashierManager.setRoyaltiesRegistry(mockRoyaltiesRegistry.address, {from: owner})
+            assert.equal(await mockOasesCashierManager.getRoyaltiesProvider(), mockRoyaltiesRegistry.address)
+        })
+
+        it("revert if set an address of EOA in setRoyaltiesRegistry()", async () => {
+            const owner = accounts[0]
+            const EOAAddress = accounts[1]
+            assert.equal(await mockOasesCashierManager.getRoyaltiesProvider(), ZERO_ADDRESS)
+            await expectThrow(
+                mockOasesCashierManager.setRoyaltiesRegistry(EOAAddress, {from: owner}),
+                'not CA'
+            )
         })
 
         it("test setDefaultFeeReceiver()", async () => {
