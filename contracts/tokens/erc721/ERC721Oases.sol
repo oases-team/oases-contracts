@@ -149,7 +149,6 @@ contract ERC721Oases is ERC721OasesBase {
         require(newOwner != originalOwner, "self trading");
         uint256 price = prices[tokenId];
         require(price != 0, "not for sale");
-        require(msg.value >= price, "insufficient payment");
         // clear price
         prices[tokenId] = 0;
         // transfer payment
@@ -157,6 +156,12 @@ contract ERC721Oases is ERC721OasesBase {
         if (rest > 0) {
             originalOwner.transferEth(rest);
         }
+
+        uint256 refund = msg.value - price;
+        if (refund > 0) {
+            payable(newOwner).transfer(refund);
+        }
+
         // transfer token
         _safeTransfer(originalOwner, newOwner, tokenId, data);
         emit Trade(tokenId, price, newOwner, originalOwner);
@@ -172,10 +177,10 @@ contract ERC721Oases is ERC721OasesBase {
         address from,
         address to,
         uint256 tokenId
-    ) 
-    public 
-    virtual 
-    override 
+    )
+    public
+    virtual
+    override
     {
         super.transferFrom(from, to, tokenId);
         _setPrice(tokenId, 0);
@@ -185,10 +190,10 @@ contract ERC721Oases is ERC721OasesBase {
         address from,
         address to,
         uint256 tokenId
-    ) 
-    public 
-    virtual 
-    override 
+    )
+    public
+    virtual
+    override
     {
         super.safeTransferFrom(from, to, tokenId);
         _setPrice(tokenId, 0);
@@ -199,10 +204,10 @@ contract ERC721Oases is ERC721OasesBase {
         address to,
         uint256 tokenId,
         bytes memory _data
-    ) 
-    public 
-    virtual 
-    override 
+    )
+    public
+    virtual
+    override
     {
         super.safeTransferFrom(from, to, tokenId, _data);
         _setPrice(tokenId, 0);

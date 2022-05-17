@@ -6,7 +6,7 @@ const MockTransferProxy = artifacts.require("MockTransferProxy.sol");
 const truffleAssert = require('truffle-assertions');
 
 const { sign } = require("./utils/mint");
-const { expectThrow } = require("./utils/expect_throw");
+const {expectThrow, verifyBalanceChange} = require("./utils/expect_throw");
 
 contract("ERC721Oases", accounts => {
 
@@ -516,6 +516,37 @@ contract("ERC721Oases", accounts => {
         return id == tokenId.toLowerCase() && +ev.newPrice == 0;
       });
       assert.equal(await token.getPrice(tokenId), 0)
+    });
+
+    it("trade with more eth and refund", async() => {
+        const minter = accounts[1];
+        const buyer = accounts[2]
+        const tokenId = minter + "b00000000000000000000001";
+        const tokenURI = "//uri";
+        const price = 1000;
+        let result = await token.mintWithPrice([tokenId, tokenURI, creators([minter]), [], [zeroWord]], minter, price, {from: minter});
+        assert.equal(await token.ownerOf(tokenId), minter);
+        truffleAssert.eventEmitted(result, 'PriceChanged', (ev) => {
+            const id = ("0x" + BigInt(ev.tokenId).toString(16)).toLowerCase()
+            return id == tokenId.toLowerCase() && +ev.newPrice == 1000;
+        });
+
+        // trade with more price
+        await verifyBalanceChange(minter, -price, async () =>
+            verifyBalanceChange(buyer, price, async () =>
+                token.trade(tokenId, [], {from: buyer, value: price + 100, gasPrice: '0x'})
+            )
+        );
+
+        assert.equal(await token.ownerOf(tokenId), buyer);
+        assert.equal(await token.getPrice(tokenId), 0);
+
+        token.setPrice(tokenId, price, {from: buyer});
+        // revert if less payment
+        await expectThrow(
+            token.trade(tokenId, [], {from: minter, value: price - 1}),
+            'bad eth transfer'
+        );
     });
   });
 
