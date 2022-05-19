@@ -548,6 +548,29 @@ contract("ERC721Oases", accounts => {
             'bad eth transfer'
         );
     });
+
+      it("trade with emitting event", async () => {
+          const minter = accounts[1];
+          const buyer = accounts[2]
+          const tokenId = minter + "b00000000000000000000001";
+          const tokenURI = "//uri";
+          const price = 1000;
+          let tx = await token.mintWithPrice([tokenId, tokenURI, creators([minter]), [], [zeroWord]], minter, price, {from: minter});
+          assert.equal(await token.ownerOf(tokenId), minter);
+          truffleAssert.eventEmitted(tx, 'PriceChanged', (ev) => {
+              const id = ("0x" + BigInt(ev.tokenId).toString(16)).toLowerCase()
+              return id == tokenId.toLowerCase() && ev.newPrice == 1000;
+          });
+
+          // trade
+          tx = await token.trade(tokenId, [], {from: buyer, value: price})
+          truffleAssert.eventEmitted(tx, 'PriceChanged', (ev) => {
+              const id = ("0x" + BigInt(ev.tokenId).toString(16)).toLowerCase()
+              return id == tokenId.toLowerCase() && ev.newPrice == 0;
+          });
+          assert.equal(await token.ownerOf(tokenId), buyer);
+          assert.equal(await token.getPrice(tokenId), 0);
+      });
   });
 
   function getSignature(tokenId, tokenURI, creators, fees, account) {

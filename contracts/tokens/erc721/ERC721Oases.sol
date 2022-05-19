@@ -150,7 +150,11 @@ contract ERC721Oases is ERC721OasesBase {
         uint256 price = prices[tokenId];
         require(price != 0, "not for sale");
         // clear price
-        prices[tokenId] = 0;
+        _setPrice(tokenId, 0);
+
+        // transfer token
+        _safeTransfer(originalOwner, newOwner, tokenId, data);
+
         // transfer payment
         uint256 rest = transferRoyalties(tokenId, price);
         if (rest > 0) {
@@ -162,8 +166,6 @@ contract ERC721Oases is ERC721OasesBase {
             payable(newOwner).transfer(refund);
         }
 
-        // transfer token
-        _safeTransfer(originalOwner, newOwner, tokenId, data);
         emit Trade(tokenId, price, newOwner, originalOwner);
     }
 
