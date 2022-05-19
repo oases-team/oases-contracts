@@ -571,6 +571,50 @@ contract("ERC721Oases", accounts => {
           assert.equal(await token.ownerOf(tokenId), buyer);
           assert.equal(await token.getPrice(tokenId), 0);
       });
+
+      it("trade with royalty equal to 50%", async () => {
+          const minter = accounts[1];
+          const buyer = accounts[2]
+          const tokenId = minter + "b00000000000000000000001";
+          const tokenURI = "//uri";
+          const price = 1000;
+          // with 40% royalty
+          await token.mintWithPrice([tokenId, tokenURI, creators([minter]), [[accounts[3], 2000], [accounts[4], 3000]], [zeroWord]], minter, price, {from: minter});
+          assert.equal(await token.ownerOf(tokenId), minter);
+
+
+          // trade with 50% royalty
+          await verifyBalanceChange(minter, -price * (1 - 0.2 - 0.3), async () =>
+              verifyBalanceChange(buyer, price, async () =>
+                  verifyBalanceChange(accounts[3], -price * 0.2, async () =>
+                      verifyBalanceChange(accounts[4], -price * 0.3, async () =>
+                          token.trade(tokenId, [], {from: buyer, value: price + 100, gasPrice: '0x'})
+                      )
+                  )
+              )
+          );
+
+          assert.equal(await token.ownerOf(tokenId), buyer);
+          assert.equal(await token.getPrice(tokenId), 0);
+      });
+
+      it("revert if trade with royalty over 50%", async () => {
+          const minter = accounts[1];
+          const buyer = accounts[2]
+          const tokenId = minter + "b00000000000000000000001";
+          const tokenURI = "//uri";
+          const price = 1000;
+
+          // with 51% royalty
+          await token.mintWithPrice([tokenId, tokenURI, creators([minter]), [[accounts[3], 2000], [accounts[4], 3100]], [zeroWord]], minter, price, {from: minter});
+          assert.equal(await token.ownerOf(tokenId), minter);
+
+          // trade with 51% royalty
+          await expectThrow(
+              token.trade(tokenId, [], {from: buyer, value: price}),
+              'royalties sum exceeds 50%'
+          );
+      });
   });
 
   function getSignature(tokenId, tokenURI, creators, fees, account) {
