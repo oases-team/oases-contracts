@@ -578,7 +578,7 @@ contract("ERC721Oases", accounts => {
           const tokenId = minter + "b00000000000000000000001";
           const tokenURI = "//uri";
           const price = 1000;
-          // with 40% royalty
+          // with 50% royalty
           await token.mintWithPrice([tokenId, tokenURI, creators([minter]), [[accounts[3], 2000], [accounts[4], 3000]], [zeroWord]], minter, price, {from: minter});
           assert.equal(await token.ownerOf(tokenId), minter);
 
