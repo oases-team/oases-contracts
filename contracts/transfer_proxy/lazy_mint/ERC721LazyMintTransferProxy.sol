@@ -10,6 +10,11 @@ import "../../tokens/erc721/libraries/ERC721LazyMintLibrary.sol";
 import "../../tokens/erc721/interfaces/IERC721LazyMint.sol";
 
 contract ERC721LazyMintTransferProxy is Operators, ITransferProxy {
+
+    function __ERC721LazyMintTransferProxy_init() external initializer {
+        __Ownable_init();
+    }
+
     function transfer(
         AssetLibrary.Asset memory asset,
         address from,
