@@ -352,8 +352,9 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         uint256 rest = amountToCalculate;
         uint256 lastPartIndex = paymentInfos.length - 1;
         for (uint256 i = 0; i < lastPartIndex; ++i) {
-            uint256 amountToPay = amountToCalculate.basisPointCalculate(paymentInfos[i].value);
-            totalFeeBasisPoints += paymentInfos[i].value;
+            PartLibrary.Part memory paymentInfo = paymentInfos[i];
+            uint256 amountToPay = amountToCalculate.basisPointCalculate(paymentInfo.value);
+            totalFeeBasisPoints += paymentInfo.value;
             if (amountToPay > 0) {
                 rest -= amountToPay;
                 transfer(
@@ -362,16 +363,16 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
                 value : amountToPay
                 }),
                     payer,
-                    paymentInfos[i].account,
+                    paymentInfo.account,
                     PAYMENT,
                     direction
                 );
             }
         }
 
-        PartLibrary.Part memory lastPayment = paymentInfos[lastPartIndex];
+        PartLibrary.Part memory lastPaymentInfo = paymentInfos[lastPartIndex];
         require(
-            totalFeeBasisPoints + lastPayment.value == 10000,
+            totalFeeBasisPoints + lastPaymentInfo.value == 10000,
             "total bps of payment is not 100%"
         );
         if (rest > 0) {
@@ -381,7 +382,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
             value : rest
             }),
                 payer,
-                lastPayment.account,
+                lastPaymentInfo.account,
                 PAYMENT,
                 direction
             );

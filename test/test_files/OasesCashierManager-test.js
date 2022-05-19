@@ -179,13 +179,13 @@ contract("test OasesCashierManager.sol", accounts => {
             paymentInfos = [Part(accounts[1], 2000), Part(accounts[2], 3000), Part(accounts[3], 4999)]
             await expectThrow(
                 mockOasesCashierManager.mockTransferPayment(accounts[0], 10000, paymentType, paymentInfos, EMPTY_BYTES4),
-                "total bp of payment is not 100%"
+                "total bps of payment is not 100%"
             )
 
             paymentInfos = [Part(accounts[1], 10001)]
             await expectThrow(
                 mockOasesCashierManager.mockTransferPayment(accounts[0], 10000, paymentType, paymentInfos, EMPTY_BYTES4),
-                "total bp of payment is not 100%"
+                "total bps of payment is not 100%"
             )
         })
 
@@ -212,14 +212,14 @@ contract("test OasesCashierManager.sol", accounts => {
             await expectThrow(
                 mockOasesCashierManager.mockTransferPayment(
                     accounts[0], 10000, paymentType, paymentInfos, EMPTY_BYTES4, {value: 10000, gasPrice: '0'}),
-                "total bp of payment is not 100%"
+                "total bps of payment is not 100%"
             )
 
             paymentInfos = [Part(accounts[1], 10001)]
             await expectThrow(
                 mockOasesCashierManager.mockTransferPayment(
                     accounts[0], 10000, paymentType, paymentInfos, EMPTY_BYTES4, {value: 10000, gasPrice: '0'}),
-                "total bp of payment is not 100%"
+                "total bps of payment is not 100%"
             )
         })
 
@@ -243,13 +243,13 @@ contract("test OasesCashierManager.sol", accounts => {
             paymentInfos = [Part(accounts[1], 2000), Part(accounts[2], 3000), Part(accounts[3], 4999)]
             await expectThrow(
                 mockOasesCashierManager.mockTransferPayment(accounts[0], 100, paymentType, paymentInfos, EMPTY_BYTES4),
-                "total bp of payment is not 100%"
+                "total bps of payment is not 100%"
             )
 
             paymentInfos = [Part(accounts[1], 10001)]
             await expectThrow(
                 mockOasesCashierManager.mockTransferPayment(accounts[0], 100, paymentType, paymentInfos, EMPTY_BYTES4),
-                "total bp of payment is not 100%"
+                "total bps of payment is not 100%"
             )
         })
     })
