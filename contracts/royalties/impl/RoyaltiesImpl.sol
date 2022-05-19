@@ -23,7 +23,7 @@ contract RoyaltiesImpl is AbstractRoyalties, Royalties {
         rest = price;
         uint256 fee = 0;
         uint256 totalFeeBasisPoints = 0;
-        uint len = royaltyInfosBuffer.length;
+        uint256 len = royaltyInfosBuffer.length;
         for (uint256 i = 0; i < len; ++i) {
             PartLibrary.Part memory royaltyInfo = royaltyInfosBuffer[i];
             totalFeeBasisPoints += royaltyInfo.value;
