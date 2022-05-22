@@ -13,9 +13,11 @@ import "../tokens/erc721/libraries/ERC721LazyMintLibrary.sol";
 import "../tokens/erc1155/libraries/ERC1155LazyMintLibrary.sol";
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
     using BasisPointLibrary for uint256;
+    using AddressUpgradeable for address;
 
     uint256 protocolFeeBasisPoint;
     mapping(address => address) feeReceivers;
@@ -39,6 +41,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
 
     // set royalties provider address by the owner
     function setRoyaltiesRegistry(address newRoyaltiesProvider) external onlyOwner {
+        require(newRoyaltiesProvider.isContract(), "not CA");
         royaltiesProvider = IRoyaltiesProvider(newRoyaltiesProvider);
     }
 
