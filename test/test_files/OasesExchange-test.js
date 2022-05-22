@@ -1567,7 +1567,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                     EMPTY_DATA,
                     {from: accounts[2]}
                 ),
-                "total bp of payment is not 100%"
+                "total bps of payment is not 100%"
             )
         })
 
@@ -1614,7 +1614,7 @@ contract("test OasesExchange.sol (protocol fee 3% —— seller 3%)", accounts =
                     await getSignature(leftOrder, accounts[1]),
                     {from: accounts[2]}
                 ),
-                "total bp of payment is not 100%"
+                "total bps of payment is not 100%"
             )
         })
 
