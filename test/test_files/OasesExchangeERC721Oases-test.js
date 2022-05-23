@@ -73,7 +73,7 @@ contract("test OasesExchange.sol for lazy mint erc721 (protocol fee 3% —— se
         mockOasesCashierManager = await MockOasesCashierManager.new()
         mockOrderLibrary = await MockOrderLibrary.new()
         mockERC721LazyMintTransferProxy = await MockERC721LazyMintTransferProxy.new()
-        await mockERC721LazyMintTransferProxy.__Operators_init()
+        await mockERC721LazyMintTransferProxy.__ERC721LazyMintTransferProxy_init()
         await mockERC721LazyMintTransferProxy.addOperator(oasesExchange.address)
         await oasesExchange.setTransferProxy(ERC721_LAZY_MINT_CLASS, mockERC721LazyMintTransferProxy.address)
 
