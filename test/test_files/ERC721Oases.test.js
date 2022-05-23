@@ -6,7 +6,7 @@ const MockTransferProxy = artifacts.require("MockTransferProxy.sol");
 const truffleAssert = require('truffle-assertions');
 
 const { sign } = require("./utils/mint");
-const { expectThrow } = require("./utils/expect_throw");
+const {expectThrow, verifyBalanceChange} = require("./utils/expect_throw");
 
 contract("ERC721Oases", accounts => {
 
@@ -517,6 +517,104 @@ contract("ERC721Oases", accounts => {
       });
       assert.equal(await token.getPrice(tokenId), 0)
     });
+
+    it("trade with more eth and refund", async() => {
+        const minter = accounts[1];
+        const buyer = accounts[2]
+        const tokenId = minter + "b00000000000000000000001";
+        const tokenURI = "//uri";
+        const price = 1000;
+        let result = await token.mintWithPrice([tokenId, tokenURI, creators([minter]), [], [zeroWord]], minter, price, {from: minter});
+        assert.equal(await token.ownerOf(tokenId), minter);
+        truffleAssert.eventEmitted(result, 'PriceChanged', (ev) => {
+            const id = ("0x" + BigInt(ev.tokenId).toString(16)).toLowerCase()
+            return id == tokenId.toLowerCase() && +ev.newPrice == 1000;
+        });
+
+        // trade with more price
+        await verifyBalanceChange(minter, -price, async () =>
+            verifyBalanceChange(buyer, price, async () =>
+                token.trade(tokenId, [], {from: buyer, value: price + 100, gasPrice: '0x'})
+            )
+        );
+
+        assert.equal(await token.ownerOf(tokenId), buyer);
+        assert.equal(await token.getPrice(tokenId), 0);
+
+        token.setPrice(tokenId, price, {from: buyer});
+        // revert if less payment
+        await expectThrow(
+            token.trade(tokenId, [], {from: minter, value: price - 1}),
+            'bad eth transfer'
+        );
+    });
+
+      it("trade with emitting event", async () => {
+          const minter = accounts[1];
+          const buyer = accounts[2]
+          const tokenId = minter + "b00000000000000000000001";
+          const tokenURI = "//uri";
+          const price = 1000;
+          let tx = await token.mintWithPrice([tokenId, tokenURI, creators([minter]), [], [zeroWord]], minter, price, {from: minter});
+          assert.equal(await token.ownerOf(tokenId), minter);
+          truffleAssert.eventEmitted(tx, 'PriceChanged', (ev) => {
+              const id = ("0x" + BigInt(ev.tokenId).toString(16)).toLowerCase()
+              return id == tokenId.toLowerCase() && ev.newPrice == 1000;
+          });
+
+          // trade
+          tx = await token.trade(tokenId, [], {from: buyer, value: price})
+          truffleAssert.eventEmitted(tx, 'PriceChanged', (ev) => {
+              const id = ("0x" + BigInt(ev.tokenId).toString(16)).toLowerCase()
+              return id == tokenId.toLowerCase() && ev.newPrice == 0;
+          });
+          assert.equal(await token.ownerOf(tokenId), buyer);
+          assert.equal(await token.getPrice(tokenId), 0);
+      });
+
+      it("trade with royalty equal to 50%", async () => {
+          const minter = accounts[1];
+          const buyer = accounts[2]
+          const tokenId = minter + "b00000000000000000000001";
+          const tokenURI = "//uri";
+          const price = 1000;
+          // with 50% royalty
+          await token.mintWithPrice([tokenId, tokenURI, creators([minter]), [[accounts[3], 2000], [accounts[4], 3000]], [zeroWord]], minter, price, {from: minter});
+          assert.equal(await token.ownerOf(tokenId), minter);
+
+
+          // trade with 50% royalty
+          await verifyBalanceChange(minter, -price * (1 - 0.2 - 0.3), async () =>
+              verifyBalanceChange(buyer, price, async () =>
+                  verifyBalanceChange(accounts[3], -price * 0.2, async () =>
+                      verifyBalanceChange(accounts[4], -price * 0.3, async () =>
+                          token.trade(tokenId, [], {from: buyer, value: price + 100, gasPrice: '0x'})
+                      )
+                  )
+              )
+          );
+
+          assert.equal(await token.ownerOf(tokenId), buyer);
+          assert.equal(await token.getPrice(tokenId), 0);
+      });
+
+      it("revert if trade with royalty over 50%", async () => {
+          const minter = accounts[1];
+          const buyer = accounts[2]
+          const tokenId = minter + "b00000000000000000000001";
+          const tokenURI = "//uri";
+          const price = 1000;
+
+          // with 51% royalty
+          await token.mintWithPrice([tokenId, tokenURI, creators([minter]), [[accounts[3], 2000], [accounts[4], 3100]], [zeroWord]], minter, price, {from: minter});
+          assert.equal(await token.ownerOf(tokenId), minter);
+
+          // trade with 51% royalty
+          await expectThrow(
+              token.trade(tokenId, [], {from: buyer, value: price}),
+              'royalties sum exceeds 50%'
+          );
+      });
   });
 
   function getSignature(tokenId, tokenURI, creators, fees, account) {

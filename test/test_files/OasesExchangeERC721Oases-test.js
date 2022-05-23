@@ -73,7 +73,7 @@ contract("test OasesExchange.sol for lazy mint erc721 (protocol fee 3% —— se
         mockOasesCashierManager = await MockOasesCashierManager.new()
         mockOrderLibrary = await MockOrderLibrary.new()
         mockERC721LazyMintTransferProxy = await MockERC721LazyMintTransferProxy.new()
-        await mockERC721LazyMintTransferProxy.__Operators_init()
+        await mockERC721LazyMintTransferProxy.__ERC721LazyMintTransferProxy_init()
         await mockERC721LazyMintTransferProxy.addOperator(oasesExchange.address)
         await oasesExchange.setTransferProxy(ERC721_LAZY_MINT_CLASS, mockERC721LazyMintTransferProxy.address)
 
@@ -1491,7 +1491,7 @@ contract("test OasesExchange.sol for lazy mint erc721 (protocol fee 3% —— se
                     EMPTY_DATA,
                     {from: accounts[2]}
                 ),
-                "total bp of payment is not 100%"
+                "total bps of payment is not 100%"
             )
         })
 
@@ -1541,7 +1541,7 @@ contract("test OasesExchange.sol for lazy mint erc721 (protocol fee 3% —— se
                     await getSignature(leftOrder, accounts[0]),
                     {from: accounts[2]}
                 ),
-                "total bp of payment is not 100%"
+                "total bps of payment is not 100%"
             )
         })
 
@@ -1550,7 +1550,7 @@ contract("test OasesExchange.sol for lazy mint erc721 (protocol fee 3% —— se
                 [[accounts[0], 10000]], [], accounts[0]
             )
 
-            let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
+            let addOriginLeft = [[accoun¬ts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
 
             let encodedDataLeft = await encodeDataV1([[], [], addOriginLeft, true])

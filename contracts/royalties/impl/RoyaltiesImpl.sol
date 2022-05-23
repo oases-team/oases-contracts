@@ -17,17 +17,23 @@ contract RoyaltiesImpl is AbstractRoyalties, Royalties {
     function _onRoyaltyInfosSet(uint256 id, PartLibrary.Part[] memory _royaltyInfos) override internal {
         emit RoyaltyInfosSet(id, _royaltyInfos);
     }
-    
+
     function transferRoyalties(uint256 tokenId, uint256 price) internal returns (uint256 rest) {
-        PartLibrary.Part[] memory royaltyInfo = royaltyInfos[tokenId];
+        PartLibrary.Part[] memory royaltyInfosBuffer = royaltyInfos[tokenId];
         rest = price;
-        uint256 fee;
-        for (uint256 i = 0; i < royaltyInfo.length; ++i) {
-            (rest, fee) = deductFeeWithBasisPoint(rest, price, royaltyInfo[i].value);
+        uint256 fee = 0;
+        uint256 totalFeeBasisPoints = 0;
+        uint256 len = royaltyInfosBuffer.length;
+        for (uint256 i = 0; i < len; ++i) {
+            PartLibrary.Part memory royaltyInfo = royaltyInfosBuffer[i];
+            totalFeeBasisPoints += royaltyInfo.value;
+            (rest, fee) = deductFeeWithBasisPoint(rest, price, royaltyInfo.value);
             if (fee > 0) {
-                royaltyInfo[i].account.transferEth(fee);
+                royaltyInfo.account.transferEth(fee);
             }
         }
+
+        require(totalFeeBasisPoints <= 5000, "royalties sum exceeds 50%");
     }
 
     function deductFeeWithBasisPoint(

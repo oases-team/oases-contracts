@@ -5,6 +5,7 @@ const MockERC1155 = artifacts.require("MockERC1155.sol")
 const MockNFTTransferProxy = artifacts.require("MockNFTTransferProxy.sol")
 const MockERC20TransferProxy = artifacts.require("MockERC20TransferProxy.sol")
 const truffleAssert = require('truffle-assertions')
+const MockRoyaltiesRegistry = artifacts.require("MockRoyaltiesRegistry.sol")
 
 const {getRandomInteger} = require("./utils/utils")
 const {generateRandomAddress} = require("./utils/signature")
@@ -85,15 +86,25 @@ contract("test OasesCashierManager.sol", accounts => {
         it("test setRoyaltiesRegistry()", async () => {
             const notOwner = accounts[1]
             const owner = accounts[0]
-            const randomAddress = web3.utils.toChecksumAddress(generateRandomAddress())
+            const mockRoyaltiesRegistry = await MockRoyaltiesRegistry.new()
             assert.equal(await mockOasesCashierManager.getRoyaltiesProvider(), ZERO_ADDRESS)
             await expectThrow(
-                mockOasesCashierManager.setRoyaltiesRegistry(randomAddress, {from: notOwner}),
+                mockOasesCashierManager.setRoyaltiesRegistry(mockRoyaltiesRegistry.address, {from: notOwner}),
                 "Ownable: caller is not the owner"
             )
 
-            await mockOasesCashierManager.setRoyaltiesRegistry(randomAddress, {from: owner})
-            assert.equal(await mockOasesCashierManager.getRoyaltiesProvider(), randomAddress)
+            await mockOasesCashierManager.setRoyaltiesRegistry(mockRoyaltiesRegistry.address, {from: owner})
+            assert.equal(await mockOasesCashierManager.getRoyaltiesProvider(), mockRoyaltiesRegistry.address)
+        })
+
+        it("revert if set an address of EOA in setRoyaltiesRegistry()", async () => {
+            const owner = accounts[0]
+            const EOAAddress = accounts[1]
+            assert.equal(await mockOasesCashierManager.getRoyaltiesProvider(), ZERO_ADDRESS)
+            await expectThrow(
+                mockOasesCashierManager.setRoyaltiesRegistry(EOAAddress, {from: owner}),
+                'not CA'
+            )
         })
 
         it("test setDefaultFeeReceiver()", async () => {
@@ -185,13 +196,13 @@ contract("test OasesCashierManager.sol", accounts => {
             paymentInfos = [Part(accounts[1], 2000), Part(accounts[2], 3000), Part(accounts[3], 4999)]
             await expectThrow(
                 mockOasesCashierManager.mockTransferPayment(accounts[0], 10000, paymentType, paymentInfos, EMPTY_BYTES4),
-                "total bp of payment is not 100%"
+                "total bps of payment is not 100%"
             )
 
             paymentInfos = [Part(accounts[1], 10001)]
             await expectThrow(
                 mockOasesCashierManager.mockTransferPayment(accounts[0], 10000, paymentType, paymentInfos, EMPTY_BYTES4),
-                "total bp of payment is not 100%"
+                "total bps of payment is not 100%"
             )
         })
 
@@ -218,14 +229,14 @@ contract("test OasesCashierManager.sol", accounts => {
             await expectThrow(
                 mockOasesCashierManager.mockTransferPayment(
                     accounts[0], 10000, paymentType, paymentInfos, EMPTY_BYTES4, {value: 10000, gasPrice: '0'}),
-                "total bp of payment is not 100%"
+                "total bps of payment is not 100%"
             )
 
             paymentInfos = [Part(accounts[1], 10001)]
             await expectThrow(
                 mockOasesCashierManager.mockTransferPayment(
                     accounts[0], 10000, paymentType, paymentInfos, EMPTY_BYTES4, {value: 10000, gasPrice: '0'}),
-                "total bp of payment is not 100%"
+                "total bps of payment is not 100%"
             )
         })
 
@@ -249,13 +260,13 @@ contract("test OasesCashierManager.sol", accounts => {
             paymentInfos = [Part(accounts[1], 2000), Part(accounts[2], 3000), Part(accounts[3], 4999)]
             await expectThrow(
                 mockOasesCashierManager.mockTransferPayment(accounts[0], 100, paymentType, paymentInfos, EMPTY_BYTES4),
-                "total bp of payment is not 100%"
+                "total bps of payment is not 100%"
             )
 
             paymentInfos = [Part(accounts[1], 10001)]
             await expectThrow(
                 mockOasesCashierManager.mockTransferPayment(accounts[0], 100, paymentType, paymentInfos, EMPTY_BYTES4),
-                "total bp of payment is not 100%"
+                "total bps of payment is not 100%"
             )
         })
     })
