@@ -4,6 +4,7 @@ const MockERC721 = artifacts.require("MockERC721.sol")
 const MockERC1155 = artifacts.require("MockERC1155.sol")
 const MockNFTTransferProxy = artifacts.require("MockNFTTransferProxy.sol")
 const MockERC20TransferProxy = artifacts.require("MockERC20TransferProxy.sol")
+const truffleAssert = require('truffle-assertions')
 const MockRoyaltiesRegistry = artifacts.require("MockRoyaltiesRegistry.sol")
 
 const {getRandomInteger} = require("./utils/utils")
@@ -73,8 +74,13 @@ contract("test OasesCashierManager.sol", accounts => {
                 "Ownable: caller is not the owner"
             )
 
-            await mockOasesCashierManager.setProtocolFeeBasisPoint(250, {from: owner})
+            const tx = await mockOasesCashierManager.setProtocolFeeBasisPoint(250, {from: owner})
             assert.equal(await mockOasesCashierManager.getProtocolFeeBasisPoint(), 250)
+            truffleAssert.eventEmitted(tx, 'ProtocolFeeBasisPointChanged', (ev) => {
+                assert.equal(ev.preProtocolFeeBasisPoint, 300)
+                assert.equal(ev.currentProtocolFeeBasisPoint, 250)
+                return true
+            })
         })
 
         it("test setRoyaltiesRegistry()", async () => {

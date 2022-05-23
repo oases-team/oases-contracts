@@ -24,6 +24,8 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
     address defaultFeeReceiver;
     IRoyaltiesProvider royaltiesProvider;
 
+    event ProtocolFeeBasisPointChanged(uint256 preProtocolFeeBasisPoint, uint256 currentProtocolFeeBasisPoint);
+
     function __OasesCashierManager_init_unchained(
         uint256 newProtocolFeeBasisPoint,
         address newDefaultFeeReceiver,
@@ -36,7 +38,9 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
 
     // set basis point of protocol fee by the owner
     function setProtocolFeeBasisPoint(uint256 newProtocolFeeBasisPoint) external onlyOwner {
+        uint256 preProtocolFeeBasisPoint = protocolFeeBasisPoint;
         protocolFeeBasisPoint = newProtocolFeeBasisPoint;
+        emit ProtocolFeeBasisPointChanged(preProtocolFeeBasisPoint, newProtocolFeeBasisPoint);
     }
 
     // set royalties provider address by the owner
@@ -326,7 +330,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
             royaltyInfos = erc1155LazyMintData.royaltyInfos;
         }
 
-        (uint256 rest,uint256 totalFeeBasisPoints) = transferFees(
+        (uint256 rest, uint256 totalFeeBasisPoints) = transferFees(
             payer,
             true,
             totalAmountAndFeesRest,
