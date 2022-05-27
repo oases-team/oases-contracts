@@ -16,7 +16,7 @@ contract ProtocolFeeProvider is OwnableUpgradeable, IProtocolFeeProvider {
     // from nft address to its customized protocol fee bp
     mapping(address => uint) _customizedProtocolFeeBasisPoints;
 
-    event UpdateCustomizedProtocolFeeBasisPoint(address nftAddress, uint customizedProtocolFeeBasisPoint);
+    event UpdateCustomizedProtocolFeeBasisPoint(address nftAddress, bool isAdded, uint customizedProtocolFeeBasisPoint);
     event ProtocolBasisPointChanged(uint newProtocolBasisPoint, uint preProtocolBasisPoint);
 
     function __ProtocolFeeProvider_init_unchained(uint protocolFeeBasisPoint) external initializer {
@@ -36,10 +36,17 @@ contract ProtocolFeeProvider is OwnableUpgradeable, IProtocolFeeProvider {
         return _protocolFeeBasisPoint;
     }
 
-    function setCustomizedProtocolFeeBasisPoint(address nftAddress, uint customizedProtocolFeeBasisPoint) external onlyOwner {
-        _isCustomized[nftAddress] = true;
-        _customizedProtocolFeeBasisPoints[nftAddress] = customizedProtocolFeeBasisPoint;
-        emit UpdateCustomizedProtocolFeeBasisPoint(nftAddress, customizedProtocolFeeBasisPoint);
+    // add or remove
+    function setCustomizedProtocolFeeBasisPoint(address nftAddress, bool isAdded, uint customizedProtocolFeeBasisPoint) external onlyOwner {
+        _isCustomized[nftAddress] = isAdded;
+        if (isAdded) {
+            _customizedProtocolFeeBasisPoints[nftAddress] = customizedProtocolFeeBasisPoint;
+        } else {
+            customizedProtocolFeeBasisPoint = 0;
+            delete _customizedProtocolFeeBasisPoints[nftAddress];
+        }
+
+        emit UpdateCustomizedProtocolFeeBasisPoint(nftAddress, isAdded, customizedProtocolFeeBasisPoint);
     }
 
     function setProtocolBasisPoint(uint newProtocolBasisPoint) external onlyOwner {
