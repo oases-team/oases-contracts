@@ -9,7 +9,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol"
 
 contract ProtocolFeeProvider is OwnableUpgradeable, IProtocolFeeProvider {
     // default protocol fee basis point
-    uint _protocolFeeBasisPoint;
+    uint _defaultProtocolFeeBasisPoint;
 
     // whether the nft has customized protocol fee bp
     mapping(address => bool) _isCustomized;
@@ -17,12 +17,12 @@ contract ProtocolFeeProvider is OwnableUpgradeable, IProtocolFeeProvider {
     mapping(address => uint) _customizedProtocolFeeBasisPoints;
 
     event UpdateCustomizedProtocolFeeBasisPoint(address nftAddress, bool isAdded, uint customizedProtocolFeeBasisPoint);
-    event ProtocolBasisPointChanged(uint newProtocolBasisPoint, uint preProtocolBasisPoint);
+    event DefaultProtocolBasisPointChanged(uint newDefaultProtocolBasisPoint, uint preDefaultProtocolBasisPoint);
 
-    function __ProtocolFeeProvider_init_unchained(uint protocolFeeBasisPoint) external initializer {
+    function __ProtocolFeeProvider_init_unchained(uint defaultProtocolFeeBasisPoint) external initializer {
         __Ownable_init();
-        _protocolFeeBasisPoint = protocolFeeBasisPoint;
-        emit ProtocolBasisPointChanged(protocolFeeBasisPoint, 0);
+        _defaultProtocolFeeBasisPoint = defaultProtocolFeeBasisPoint;
+        emit DefaultProtocolBasisPointChanged(defaultProtocolFeeBasisPoint, 0);
     }
 
     function getProtocolFeeBasisPoint(
@@ -33,7 +33,7 @@ contract ProtocolFeeProvider is OwnableUpgradeable, IProtocolFeeProvider {
             return _customizedProtocolFeeBasisPoints[nftAddress];
         }
 
-        return _protocolFeeBasisPoint;
+        return _defaultProtocolFeeBasisPoint;
     }
 
     // add or remove
@@ -49,10 +49,10 @@ contract ProtocolFeeProvider is OwnableUpgradeable, IProtocolFeeProvider {
         emit UpdateCustomizedProtocolFeeBasisPoint(nftAddress, isAdded, customizedProtocolFeeBasisPoint);
     }
 
-    function setProtocolBasisPoint(uint newProtocolBasisPoint) external onlyOwner {
-        uint preProtocolBasisPoint = _protocolFeeBasisPoint;
-        _protocolFeeBasisPoint = newProtocolBasisPoint;
-        emit ProtocolBasisPointChanged(newProtocolBasisPoint, preProtocolBasisPoint);
+    function setDefaultProtocolBasisPoint(uint newDefaultProtocolBasisPoint) external onlyOwner {
+        uint preDefaultProtocolBasisPoint = _defaultProtocolFeeBasisPoint;
+        _defaultProtocolFeeBasisPoint = newDefaultProtocolBasisPoint;
+        emit DefaultProtocolBasisPointChanged(newDefaultProtocolBasisPoint, preDefaultProtocolBasisPoint);
     }
 
     function getCustomizedProtocolFeeBasisPoint(address nftAddress) public view returns (uint){
@@ -60,7 +60,7 @@ contract ProtocolFeeProvider is OwnableUpgradeable, IProtocolFeeProvider {
         return _customizedProtocolFeeBasisPoints[nftAddress];
     }
 
-    function getProtocolFeeBasisPoint() public view returns (uint){
-        return _protocolFeeBasisPoint;
+    function getDefaultProtocolFeeBasisPoint() public view returns (uint){
+        return _defaultProtocolFeeBasisPoint;
     }
 }
