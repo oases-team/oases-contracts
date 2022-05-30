@@ -11,6 +11,7 @@ import "./libraries/BasisPointLibrary.sol";
 import "./libraries/FeeSideLibrary.sol";
 import "../tokens/erc721/libraries/ERC721LazyMintLibrary.sol";
 import "../tokens/erc1155/libraries/ERC1155LazyMintLibrary.sol";
+import "../protocol_fee_provider/interfaces/IProtocolFeeProvider.sol";
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
@@ -19,34 +20,33 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
     using BasisPointLibrary for uint256;
     using AddressUpgradeable for address;
 
-    uint256 protocolFeeBasisPoint;
+    uint256 protocolFeeBasisPoint_deprecation; // todo: remove in mainnet
     mapping(address => address) feeReceivers;
     address defaultFeeReceiver;
-    IRoyaltiesProvider royaltiesProvider;
+    IProtocolFeeProvider protocolFeeProvider;
 
-    event ProtocolFeeBasisPointChanged(uint256 preProtocolFeeBasisPoint, uint256 currentProtocolFeeBasisPoint);
+    // todo: remove in mainnet
+    //    event ProtocolFeeBasisPointChanged(uint256 preProtocolFeeBasisPoint, uint256 currentProtocolFeeBasisPoint);
 
     function __OasesCashierManager_init_unchained(
-        uint256 newProtocolFeeBasisPoint,
         address newDefaultFeeReceiver,
-        IRoyaltiesProvider newRoyaltiesProvider
+        IProtocolFeeProvider newProtocolFeeProvider
     ) internal onlyInitializing {
-        protocolFeeBasisPoint = newProtocolFeeBasisPoint;
         defaultFeeReceiver = newDefaultFeeReceiver;
-        royaltiesProvider = newRoyaltiesProvider;
+        protocolFeeProvider = newProtocolFeeProvider;
     }
 
     // set basis point of protocol fee by the owner
-    function setProtocolFeeBasisPoint(uint256 newProtocolFeeBasisPoint) external onlyOwner {
-        uint256 preProtocolFeeBasisPoint = protocolFeeBasisPoint;
-        protocolFeeBasisPoint = newProtocolFeeBasisPoint;
-        emit ProtocolFeeBasisPointChanged(preProtocolFeeBasisPoint, newProtocolFeeBasisPoint);
-    }
+    //    function setProtocolFeeBasisPoint(uint256 newProtocolFeeBasisPoint) external onlyOwner {
+    //        uint256 preProtocolFeeBasisPoint = protocolFeeBasisPoint;
+    //        protocolFeeBasisPoint = newProtocolFeeBasisPoint;
+    //        emit ProtocolFeeBasisPointChanged(preProtocolFeeBasisPoint, newProtocolFeeBasisPoint);
+    //    }
 
-    // set royalties provider address by the owner
-    function setRoyaltiesRegistry(address newRoyaltiesProvider) external onlyOwner {
-        require(newRoyaltiesProvider.isContract(), "not CA");
-        royaltiesProvider = IRoyaltiesProvider(newRoyaltiesProvider);
+    // set protocol fee provider address by the owner
+    function setProtocolFeeProvider(address newProtocolFeeProvider) external onlyOwner {
+        require(newProtocolFeeProvider.isContract(), "not CA");
+        protocolFeeProvider = IProtocolFeeProvider(newProtocolFeeProvider);
     }
 
     // set default fee receiver address by the owner
@@ -60,13 +60,13 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
     }
 
     // get basis point of protocol fee
-    function getProtocolFeeBasisPoint() public view returns (uint256){
-        return protocolFeeBasisPoint;
-    }
+    //    function getProtocolFeeBasisPoint() public view returns (uint256){
+    //        return protocolFeeBasisPoint;
+    //    }
 
-    // get the address of royalties provider
-    function getRoyaltiesProvider() public view returns (address){
-        return address(royaltiesProvider);
+    // get the address of protocol fee provider
+    function getProtocolFeeProvider() public view returns (address){
+        return address(protocolFeeProvider);
     }
 
     // get the address of default fee receiver
@@ -178,6 +178,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
             totalAmount,
             amountToCalculate,
             paymentType,
+            nftType,
             direction
         );
         rest = transferRoyalties(
@@ -223,12 +224,22 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         uint256 totalAmountAndFeesRest,
         uint256 amountToCalculateFee,
         AssetLibrary.AssetType memory paymentType,
+        AssetLibrary.AssetType memory nftType,
         bytes4 direction
     )
     internal
     returns
     (uint256)
     {
+        uint256 protocolFeeBasisPoint;
+        if (nftType.assetClass == AssetLibrary.ERC721_ASSET_CLASS) {
+            // only ERC721 to query for protocol fee bp
+            (address nftAddress,) = abi.decode(nftType.data, (address, uint256));
+            protocolFeeBasisPoint = protocolFeeProvider.getProtocolFeeBasisPoint(nftAddress, payer);
+        } else {
+            protocolFeeBasisPoint = protocolFeeProvider.getDefaultProtocolFeeBasisPoint();
+        }
+
         (uint256 rest, uint256 fee) = deductFeeWithBasisPoint(
             totalAmountAndFeesRest,
             amountToCalculateFee,
