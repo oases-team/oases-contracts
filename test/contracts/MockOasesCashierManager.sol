@@ -7,7 +7,7 @@ import "../../contracts/oases_exchange/OasesCashierManager.sol";
 import "../../contracts/oases_exchange/OrderVerifier.sol";
 import "../../contracts/oases_exchange/libraries/OrderDataParsingLibrary.sol";
 import "../../contracts/oases_exchange/Cashier.sol";
-import "../../contracts/royalties/interfaces/IRoyaltiesProvider.sol";
+import "../../contracts/protocol_fee_provider/interfaces/IProtocolFeeProvider.sol";
 
 contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier {
 
@@ -18,16 +18,15 @@ contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier 
     function __MockOasesCashierManager_init(
         IERC20TransferProxy ERC20TransferProxyAddress,
         INFTTransferProxy NFTTransferProxyAddress,
-        uint256 newProtocolFeeBasisPoint,
+        address newProtocolFeeProviderAddress,
         address newDefaultFeeReceiver
     ) external initializer {
         __Context_init_unchained();
         __Ownable_init_unchained();
         __Cashier_init_unchained(ERC20TransferProxyAddress, NFTTransferProxyAddress);
         __OasesCashierManager_init_unchained(
-            newProtocolFeeBasisPoint,
             newDefaultFeeReceiver,
-            IRoyaltiesProvider(address(0)) // royaltiesProvider is useless
+            IProtocolFeeProvider(newProtocolFeeProviderAddress)
         );
         __OrderVerifier_init_unchained();
     }
@@ -150,6 +149,7 @@ contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier 
 
     function mockTransferProtocolFee(
         address payer,
+        address customizedProtocolFeeChecker,
         uint256 totalAmountAndFeesRest,
         uint256 amountToCalculateFee,
         AssetLibrary.AssetType memory paymentType,
@@ -162,6 +162,7 @@ contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier 
     {
         rest = transferProtocolFee(
             payer,
+            customizedProtocolFeeChecker,
             totalAmountAndFeesRest,
             amountToCalculateFee,
             paymentType,
@@ -171,6 +172,7 @@ contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier 
 
     function mockTransferProtocolFeeView(
         address,
+        address customizedProtocolFeeChecker,
         uint256 totalAmountAndFeesRest,
         uint256 amountToCalculateFee,
         AssetLibrary.AssetType memory paymentType,
@@ -184,7 +186,7 @@ contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier 
         (uint256 rest, uint256 fee) = deductFeeWithBasisPoint(
             totalAmountAndFeesRest,
             amountToCalculateFee,
-            protocolFeeBasisPoint
+            protocolFeeProvider.getProtocolFeeBasisPoint(customizedProtocolFeeChecker)
         );
         if (fee > 0) {
             address paymentAddress = address(0);
@@ -279,6 +281,7 @@ contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier 
 
     function mockTransferPaymentWithFeesAndRoyalties(
         address payer,
+        address customizedProtocolFeeChecker,
         uint256 amountToCalculate,
         OrderDataLibrary.Data memory paymentData,
         OrderDataLibrary.Data memory nftData,
@@ -293,6 +296,7 @@ contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier 
     {
         totalAmount = transferPaymentWithFeesAndRoyalties(
             payer,
+            customizedProtocolFeeChecker,
             amountToCalculate,
             paymentData,
             nftData,
@@ -301,5 +305,4 @@ contract MockOasesCashierManager is OasesCashierManager, Cashier, OrderVerifier 
             direction
         );
     }
-
 }
