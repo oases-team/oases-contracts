@@ -15,16 +15,18 @@ contract ProtocolFeeProvider is OwnableUpgradeable, IProtocolFeeProvider {
 
     event MemberCardNFTAddressChanged(address newMemberCardNFTAddress, address preMemberCardNFTAddress);
     event MemberCardProtocolFeeBasisPointsChanged(uint newMemberCardProtocolFeeBasisPoints, uint preMemberCardProtocolFeeBasisPoints);
-    event DefaultProtocolBasisPointChanged(uint newDefaultProtocolBasisPoint, uint preDefaultProtocolBasisPoint);
+    event DefaultProtocolFeeBasisPointChanged(uint newDefaultProtocolFeeBasisPoint, uint preDefaultProtocolFeeBasisPoint);
 
     function __ProtocolFeeProvider_init_unchained(uint defaultProtocolFeeBasisPoint) external initializer {
         __Ownable_init();
         _defaultProtocolFeeBasisPoint = defaultProtocolFeeBasisPoint;
-        emit DefaultProtocolBasisPointChanged(defaultProtocolFeeBasisPoint, 0);
+        emit DefaultProtocolFeeBasisPointChanged(defaultProtocolFeeBasisPoint, 0);
     }
 
     function getProtocolFeeBasisPoint(address owner) public view returns (uint){
-        if (IERC721Upgradeable(_memberCardNFTAddress).balanceOf(owner) > 0) {
+        address memberCardNFTAddress = _memberCardNFTAddress;
+        // member card NFT contract will not be deployed at once
+        if (memberCardNFTAddress != address(0) && IERC721Upgradeable(memberCardNFTAddress).balanceOf(owner) > 0) {
             return _memberCardProtocolFeeBasisPoints;
         }
 
@@ -43,14 +45,18 @@ contract ProtocolFeeProvider is OwnableUpgradeable, IProtocolFeeProvider {
         emit MemberCardNFTAddressChanged(newMemberCardNFTAddress, preMemberCardNFTAddress);
     }
 
-    function setDefaultProtocolBasisPoint(uint newDefaultProtocolBasisPoint) external onlyOwner {
-        uint preDefaultProtocolBasisPoint = _defaultProtocolFeeBasisPoint;
-        _defaultProtocolFeeBasisPoint = newDefaultProtocolBasisPoint;
-        emit DefaultProtocolBasisPointChanged(newDefaultProtocolBasisPoint, preDefaultProtocolBasisPoint);
+    function setDefaultProtocolFeeBasisPoint(uint newDefaultProtocolFeeBasisPoint) external onlyOwner {
+        uint preDefaultProtocolFeeBasisPoint = _defaultProtocolFeeBasisPoint;
+        _defaultProtocolFeeBasisPoint = newDefaultProtocolFeeBasisPoint;
+        emit DefaultProtocolFeeBasisPointChanged(newDefaultProtocolFeeBasisPoint, preDefaultProtocolFeeBasisPoint);
     }
 
     function getMemberCardProtocolFeeBasisPoints() public view returns (uint){
         return _memberCardProtocolFeeBasisPoints;
+    }
+
+    function getMemberCardNFTAddress() public view returns (address){
+        return _memberCardNFTAddress;
     }
 
     function getDefaultProtocolFeeBasisPoint() public view returns (uint){
