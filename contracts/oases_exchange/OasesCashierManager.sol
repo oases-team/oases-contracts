@@ -109,6 +109,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         if (feeSide == FeeSideLibrary.FeeSide.MAKE) {
             totalMakeAmount = transferPaymentWithFeesAndRoyalties(
                 leftOrder.maker,
+                rightOrder.maker,
                 fillResult.leftValue,
                 leftOrderData,
                 rightOrderData,
@@ -126,6 +127,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         } else if (feeSide == FeeSideLibrary.FeeSide.TAKE) {
             totalTakeAmount = transferPaymentWithFeesAndRoyalties(
                 rightOrder.maker,
+                leftOrder.maker,
                 fillResult.rightValue,
                 rightOrderData,
                 leftOrderData,
@@ -161,6 +163,7 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
 
     function transferPaymentWithFeesAndRoyalties(
         address payer,
+        address customizedProtocolFeeChecker,
         uint256 amountToCalculate,
         OrderDataLibrary.Data memory paymentData,
         OrderDataLibrary.Data memory nftData,
@@ -175,10 +178,10 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         totalAmount = sumAmountAndFees(amountToCalculate, paymentData.originFeeInfos);
         uint256 rest = transferProtocolFee(
             payer,
+            customizedProtocolFeeChecker,
             totalAmount,
             amountToCalculate,
             paymentType,
-            nftType,
             direction
         );
         rest = transferRoyalties(
@@ -221,29 +224,20 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
 
     function transferProtocolFee(
         address payer,
+        address customizedProtocolFeeChecker,
         uint256 totalAmountAndFeesRest,
         uint256 amountToCalculateFee,
         AssetLibrary.AssetType memory paymentType,
-        AssetLibrary.AssetType memory nftType,
         bytes4 direction
     )
     internal
     returns
     (uint256)
     {
-        uint256 protocolFeeBasisPoint;
-        if (nftType.assetClass == AssetLibrary.ERC721_ASSET_CLASS) {
-            // only ERC721 to query for protocol fee bp
-            (address nftAddress,) = abi.decode(nftType.data, (address, uint256));
-            protocolFeeBasisPoint = protocolFeeProvider.getProtocolFeeBasisPoint(nftAddress, payer);
-        } else {
-            protocolFeeBasisPoint = protocolFeeProvider.getDefaultProtocolFeeBasisPoint();
-        }
-
         (uint256 rest, uint256 fee) = deductFeeWithBasisPoint(
             totalAmountAndFeesRest,
             amountToCalculateFee,
-            protocolFeeBasisPoint
+            protocolFeeProvider.getProtocolFeeBasisPoint(customizedProtocolFeeChecker)
         );
         if (fee > 0) {
             address paymentAddress = address(0);

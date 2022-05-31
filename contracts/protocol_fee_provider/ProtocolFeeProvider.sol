@@ -10,13 +10,11 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol"
 contract ProtocolFeeProvider is OwnableUpgradeable, IProtocolFeeProvider {
     // default protocol fee basis point
     uint _defaultProtocolFeeBasisPoint;
+    uint _memberCardProtocolFeeBasisPoints;
+    address _memberCardNFTAddress;
 
-    // whether the nft has customized protocol fee bp
-    mapping(address => bool) _isCustomized;
-    // from nft address to its customized protocol fee bp
-    mapping(address => uint) _customizedProtocolFeeBasisPoints;
-
-    event UpdateCustomizedProtocolFeeBasisPoint(address nftAddress, bool isAdded, uint customizedProtocolFeeBasisPoint);
+    event MemberCardNFTAddressChanged(address newMemberCardNFTAddress, address preMemberCardNFTAddress);
+    event MemberCardProtocolFeeBasisPointsChanged(uint newMemberCardProtocolFeeBasisPoints, uint preMemberCardProtocolFeeBasisPoints);
     event DefaultProtocolBasisPointChanged(uint newDefaultProtocolBasisPoint, uint preDefaultProtocolBasisPoint);
 
     function __ProtocolFeeProvider_init_unchained(uint defaultProtocolFeeBasisPoint) external initializer {
@@ -25,28 +23,24 @@ contract ProtocolFeeProvider is OwnableUpgradeable, IProtocolFeeProvider {
         emit DefaultProtocolBasisPointChanged(defaultProtocolFeeBasisPoint, 0);
     }
 
-    function getProtocolFeeBasisPoint(
-        address nftAddress,
-        address owner
-    ) public view returns (uint){
-        if (_isCustomized[nftAddress] && IERC721Upgradeable(nftAddress).balanceOf(owner) > 0) {
-            return _customizedProtocolFeeBasisPoints[nftAddress];
+    function getProtocolFeeBasisPoint(address owner) public view returns (uint){
+        if (IERC721Upgradeable(_memberCardNFTAddress).balanceOf(owner) > 0) {
+            return _memberCardProtocolFeeBasisPoints;
         }
 
         return _defaultProtocolFeeBasisPoint;
     }
 
-    // add or remove
-    function setCustomizedProtocolFeeBasisPoint(address nftAddress, bool isAdded, uint customizedProtocolFeeBasisPoint) external onlyOwner {
-        _isCustomized[nftAddress] = isAdded;
-        if (isAdded) {
-            _customizedProtocolFeeBasisPoints[nftAddress] = customizedProtocolFeeBasisPoint;
-        } else {
-            customizedProtocolFeeBasisPoint = 0;
-            delete _customizedProtocolFeeBasisPoints[nftAddress];
-        }
+    function setMemberCardProtocolFeeBasisPoints(uint newMemberCardProtocolFeeBasisPoints) external onlyOwner {
+        uint preMemberCardProtocolFeeBasisPoints = _memberCardProtocolFeeBasisPoints;
+        _memberCardProtocolFeeBasisPoints = newMemberCardProtocolFeeBasisPoints;
+        emit MemberCardProtocolFeeBasisPointsChanged(newMemberCardProtocolFeeBasisPoints, preMemberCardProtocolFeeBasisPoints);
+    }
 
-        emit UpdateCustomizedProtocolFeeBasisPoint(nftAddress, isAdded, customizedProtocolFeeBasisPoint);
+    function setMemberCardNFTAddress(address newMemberCardNFTAddress) external onlyOwner {
+        address preMemberCardNFTAddress = _memberCardNFTAddress;
+        _memberCardNFTAddress = newMemberCardNFTAddress;
+        emit MemberCardNFTAddressChanged(newMemberCardNFTAddress, preMemberCardNFTAddress);
     }
 
     function setDefaultProtocolBasisPoint(uint newDefaultProtocolBasisPoint) external onlyOwner {
@@ -55,12 +49,13 @@ contract ProtocolFeeProvider is OwnableUpgradeable, IProtocolFeeProvider {
         emit DefaultProtocolBasisPointChanged(newDefaultProtocolBasisPoint, preDefaultProtocolBasisPoint);
     }
 
-    function getCustomizedProtocolFeeBasisPoint(address nftAddress) public view returns (uint){
-        require(_isCustomized[nftAddress], "not customized");
-        return _customizedProtocolFeeBasisPoints[nftAddress];
+    function getMemberCardProtocolFeeBasisPoints() public view returns (uint){
+        return _memberCardProtocolFeeBasisPoints;
     }
 
     function getDefaultProtocolFeeBasisPoint() public view returns (uint){
         return _defaultProtocolFeeBasisPoint;
     }
+
+    uint256[50] private __gap;
 }
