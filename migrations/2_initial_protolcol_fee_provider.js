@@ -6,6 +6,6 @@ module.exports = async function (deployer, network) {
     await deployProxy(
         ProtocolFeeProvider,
         [defaultProtocolFeeBasisPoint],
-        {deployer, initializer: '__ProtocolFeeProvider_init_unchained'}
+        {deployer, initializer: '__ProtocolFeeProvider_init'}
     )
 }

@@ -17,7 +17,7 @@ contract ProtocolFeeProvider is OwnableUpgradeable, IProtocolFeeProvider {
     event MemberCardProtocolFeeBasisPointsChanged(uint newMemberCardProtocolFeeBasisPoints, uint preMemberCardProtocolFeeBasisPoints);
     event DefaultProtocolFeeBasisPointChanged(uint newDefaultProtocolFeeBasisPoint, uint preDefaultProtocolFeeBasisPoint);
 
-    function __ProtocolFeeProvider_init_unchained(uint defaultProtocolFeeBasisPoint) external initializer {
+    function __ProtocolFeeProvider_init(uint defaultProtocolFeeBasisPoint) external initializer {
         __Ownable_init();
         _defaultProtocolFeeBasisPoint = defaultProtocolFeeBasisPoint;
         emit DefaultProtocolFeeBasisPointChanged(defaultProtocolFeeBasisPoint, 0);

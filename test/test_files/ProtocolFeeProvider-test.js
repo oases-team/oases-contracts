@@ -19,7 +19,7 @@ contract('test ProtocolFeeProvider.sol', accounts => {
                 protocolFeeBasisPoint
             ],
             {
-                initializer: '__ProtocolFeeProvider_init_unchained'
+                initializer: '__ProtocolFeeProvider_init'
             }
         );
     });
