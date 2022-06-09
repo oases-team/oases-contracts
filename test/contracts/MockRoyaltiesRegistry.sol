@@ -78,5 +78,5 @@ contract MockRoyaltiesRegistry is IRoyaltiesProvider {
         royaltiesByTokenAndTokenId[key].initialized = true;
     }
 
-    uint256[46] private __gap;
+    uint256[50] private __gap;
 }
