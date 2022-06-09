@@ -590,5 +590,5 @@ contract ERC721Upgradeable is
         uint256 tokenId
     ) internal virtual {}
 
-    uint256[40] private __gap;
+    uint256[50] private __gap;
 }

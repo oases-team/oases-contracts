@@ -24,5 +24,5 @@ abstract contract ContractURIUpgradeable is ERC165Upgradeable {
         contractURI = _contractURI;
     }
 
-    uint256[49] private __gap;
+    uint256[50] private __gap;
 }
