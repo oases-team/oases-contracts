@@ -7,9 +7,8 @@ import "./OasesCashierManager.sol";
 
 contract OasesExchange is OasesMatchingCore, OasesCashierManager {
     function __OasesExchange_init(
-        uint256 newProtocolFeeBasisPoint,
         address newDefaultFeeReceiver,
-        IRoyaltiesProvider newRoyaltiesProviderAddress,
+        IProtocolFeeProvider newProtocolFeeProviderAddress,
         IERC20TransferProxy newERC20TransferProxyAddress,
         INFTTransferProxy newNFTTransferProxyAddress
     )
@@ -21,9 +20,8 @@ contract OasesExchange is OasesMatchingCore, OasesCashierManager {
             newNFTTransferProxyAddress
         );
         __OasesCashierManager_init_unchained(
-            newProtocolFeeBasisPoint,
             newDefaultFeeReceiver,
-            newRoyaltiesProviderAddress
+            newProtocolFeeProviderAddress
         );
         __OrderVerifier_init_unchained();
     }

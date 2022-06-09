@@ -1550,7 +1550,7 @@ contract("test OasesExchange.sol for lazy mint erc721 (protocol fee 3% —— se
                 [[accounts[0], 10000]], [], accounts[0]
             )
 
-            let addOriginLeft = [[accoun¬ts[5], 500], [accounts[6], 600]]
+            let addOriginLeft = [[accounts[5], 500], [accounts[6], 600]]
             let addOriginRight = [[accounts[7], 700]]
 
             let encodedDataLeft = await encodeDataV1([[], [], addOriginLeft, true])

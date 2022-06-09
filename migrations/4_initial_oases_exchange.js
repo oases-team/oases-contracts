@@ -61,10 +61,10 @@ function getSettings(network) {
 
 module.exports = async function (deployer, network) {
     const {communityWallet, erc20TransferProxy, nftTransferProxy, royaltiesRegistry} = getSettings(network)
-
+    // todo
     await deployProxy(
         OasesExchange,
-        [250, communityWallet, royaltiesRegistry, erc20TransferProxy, nftTransferProxy],
+        [communityWallet, royaltiesRegistry, erc20TransferProxy, nftTransferProxy],
         {deployer, initializer: '__OasesExchange_init'}
     )
 }
