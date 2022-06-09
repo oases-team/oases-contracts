@@ -36,16 +36,22 @@ const goerli = {
     royaltiesRegistry: "0x81C382e3B099fd1cfA49d92ae481AbC13F856f6C"
 }
 
+const rinkeby = {
+    communityWallet: "0xA8b6E414D496Dd46836Cb0078cd1F916e1811666",
+    erc20TransferProxy: "0xfd5657782adAD34D88Bad03fF314309aEC3f96D2",
+    nftTransferProxy: "0x2B6d631f987cD96D44f2f71871D8B3882D11ea76",
+    protocolFeeProvider: "0xAC7c0E649294E758cd1853421C4b2FB5210cCA9f"
+}
 
 let settings = {
-    'default': goerli,
-    "goerli": goerli
+    'default': rinkeby,
+    "goerli": goerli,
     // "default": e2e,
     // "e2e": e2e,
     // "e2e-fork": e2e,
     // "ropsten": ropsten,
     // "ropsten-fork": ropsten,
-    // "rinkeby": rinkeby,
+    "rinkeby": rinkeby,
     // "rinkeby-fork": rinkeby,
     // "mainnet": mainnet,
     // "mainnet-fork": mainnet
@@ -60,11 +66,11 @@ function getSettings(network) {
 }
 
 module.exports = async function (deployer, network) {
-    const {communityWallet, erc20TransferProxy, nftTransferProxy, royaltiesRegistry} = getSettings(network)
+    const {communityWallet, erc20TransferProxy, nftTransferProxy, protocolFeeProvider} = getSettings(network)
     // todo
     await deployProxy(
         OasesExchange,
-        [communityWallet, royaltiesRegistry, erc20TransferProxy, nftTransferProxy],
+        [communityWallet, protocolFeeProvider, erc20TransferProxy, nftTransferProxy],
         {deployer, initializer: '__OasesExchange_init'}
     )
 }

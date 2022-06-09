@@ -11,11 +11,15 @@ module.exports = async function (deployer) {
     // add oasesExchange as operator to proxies
     const nftTransferProxy = await NFTTransferProxy.deployed();
     await nftTransferProxy.addOperator(oasesExchange.address);
+    console.log('finish adding operator to nftTransferProxy');
 
     const erc20TransferProxy = await ERC20TransferProxy.deployed();
     await erc20TransferProxy.addOperator(oasesExchange.address);
+    console.log('finish adding operator to erc20TransferProxy');
 
     const erc721LazyMintTransferProxy = await ERC721LazyMintTransferProxy.deployed();
     await erc721LazyMintTransferProxy.addOperator(oasesExchange.address);
+    console.log('finish adding operator to erc721LazyMintTransferProxy');
     await oasesExchange.setTransferProxy(ERC721_LAZY_MINT_CLASS, erc721LazyMintTransferProxy.address);
+    console.log('finish set transfer proxy for erc721LazyMintTransferProxy');
 };

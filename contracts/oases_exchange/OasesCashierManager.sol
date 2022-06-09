@@ -20,13 +20,9 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
     using BasisPointLibrary for uint256;
     using AddressUpgradeable for address;
 
-    uint256 protocolFeeBasisPoint_deprecation; // todo: remove in mainnet
     mapping(address => address) feeReceivers;
     address defaultFeeReceiver;
     IProtocolFeeProvider protocolFeeProvider;
-
-    // todo: remove in mainnet
-    //    event ProtocolFeeBasisPointChanged(uint256 preProtocolFeeBasisPoint, uint256 currentProtocolFeeBasisPoint);
 
     function __OasesCashierManager_init_unchained(
         address newDefaultFeeReceiver,
@@ -35,13 +31,6 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
         defaultFeeReceiver = newDefaultFeeReceiver;
         protocolFeeProvider = newProtocolFeeProvider;
     }
-
-    // set basis point of protocol fee by the owner
-    //    function setProtocolFeeBasisPoint(uint256 newProtocolFeeBasisPoint) external onlyOwner {
-    //        uint256 preProtocolFeeBasisPoint = protocolFeeBasisPoint;
-    //        protocolFeeBasisPoint = newProtocolFeeBasisPoint;
-    //        emit ProtocolFeeBasisPointChanged(preProtocolFeeBasisPoint, newProtocolFeeBasisPoint);
-    //    }
 
     // set protocol fee provider address by the owner
     function setProtocolFeeProvider(address newProtocolFeeProvider) external onlyOwner {
@@ -58,11 +47,6 @@ abstract contract OasesCashierManager is OwnableUpgradeable, ICashierManager {
     function setFeeReceiver(address tokenAddress, address receiver) external onlyOwner {
         feeReceivers[tokenAddress] = receiver;
     }
-
-    // get basis point of protocol fee
-    //    function getProtocolFeeBasisPoint() public view returns (uint256){
-    //        return protocolFeeBasisPoint;
-    //    }
 
     // get the address of protocol fee provider
     function getProtocolFeeProvider() public view returns (address){
