@@ -49,7 +49,7 @@ contract("test OasesCashierManager.sol", accounts => {
         mockNFTTransferProxy = await MockNFTTransferProxy.new()
         mockERC20TransferProxy = await MockERC20TransferProxy.new()
         protocolFeeProvider = await ProtocolFeeProvider.new();
-        await protocolFeeProvider.__ProtocolFeeProvider_init_unchained(300);
+        await protocolFeeProvider.__ProtocolFeeProvider_init(300);
 
         mockOasesCashierManager = await MockOasesCashierManager.new()
         await mockOasesCashierManager.__MockOasesCashierManager_init(

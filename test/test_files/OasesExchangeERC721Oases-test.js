@@ -2,6 +2,7 @@ const {deployProxy} = require('@openzeppelin/truffle-upgrades')
 const truffleAssert = require('truffle-assertions')
 const MockERC721LazyMintTransferProxy = artifacts.require("ERC721LazyMintTransferProxy.sol")
 const OasesExchange = artifacts.require("OasesExchange.sol")
+const ProtocolFeeProvider = artifacts.require("ProtocolFeeProvider.sol");
 const ERC721Oases = artifacts.require("ERC721Oases.sol")
 const MockERC20 = artifacts.require("MockERC20.sol")
 const MockERC721 = artifacts.require("MockERC721.sol")
@@ -14,7 +15,6 @@ const MockOrderLibrary = artifacts.require("MockOrderLibrary.sol")
 const {Order, Asset, sign, EMPTY_DATA, ORDER_V1_DATA_TYPE} = require("./types/order")
 const mint = require("./utils/mint")
 const {expectThrow, verifyBalanceChange} = require("./utils/expect_throw")
-const {generateRandomAddress} = require("./utils/signature")
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 const ETH_FLAG_ADDRESS = ZERO_ADDRESS
@@ -40,6 +40,7 @@ contract("test OasesExchange.sol for lazy mint erc721 (protocol fee 3% —— se
     const communityAddress = accounts[8]
 
     let oasesExchange
+    let protocolFeeProvider
     let mockOasesCashierManager
     let mockERC20_1
     let mockERC20_2
@@ -52,14 +53,22 @@ contract("test OasesExchange.sol for lazy mint erc721 (protocol fee 3% —— se
     let erc721Oases
 
     beforeEach(async () => {
+        protocolFeeProvider = await deployProxy(
+            ProtocolFeeProvider,
+            [
+                300
+            ],
+            {
+                initializer: '__ProtocolFeeProvider_init'
+            }
+        )
         mockNFTTransferProxy = await MockNFTTransferProxy.new()
         mockERC20TransferProxy = await MockERC20TransferProxy.new()
         oasesExchange = await deployProxy(
             OasesExchange,
             [
-                300,
                 communityAddress,
-                generateRandomAddress(), // royaltiesProvider is out of work now
+                protocolFeeProvider.address,
                 mockERC20TransferProxy.address,
                 mockNFTTransferProxy.address
             ],
@@ -207,8 +216,7 @@ contract("test OasesExchange.sol for lazy mint erc721 (protocol fee 3% —— se
                         from: accounts[2],
                         value: 300,
                         gasPrice: 0
-                    }),
-                "Arithmetic overflow"
+                    })
             )
         })
 

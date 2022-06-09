@@ -44,7 +44,7 @@ const rinkeby = {
 }
 
 let settings = {
-    'default': goerli,
+    'default': rinkeby,
     "goerli": goerli,
     // "default": e2e,
     // "e2e": e2e,
