@@ -28,24 +28,29 @@ contract('test ProtocolFeeProvider.sol', accounts => {
         assert.equal(await testing.getProtocolFeeBasisPoint(accounts[0]), protocolFeeBasisPoint);
     })
 
-    it("pass setMemberCardProtocolFeeBasisPoints()", async () => {
-        assert.equal(await testing.getMemberCardProtocolFeeBasisPoints(), 0);
+    it("pass setMemberCardProtocolFeeBasisPoint()", async () => {
+        assert.equal(await testing.getMemberCardProtocolFeeBasisPoint(), 0);
         // revert if not owner
         await expectThrow(
-            testing.setMemberCardProtocolFeeBasisPoints(500, {from: accounts[1]}),
+            testing.setMemberCardProtocolFeeBasisPoint(100, {from: accounts[1]}),
             "Ownable: caller is not the owner"
         );
 
         truffleAssert.eventEmitted(
-            await testing.setMemberCardProtocolFeeBasisPoints(500),
-            'MemberCardProtocolFeeBasisPointsChanged',
+            await testing.setMemberCardProtocolFeeBasisPoint(100),
+            'MemberCardProtocolFeeBasisPointChanged',
             (ev) => {
-                assert.equal(ev.newMemberCardProtocolFeeBasisPoints, 500);
-                assert.equal(ev.preMemberCardProtocolFeeBasisPoints, 0);
+                assert.equal(ev.newMemberCardProtocolFeeBasisPoint, 100);
+                assert.equal(ev.preMemberCardProtocolFeeBasisPoint, 0);
                 return true;
             }, "MemberCardProtocolFeeBasisPointsChanged should be emitted with correct parameters")
 
-        assert.equal(await testing.getMemberCardProtocolFeeBasisPoints(), 500);
+        assert.equal(await testing.getMemberCardProtocolFeeBasisPoint(), 100);
+
+        await expectThrow(
+            testing.setMemberCardProtocolFeeBasisPoint(251),
+            'invalid mc fee pb'
+        );
     })
 
     it("pass setMemberCardNFTAddress()", async () => {

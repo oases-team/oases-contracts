@@ -3,5 +3,3 @@
 build/
 node_modules/
 package-lock.json
-
-migrations/8_upgrade_oases_exchange.js
