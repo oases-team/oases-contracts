@@ -723,6 +723,163 @@
           }
         }
       }
+    },
+    "fed9150c12aee6936040e47f9a214d1dae5d4a6140bf16605fba0aaa8e13352c": {
+      "address": "0x7DB8D92201C0CcE177dFBa6b5BCad1E398C99Ab2",
+      "txHash": "0x16540c5911799465b83f790ec5e6eded921e08663d04542476a4b3408ad8631c",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "../@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "../@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:31"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "../@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:82"
+          },
+          {
+            "contract": "AssetTypeMatcher",
+            "label": "assetTypeMatchers",
+            "type": "t_mapping(t_bytes4,t_address)",
+            "src": "../project:/contracts/oases_exchange/AssetTypeMatcher.sol:14"
+          },
+          {
+            "contract": "AssetTypeMatcher",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/oases_exchange/AssetTypeMatcher.sol:110"
+          },
+          {
+            "contract": "Cashier",
+            "label": "transferProxies",
+            "type": "t_mapping(t_bytes4,t_address)",
+            "src": "../project:/contracts/oases_exchange/Cashier.sol:18"
+          },
+          {
+            "contract": "Cashier",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/oases_exchange/Cashier.sol:87"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_NAME",
+            "type": "t_bytes32",
+            "src": "../@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol:30"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_VERSION",
+            "type": "t_bytes32",
+            "src": "../@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol:31"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol:112"
+          },
+          {
+            "contract": "OrderVerifier",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/oases_exchange/OrderVerifier.sol:44"
+          },
+          {
+            "contract": "OasesMatchingCore",
+            "label": "filledRecords",
+            "type": "t_mapping(t_bytes32,t_uint256)",
+            "src": "../project:/contracts/oases_exchange/OasesMatchingCore.sol:20"
+          },
+          {
+            "contract": "OasesMatchingCore",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/oases_exchange/OasesMatchingCore.sol:221"
+          },
+          {
+            "contract": "OasesCashierManager",
+            "label": "feeReceivers",
+            "type": "t_mapping(t_address,t_address)",
+            "src": "../project:/contracts/oases_exchange/OasesCashierManager.sol:23"
+          },
+          {
+            "contract": "OasesCashierManager",
+            "label": "defaultFeeReceiver",
+            "type": "t_address",
+            "src": "../project:/contracts/oases_exchange/OasesCashierManager.sol:24"
+          },
+          {
+            "contract": "OasesCashierManager",
+            "label": "protocolFeeProvider",
+            "type": "t_contract(IProtocolFeeProvider)6681",
+            "src": "../project:/contracts/oases_exchange/OasesCashierManager.sol:25"
+          },
+          {
+            "contract": "OasesCashierManager",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/oases_exchange/OasesCashierManager.sol:423"
+          }
+        ],
+        "types": {
+          "t_mapping(t_address,t_address)": {
+            "label": "mapping(address => address)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(IProtocolFeeProvider)6681": {
+            "label": "contract IProtocolFeeProvider"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_mapping(t_bytes4,t_address)": {
+            "label": "mapping(bytes4 => address)"
+          },
+          "t_bytes4": {
+            "label": "bytes4"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
     }
   }
 }
