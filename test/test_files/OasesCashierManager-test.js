@@ -427,7 +427,7 @@ contract("test OasesCashierManager.sol", accounts => {
             // protocol:   owner of nft     -> 1%
             //             not owner of nft -> 3%
             await protocolFeeProvider.setMemberCardNFTAddress(mockERC721MemberCard.address)
-            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoints(100)
+            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoint(100)
 
             // protocol 1% for member
             await mockOasesCashierManager.mockTransferProtocolFee(
@@ -479,7 +479,7 @@ contract("test OasesCashierManager.sol", accounts => {
             // protocol:   owner of nft     -> 1%
             //             not owner of nft -> 3%
             await protocolFeeProvider.setMemberCardNFTAddress(mockERC721MemberCard.address)
-            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoints(100)
+            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoint(100)
 
             // protocol 1% for member
             await mockOasesCashierManager.mockTransferProtocolFee(
@@ -531,7 +531,7 @@ contract("test OasesCashierManager.sol", accounts => {
             // protocol:   owner of nft     -> 1%
             //             not owner of nft -> 3%
             await protocolFeeProvider.setMemberCardNFTAddress(mockERC721MemberCard.address)
-            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoints(100)
+            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoint(100)
 
             // protocol 1% for member
             await verifyBalanceChange(payer, 10, () =>
@@ -814,7 +814,7 @@ contract("test OasesCashierManager.sol", accounts => {
             // set member card info in protocolFeeProvider
             // protocol: member -> 1%
             await protocolFeeProvider.setMemberCardNFTAddress(mockERC721MemberCard.address)
-            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoints(100)
+            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoint(100)
 
             await mockOasesCashierManager.mockTransferPaymentWithFeesAndRoyalties(
                 payer,
@@ -927,7 +927,7 @@ contract("test OasesCashierManager.sol", accounts => {
             // set member card info in protocolFeeProvider
             // protocol: member -> 1%
             await protocolFeeProvider.setMemberCardNFTAddress(mockERC721MemberCard.address)
-            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoints(100)
+            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoint(100)
 
             await mockOasesCashierManager.mockTransferPaymentWithFeesAndRoyalties(
                 payer,
@@ -1046,7 +1046,7 @@ contract("test OasesCashierManager.sol", accounts => {
             // set member card info in protocolFeeProvider
             // protocol: member -> 1%
             await protocolFeeProvider.setMemberCardNFTAddress(mockERC721MemberCard.address)
-            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoints(100)
+            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoint(100)
 
             // 1. protocol fee 1%: -> 10000 * 1% = 100
             await verifyBalanceChange(protocolFeeReceiver, -100, () =>
@@ -1150,7 +1150,7 @@ contract("test OasesCashierManager.sol", accounts => {
             // set member card info in protocolFeeProvider
             // protocol: member -> 1%
             await protocolFeeProvider.setMemberCardNFTAddress(mockERC721MemberCard.address)
-            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoints(100)
+            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoint(100)
 
             await verifyBalanceChange(buyer, 100, () =>
                 verifyBalanceChange(member, -99, () =>
@@ -1298,7 +1298,7 @@ contract("test OasesCashierManager.sol", accounts => {
             // set member card info in protocolFeeProvider
             // protocol: member -> 1%
             await protocolFeeProvider.setMemberCardNFTAddress(mockERC721MemberCard.address)
-            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoints(100)
+            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoint(100)
 
             // transfer nft back to member
             await mockERC721.safeTransferFrom(accounts[8], member, erc721TokenId_1, {from: accounts[8]});
@@ -1468,7 +1468,7 @@ contract("test OasesCashierManager.sol", accounts => {
             // set member card info in protocolFeeProvider
             // protocol: member -> 1%
             await protocolFeeProvider.setMemberCardNFTAddress(mockERC721MemberCard.address)
-            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoints(100)
+            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoint(100)
 
             let [leftOrder, rightOrder] = await gen1155O_721Orders(110, buyer, member, erc721TokenId_1)
 
@@ -1550,7 +1550,7 @@ contract("test OasesCashierManager.sol", accounts => {
             // set member card info in protocolFeeProvider
             // protocol: member -> 1%
             await protocolFeeProvider.setMemberCardNFTAddress(mockERC721MemberCard.address)
-            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoints(100)
+            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoint(100)
 
             let [leftOrder, rightOrder] = await gen20_1155Orders(10000000, 10, buyer, member)
 
@@ -1624,7 +1624,7 @@ contract("test OasesCashierManager.sol", accounts => {
             // set member card info in protocolFeeProvider
             // protocol: member -> 1%
             await protocolFeeProvider.setMemberCardNFTAddress(mockERC721MemberCard.address)
-            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoints(100)
+            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoint(100)
 
             let [leftOrder, rightOrder] = await gen1155_20Orders(200, 99999999, buyer, member)
 
@@ -1700,7 +1700,7 @@ contract("test OasesCashierManager.sol", accounts => {
             // set member card info in protocolFeeProvider
             // protocol: member -> 1%
             await protocolFeeProvider.setMemberCardNFTAddress(mockERC721MemberCard.address)
-            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoints(100)
+            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoint(100)
 
             let [leftOrder, rightOrder] = await gen20_721Orders(300000, buyer, member, erc721TokenId_1)
 
@@ -1780,7 +1780,7 @@ contract("test OasesCashierManager.sol", accounts => {
             // set member card info in protocolFeeProvider
             // protocol: member -> 1%
             await protocolFeeProvider.setMemberCardNFTAddress(mockERC721MemberCard.address)
-            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoints(100)
+            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoint(100)
 
             let [leftOrder, rightOrder] = await gen721_20Orders(300000, buyer, member, erc721TokenId_1)
 
@@ -1856,7 +1856,7 @@ contract("test OasesCashierManager.sol", accounts => {
             // set member card info in protocolFeeProvider
             // protocol: member -> 1%
             await protocolFeeProvider.setMemberCardNFTAddress(mockERC721MemberCard.address)
-            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoints(100)
+            await protocolFeeProvider.setMemberCardProtocolFeeBasisPoint(100)
 
             let [leftOrder, rightOrder] = await gen2Orders(2222, 3333, buyer, member)
 

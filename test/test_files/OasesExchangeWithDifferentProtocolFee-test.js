@@ -83,7 +83,7 @@ contract("test OasesExchange.sol (default protocol fee 3% —— seller 3%)", ac
 
     async function setMemberCardInfo(newMemberCardProtocolFeeBasisPoints) {
         await protocolFeeProvider.setMemberCardNFTAddress(memberCard.address)
-        await protocolFeeProvider.setMemberCardProtocolFeeBasisPoints(newMemberCardProtocolFeeBasisPoints)
+        await protocolFeeProvider.setMemberCardProtocolFeeBasisPoint(newMemberCardProtocolFeeBasisPoints)
     }
 
     describe("test matchOrders() with orders dataType == V1", () => {

@@ -52,7 +52,7 @@ contract("test OrderVerifier.sol", accounts => {
         const signature = await order.sign(mockOrder, accounts[0], mockOrderVerifier.address)
         await expectThrow(
             mockOrderVerifier.mockVerifyOrder(mockOrder, signature),
-            "bad signature verification for contract"
+            "bad order signature verification"
         )
 
         await erc1271.setReturnSuccessfulValidSignature(true)
@@ -72,7 +72,7 @@ contract("test OrderVerifier.sol", accounts => {
         const mockOrder = getMockOrder(erc1271.address)
         await expectThrow(
             mockOrderVerifier.mockVerifyOrder(mockOrder, '0x'),
-            "bad signature verification for contract"
+            "bad order signature verification"
         )
 
         await erc1271.setReturnSuccessfulValidSignature(true)
