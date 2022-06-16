@@ -10,11 +10,11 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol"
 contract ProtocolFeeProvider is OwnableUpgradeable, IProtocolFeeProvider {
     // default protocol fee basis point
     uint _defaultProtocolFeeBasisPoint;
-    uint _memberCardProtocolFeeBasisPoints;
+    uint _memberCardProtocolFeeBasisPoint;
     address _memberCardNFTAddress;
 
     event MemberCardNFTAddressChanged(address newMemberCardNFTAddress, address preMemberCardNFTAddress);
-    event MemberCardProtocolFeeBasisPointsChanged(uint newMemberCardProtocolFeeBasisPoints, uint preMemberCardProtocolFeeBasisPoints);
+    event MemberCardProtocolFeeBasisPointChanged(uint newMemberCardProtocolFeeBasisPoint, uint preMemberCardProtocolFeeBasisPoint);
     event DefaultProtocolFeeBasisPointChanged(uint newDefaultProtocolFeeBasisPoint, uint preDefaultProtocolFeeBasisPoint);
 
     function __ProtocolFeeProvider_init(uint defaultProtocolFeeBasisPoint) external initializer {
@@ -27,16 +27,17 @@ contract ProtocolFeeProvider is OwnableUpgradeable, IProtocolFeeProvider {
         address memberCardNFTAddress = _memberCardNFTAddress;
         // member card NFT contract will not be deployed at once
         if (memberCardNFTAddress != address(0) && IERC721Upgradeable(memberCardNFTAddress).balanceOf(owner) > 0) {
-            return _memberCardProtocolFeeBasisPoints;
+            return _memberCardProtocolFeeBasisPoint;
         }
 
         return _defaultProtocolFeeBasisPoint;
     }
 
-    function setMemberCardProtocolFeeBasisPoints(uint newMemberCardProtocolFeeBasisPoints) external onlyOwner {
-        uint preMemberCardProtocolFeeBasisPoints = _memberCardProtocolFeeBasisPoints;
-        _memberCardProtocolFeeBasisPoints = newMemberCardProtocolFeeBasisPoints;
-        emit MemberCardProtocolFeeBasisPointsChanged(newMemberCardProtocolFeeBasisPoints, preMemberCardProtocolFeeBasisPoints);
+    function setMemberCardProtocolFeeBasisPoint(uint newMemberCardProtocolFeeBasisPoint) external onlyOwner {
+        require(newMemberCardProtocolFeeBasisPoint <= _defaultProtocolFeeBasisPoint, "invalid mc fee pb");
+        uint preMemberCardProtocolFeeBasisPoint = _memberCardProtocolFeeBasisPoint;
+        _memberCardProtocolFeeBasisPoint = newMemberCardProtocolFeeBasisPoint;
+        emit MemberCardProtocolFeeBasisPointChanged(newMemberCardProtocolFeeBasisPoint, preMemberCardProtocolFeeBasisPoint);
     }
 
     function setMemberCardNFTAddress(address newMemberCardNFTAddress) external onlyOwner {
@@ -51,8 +52,8 @@ contract ProtocolFeeProvider is OwnableUpgradeable, IProtocolFeeProvider {
         emit DefaultProtocolFeeBasisPointChanged(newDefaultProtocolFeeBasisPoint, preDefaultProtocolFeeBasisPoint);
     }
 
-    function getMemberCardProtocolFeeBasisPoints() public view returns (uint){
-        return _memberCardProtocolFeeBasisPoints;
+    function getMemberCardProtocolFeeBasisPoint() public view returns (uint){
+        return _memberCardProtocolFeeBasisPoint;
     }
 
     function getMemberCardNFTAddress() public view returns (address){
