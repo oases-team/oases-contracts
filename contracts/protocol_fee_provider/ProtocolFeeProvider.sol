@@ -64,5 +64,5 @@ contract ProtocolFeeProvider is OwnableUpgradeable, IProtocolFeeProvider {
         return _defaultProtocolFeeBasisPoint;
     }
 
-    uint256[50] private __gap;
+    uint256[47] private __gap;
 }

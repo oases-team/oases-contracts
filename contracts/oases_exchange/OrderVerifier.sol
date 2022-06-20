@@ -13,9 +13,6 @@ import "@openzeppelin/contracts-upgradeable/interfaces/IERC1271Upgradeable.sol";
 abstract contract OrderVerifier is ContextUpgradeable, EIP712Upgradeable {
     using AddressUpgradeable for address;
 
-    // bytes4(keccak256("isValidSignature(bytes32,bytes)"))
-    bytes4 constant internal MAGIC_VALUE = 0x1626ba7e;  // todo: useless slot, remove in mainnet code
-
     function __OrderVerifier_init_unchained() internal onlyInitializing {
         __EIP712_init_unchained("OasesExchange", "1");
     }
