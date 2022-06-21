@@ -26,5 +26,5 @@ abstract contract ERC721DefaultApproval is ERC721Upgradeable {
             super.isApprovedForAll(owner, operator);
     }
 
-    uint256[50] private __gap;
+    uint256[49] private __gap;
 }

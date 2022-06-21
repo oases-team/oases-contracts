@@ -163,5 +163,5 @@ abstract contract ERC721Lazy is
         return creatorInfos[_id];
     }
 
-    uint256[50] private __gap;
+    uint256[49] private __gap;
 }

@@ -215,5 +215,5 @@ contract ERC721Oases is ERC721OasesBase {
         _setPrice(tokenId, 0);
     }
 
-    uint256[50] private __gap;
+    uint256[48] private __gap;
 }
