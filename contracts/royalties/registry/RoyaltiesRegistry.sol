@@ -208,5 +208,5 @@ contract RoyaltiesRegistry is IRoyaltiesProvider, OwnableUpgradeable {
         }
     }
 
-    uint256[50] private __gap;
+    uint256[48] private __gap;
 }
