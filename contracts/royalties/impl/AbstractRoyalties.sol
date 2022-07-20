@@ -16,7 +16,7 @@ abstract contract AbstractRoyalties {
             totalValue += _royaltyInfos[i].value;
             royaltyInfos[id].push(_royaltyInfos[i]);
         }
-        require(totalValue < 10000, "Royalty total value should be < 10000");
+        require(totalValue <= 5000, "royalties sum exceeds 50%");
         _onRoyaltyInfosSet(id, _royaltyInfos);
     }
 
