@@ -32,7 +32,6 @@ contract("ERC721Oases", accounts => {
     proxyLazy = await ERC721LazyMintTransferProxy.new();
     transferProxy = await MockTransferProxy.new();
     await token.__ERC721Oases_init(name, "OAS", "https://ipfs.oases.com", "https://ipfs.oases.com", whiteListProxy, proxyLazy.address);
-    // console.log(`owner: ${await token.owner()}`)
     await token.transferOwnership(tokenOwner);
     erc1271 = await ERC1271.new();
   });
@@ -598,7 +597,7 @@ contract("ERC721Oases", accounts => {
           assert.equal(await token.getPrice(tokenId), 0);
       });
 
-      it("revert if trade with royalty over 50%", async () => {
+      it("revert if mint with royalty over 50%", async () => {
           const minter = accounts[1];
           const buyer = accounts[2]
           const tokenId = minter + "b00000000000000000000001";
@@ -606,14 +605,10 @@ contract("ERC721Oases", accounts => {
           const price = 1000;
 
           // with 51% royalty
-          await token.mintWithPrice([tokenId, tokenURI, creators([minter]), [[accounts[3], 2000], [accounts[4], 3100]], [zeroWord]], minter, price, {from: minter});
-          assert.equal(await token.ownerOf(tokenId), minter);
-
-          // trade with 51% royalty
           await expectThrow(
-              token.trade(tokenId, [], {from: buyer, value: price}),
-              'royalties sum exceeds 50%'
-          );
+            token.mintWithPrice([tokenId, tokenURI, creators([minter]), [[accounts[3], 2000], [accounts[4], 3100]], [zeroWord]], minter, price, {from: minter}),
+            'royalties sum exceeds 50%'
+        );
       });
   });
 
