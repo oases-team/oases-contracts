@@ -43,6 +43,14 @@ const rinkeby = {
     protocolFeeProvider: "0xAC7c0E649294E758cd1853421C4b2FB5210cCA9f"
 }
 
+// todo
+const mainnet = {
+    communityWallet: "",
+    erc20TransferProxy: "",
+    nftTransferProxy: "",
+    protocolFeeProvider: ""
+}
+
 let settings = {
     'default': rinkeby,
     "goerli": goerli,
@@ -53,7 +61,7 @@ let settings = {
     // "ropsten-fork": ropsten,
     "rinkeby": rinkeby,
     // "rinkeby-fork": rinkeby,
-    // "mainnet": mainnet,
+    "mainnet": mainnet,
     // "mainnet-fork": mainnet
 };
 
@@ -67,7 +75,6 @@ function getSettings(network) {
 
 module.exports = async function (deployer, network) {
     const {communityWallet, erc20TransferProxy, nftTransferProxy, protocolFeeProvider} = getSettings(network)
-    // todo
     await deployProxy(
         OasesExchange,
         [communityWallet, protocolFeeProvider, erc20TransferProxy, nftTransferProxy],
