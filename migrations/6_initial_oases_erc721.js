@@ -12,9 +12,15 @@ const rinkeby = {
     transferProxy: "0x2B6d631f987cD96D44f2f71871D8B3882D11ea76"
 }
 
+const mainnet = {
+    erc721LazyMintTransferProxy: "0xEFaE199C312Ae3eB3ffb78064707FdFB08BbcE2D",
+    transferProxy: "0xd1481784449B9F7adf10f7D8a84EaA602975d32E"
+}
+
 let settings = {
     goerli,
     rinkeby,
+    mainnet,
 	default: goerli
 };
 
@@ -30,8 +36,8 @@ module.exports = async function (deployer, network) {
     const { transferProxy, erc721LazyMintTransferProxy } = getSettings(network)
     console.log(`oases721 deploy params: nftTransfer: ${transferProxy} lazymintNFTTransfer: ${erc721LazyMintTransferProxy}`)
     const oases721 = await deployProxy(
-        ERC721Oases, 
-        ["Oases", "OAS", "ipfs:/", "", transferProxy, erc721LazyMintTransferProxy],
+        ERC721Oases,
+        ["Oases", "OAS", "", "https://ipfs.oases.com/ipfs/QmaeUU9kRRss8Jrny1Ki4QHpoUyQCwBxT7CPJHFKFgB5EZ", transferProxy, erc721LazyMintTransferProxy],
         { deployer, initializer: '__ERC721Oases_init' }
     );
     console.log("oases721 deployed to:", oases721.address);
