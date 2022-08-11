@@ -43,12 +43,11 @@ const rinkeby = {
     protocolFeeProvider: "0xAC7c0E649294E758cd1853421C4b2FB5210cCA9f"
 }
 
-// todo
 const mainnet = {
-    communityWallet: "",
-    erc20TransferProxy: "",
-    nftTransferProxy: "",
-    protocolFeeProvider: ""
+    communityWallet: "0xf6Caf049a828A3A09F692bf5c3f06f7b16bafFf7",
+    erc20TransferProxy: "0xd79146EE126093978F10A0FB137010f97c223473",
+    nftTransferProxy: "0xd1481784449B9F7adf10f7D8a84EaA602975d32E",
+    protocolFeeProvider: "0x7da546D1c9504A8e509E1477F39A6b77178674F1"
 }
 
 let settings = {

@@ -12,10 +12,9 @@ const rinkeby = {
     transferProxy: "0x2B6d631f987cD96D44f2f71871D8B3882D11ea76"
 }
 
-// todo
 const mainnet = {
-    erc721LazyMintTransferProxy: "",
-    transferProxy: ""
+    erc721LazyMintTransferProxy: "0xEFaE199C312Ae3eB3ffb78064707FdFB08BbcE2D",
+    transferProxy: "0xd1481784449B9F7adf10f7D8a84EaA602975d32E"
 }
 
 let settings = {

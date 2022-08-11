@@ -41,13 +41,14 @@ module.exports = {
         // tab if you use this network and you must also set the `host`, `port` and `network_id`
         // options below to some value.
         mainnet: {
-            provider: () => new HDWalletProvider(mnemonic, `https://mainnet.infura.io/v3/3d6b7aa21e59490fa3bf7cfe885843d7`),
-            network_id: 1,       // Ropsten's id
+            provider: () => new HDWalletProvider(mnemonic, `https://mainnet.infura.io/v3/b4ec75908993453b8cbcbebdbbb5805c`),
+            network_id: 1,
+            gasPrice: 15000000000,
             gas: 5500000,        // Ropsten has a lower block limit than mainnet
             // confirmations: 1,    // # of confs to wait between deployments. (default: 0)
-            timeoutBlocks: 10000,  // # of blocks before a deployment times out  (minimum/default: 50)
+            timeoutBlocks: 50,  // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: true,    // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: 1000000,
+            // networkCheckTimeout: 1000000,
         },
         goerli: {
             provider: () => new HDWalletProvider(mnemonic, `https://goerli.infura.io/v3/b4ec75908993453b8cbcbebdbbb5805c`),
