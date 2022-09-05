@@ -17,7 +17,7 @@ library Royalties2981Library {
         if (amount == 0) {
             return result;
         }
-        uint256 percent = (amount * 100 / _WEIGHT_VALUE) * 100;
+        uint256 percent = amount * 10000 / _WEIGHT_VALUE;
         require(percent < 10000, "Royalties 2981, than 100%");
         result = new PartLibrary.Part[](1);
         result[0].account = payable(to);

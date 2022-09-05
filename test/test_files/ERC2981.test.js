@@ -15,6 +15,7 @@ contract("royalties 2981 ", accounts => {
     const getRoyalties = accounts[1];
     const tokenId = getRoyalties + "b00000000000000000000001";
 
+    await impl.setRoyalties(1000)
     const result = await impl.royaltyInfo(tokenId, amount);
     assert.equal(result[0], getRoyalties);
     assert.equal(result[1], 10);
@@ -29,5 +30,28 @@ contract("royalties 2981 ", accounts => {
     assert.equal(result.length, 1);
     assert.equal(result[0][0], getterRoyalties);
     assert.equal(result[0][1], 1500);
+  })
+
+  it("Get different % 2981 royalties by token", async () => {
+    const getRoyalties = accounts[1];
+    const tokenId = getRoyalties + "b00000000000000000000001";
+
+    // royalties 4.2%
+    await impl.setRoyalties(420);
+    let result = await impl.royaltyInfo(tokenId, 1000);
+    assert.equal(result[0], getRoyalties);
+    assert.equal(result[1], 42);
+
+    // royalties 0.01%
+    await impl.setRoyalties(1);
+    result = await impl.royaltyInfo(tokenId, 10000);
+    assert.equal(result[0], getRoyalties);
+    assert.equal(result[1], 1);
+
+    //royalties 50%
+    await impl.setRoyalties(5000);
+    result = await impl.royaltyInfo(tokenId, 10000);
+    assert.equal(result[0], getRoyalties);
+    assert.equal(result[1], 5000);
   })
 })

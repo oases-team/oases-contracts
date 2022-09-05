@@ -10,9 +10,15 @@ import "../../contracts/common_libraries/PartLibrary.sol";
 
 contract MockRoyalties2981Impl is IERC2981 {
 
-    function royaltyInfo(uint256 _tokenId, uint256 _salePrice) override external pure returns (address receiver, uint256 royaltyAmount) {
+    uint public royaltiesBasePoint;
+
+    function setRoyalties(uint _value) public {
+        royaltiesBasePoint = _value;
+    }
+
+    function royaltyInfo(uint256 _tokenId, uint256 _salePrice) override external view returns (address receiver, uint256 royaltyAmount) {
         receiver = address(uint160(_tokenId >> 96));
-        royaltyAmount = _salePrice/10;
+        royaltyAmount = (_salePrice * royaltiesBasePoint) / 10000;
     }
 
     function calculateRoyaltiesTest(address payable to, uint96 amount) external pure returns (PartLibrary.Part[] memory) {
