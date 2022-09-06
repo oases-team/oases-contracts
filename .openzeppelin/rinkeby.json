@@ -34,6 +34,11 @@
       "address": "0xA55fEdd29e620703a6A7c57D17d732ab537F37E9",
       "txHash": "0x20b306abd9c22d92a8f4d6bb645ced2fcbbd9e89bffcb0eca74dca5d96ee885f",
       "kind": "transparent"
+    },
+    {
+      "address": "0xcA6A25CE66b5bdc3Da6d6f550976D4404Ea1aff8",
+      "txHash": "0xbf2d662336b78a2e570af7f085f53829d9fd5fc7f900a2eacfca7be540bcb874",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -720,6 +725,123 @@
           },
           "t_array(t_uint256)49_storage": {
             "label": "uint256[49]"
+          }
+        }
+      }
+    },
+    "07b8e2b25679530306477f8feca149779f574d46696bd1562fb1dd3a34415fac": {
+      "address": "0x1c1f3Aa80D1cdada0EcE4CACB0101A47eeC4213d",
+      "txHash": "0x3e98455022470a5cc5b4f2496d3db2967a22d632dc97f583a61a1feb40ad004d",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "../@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "../@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:31"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "../@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:82"
+          },
+          {
+            "contract": "RoyaltiesRegistry",
+            "label": "royaltyInfosByToken",
+            "type": "t_mapping(t_address,t_struct(RoyaltyInfosSet)7204_storage)",
+            "src": "../project:/contracts/royalties/registry/RoyaltiesRegistry.sol:26"
+          },
+          {
+            "contract": "RoyaltiesRegistry",
+            "label": "royaltiesProviders",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "../project:/contracts/royalties/registry/RoyaltiesRegistry.sol:28"
+          },
+          {
+            "contract": "RoyaltiesRegistry",
+            "label": "__gap",
+            "type": "t_array(t_uint256)48_storage",
+            "src": "../project:/contracts/royalties/registry/RoyaltiesRegistry.sol:211"
+          }
+        ],
+        "types": {
+          "t_mapping(t_address,t_struct(RoyaltyInfosSet)7204_storage)": {
+            "label": "mapping(address => struct RoyaltiesRegistry.RoyaltyInfosSet)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_struct(RoyaltyInfosSet)7204_storage": {
+            "label": "struct RoyaltiesRegistry.RoyaltyInfosSet",
+            "members": [
+              {
+                "label": "initialized",
+                "type": "t_bool"
+              },
+              {
+                "label": "royalties",
+                "type": "t_array(t_struct(Part)3232_storage)dyn_storage"
+              }
+            ]
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_struct(Part)3232_storage)dyn_storage": {
+            "label": "struct PartLibrary.Part[]"
+          },
+          "t_struct(Part)3232_storage": {
+            "label": "struct PartLibrary.Part",
+            "members": [
+              {
+                "label": "account",
+                "type": "t_address_payable"
+              },
+              {
+                "label": "value",
+                "type": "t_uint96"
+              }
+            ]
+          },
+          "t_address_payable": {
+            "label": "address payable"
+          },
+          "t_uint96": {
+            "label": "uint96"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)48_storage": {
+            "label": "uint256[48]"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
           }
         }
       }

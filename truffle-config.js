@@ -55,11 +55,11 @@ module.exports = {
             network_id: 5,
             gas: 5500000,
             // confirmations: 2,
-            // timeoutBlocks: 200,
-            gasPrice: 3000000000,  // 20 gwei (in wei) (default: 100 gwei)
+            // gasPrice: 5500000,  // 20 gwei (in wei) (default: 100 gwei)
             skipDryRun: true,
-            networkCheckTimeoutnetworkCheckTimeout: 20000,
-            timeoutBlocks: 500
+            // networkCheckTimeoutnetworkCheckTimeout: 10000000,
+            timeoutBlocks: 10000,
+            networkCheckTimeout: 100000000,
         },
         rinkeby: {
             provider: () => new HDWalletProvider(mnemonic, `https://rinkeby.infura.io/v3/b4ec75908993453b8cbcbebdbbb5805c`),
@@ -68,7 +68,7 @@ module.exports = {
             // confirmations: 1,    // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 10000,  // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: true,    // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: 1000000,
+            networkCheckTimeout: 100000000,
         },
         development: {
             host: "127.0.0.1",     // Localhost (default: none)
