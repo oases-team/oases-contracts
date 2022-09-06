@@ -1,4 +1,4 @@
-.*
+.openzeppelin/unknown-1337.json
 build/
 node_modules/
 package-lock.json

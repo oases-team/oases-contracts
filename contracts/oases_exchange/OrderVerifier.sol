@@ -2,23 +2,18 @@
 
 pragma solidity 0.8.8;
 
-import "../common_libraries/SignatureLibrary.sol";
 import "./libraries/OrderLibrary.sol";
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/cryptography/SignatureCheckerUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/interfaces/IERC1271Upgradeable.sol";
 
-
 abstract contract OrderVerifier is ContextUpgradeable, EIP712Upgradeable {
-    using SignatureLibrary for bytes32;
     using AddressUpgradeable for address;
 
-    // bytes4(keccak256("isValidSignature(bytes32,bytes)"))
-    bytes4 constant internal MAGIC_VALUE = 0x1626ba7e;
-
-    function __OrderValidator_init_unchained() internal initializer {
+    function __OrderVerifier_init_unchained() internal onlyInitializing {
         __EIP712_init_unchained("OasesExchange", "1");
     }
 
@@ -31,28 +26,15 @@ abstract contract OrderVerifier is ContextUpgradeable, EIP712Upgradeable {
             }
         } else {
             if (_msgSender() != order.maker) {
-                bytes32 orderHash = OrderLibrary.getHash(order);
-                address signer;
-                if (signature.length == 65) {
-                    signer = _hashTypedDataV4(orderHash).recover(signature);
-                }
-
-                if (signer != order.maker) {
-                    require(
-                        order.maker.isContract(),
-                        "bad order signature verification"
-                    );
-
-                    require(
-                        IERC1271Upgradeable(order.maker).isValidSignature(
-                            _hashTypedDataV4(orderHash),
-                            signature
-                        ) == MAGIC_VALUE,
-                        "bad signature verification for contract"
-                    );
-                }
+                require(
+                    SignatureCheckerUpgradeable.isValidSignatureNow(
+                        order.maker,
+                        _hashTypedDataV4(OrderLibrary.getHash(order)),
+                        signature
+                    ),
+                    "bad order signature verification"
+                );
             }
-
         }
     }
 

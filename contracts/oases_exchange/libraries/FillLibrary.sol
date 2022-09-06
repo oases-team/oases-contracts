@@ -12,11 +12,11 @@ library FillLibrary {
         uint256 rightValue;
     }
 
-    function fillOrder(
+    function fillOrders(
         OrderLibrary.Order memory leftOrder,
         OrderLibrary.Order memory rightOrder,
-        uint256 leftOrderFill,
-        uint256 rightOrderFill,
+        uint256 leftOrderFillRecord,
+        uint256 rightOrderFillRecord,
         bool leftOrderIsMakeFill,
         bool rightOrderIsMakeFill
     )
@@ -27,13 +27,13 @@ library FillLibrary {
     {
         (uint256 leftOrderMakeValue,uint256 leftOrderTakeValue) = OrderLibrary.calculateRemainingValuesInOrder(
             leftOrder,
-            leftOrderFill,
+            leftOrderFillRecord,
             leftOrderIsMakeFill
         );
 
         (uint256 rightOrderMakeValue,uint256 rightOrderTakeValue) = OrderLibrary.calculateRemainingValuesInOrder(
             rightOrder,
-            rightOrderFill,
+            rightOrderFillRecord,
             rightOrderIsMakeFill
         );
 

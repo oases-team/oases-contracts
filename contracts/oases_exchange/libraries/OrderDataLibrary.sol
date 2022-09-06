@@ -7,8 +7,10 @@ import "../../common_libraries/PartLibrary.sol";
 library OrderDataLibrary {
 
     struct Data {
-        PartLibrary.Part[] payouts;
-        PartLibrary.Part[] originFees;
+        PartLibrary.Part[] payoutInfos;
+        // explicit royalty infos
+        PartLibrary.Part[] royaltyInfos;
+        PartLibrary.Part[] originFeeInfos;
         bool isMakeFill;
     }
 
