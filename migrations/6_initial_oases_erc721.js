@@ -3,8 +3,8 @@ const { deployProxy } = require('@openzeppelin/truffle-upgrades');
 const ERC721Oases = artifacts.require('ERC721Oases');
 
 const goerli = {
-    erc721LazyMintTransferProxy: "0xAC7c0E649294E758cd1853421C4b2FB5210cCA9f",
-    transferProxy: "0x809ee61138f3FDA08D01732Eea7b98aafBDAd84c"
+    erc721LazyMintTransferProxy: "0x97978a55386ce9441361549325E6493d4C5f3773",
+    transferProxy: "0x2c9da95A8aF78c9516dBD088B3a758cb23FF1181"
 }
 
 const rinkeby = {

@@ -31,9 +31,9 @@ const OasesExchange = artifacts.require('OasesExchange')
 
 const goerli = {
     communityWallet: "0xA8b6E414D496Dd46836Cb0078cd1F916e1811666",
-    erc20TransferProxy: "0x5B91ef170448d97f013Ee26A5F449A1e5cD0f275",
-    nftTransferProxy: "0x809ee61138f3FDA08D01732Eea7b98aafBDAd84c",
-    royaltiesRegistry: "0x81C382e3B099fd1cfA49d92ae481AbC13F856f6C"
+    erc20TransferProxy: "0xc9981703e70bF8E0A778aA248316Ce23E36FfC02",
+    nftTransferProxy: "0x2c9da95A8aF78c9516dBD088B3a758cb23FF1181",
+    protocolFeeProvider: "0xf6Ca50dd2555c8BC2C6540f81901fC68221B86FE"
 }
 
 const rinkeby = {

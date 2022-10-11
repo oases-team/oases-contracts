@@ -7,6 +7,7 @@ const {ERC721_LAZY_MINT_CLASS} = require("../test/test_files/types/assets.js")
 
 module.exports = async function (deployer) {
     const oasesExchange = (await OasesExchange.deployed());
+    console.log('oases exchange address', oasesExchange.address);
 
     // add oasesExchange as operator to proxies
     const nftTransferProxy = await NFTTransferProxy.deployed();
