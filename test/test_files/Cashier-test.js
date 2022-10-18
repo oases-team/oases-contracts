@@ -1,5 +1,6 @@
 const MockCashier = artifacts.require("MockCashier.sol")
 const MockNFTTransferProxy = artifacts.require("MockNFTTransferProxy.sol")
+const MockOldERC721TransferProxy = artifacts.require("MockOldERC721TransferProxy.sol")
 const MockERC20TransferProxy = artifacts.require("MockERC20TransferProxy.sol")
 const CustomTransferProxy = artifacts.require("CustomTransferProxy.sol")
 const MockERC20 = artifacts.require("MockERC20.sol")
@@ -16,6 +17,7 @@ const {
     ETH_CLASS,
     ERC20_CLASS,
     ERC721_CLASS,
+    ERC721_OLD_CLASS,
     ERC1155_CLASS
 } = require("./types/assets")
 
@@ -27,6 +29,7 @@ contract("test Cashier.sol", accounts => {
     let mockERC1155
     let mockNFTTransferProxy
     let mockERC20TransferProxy
+    let mockOldERC721TransferProxy
 
     beforeEach(async () => {
         mockERC20 = await MockERC20.new()
@@ -35,8 +38,10 @@ contract("test Cashier.sol", accounts => {
         mockERC1155 = await MockERC1155.new()
         mockNFTTransferProxy = await MockNFTTransferProxy.new()
         mockERC20TransferProxy = await MockERC20TransferProxy.new()
+        mockOldERC721TransferProxy = await MockOldERC721TransferProxy.new()
         mockCashier = await MockCashier.new()
         await mockCashier.__MockCashier_init(mockERC20TransferProxy.address, mockNFTTransferProxy.address)
+        await mockCashier.setTransferProxy(ERC721_OLD_CLASS, mockOldERC721TransferProxy.address)
     })
 
     it("should transfer ETH successfully", async () => {
@@ -119,5 +124,13 @@ contract("test Cashier.sol", accounts => {
         await mockCashier.transfer(order.Asset(CUSTOM_ASSET_CLASS, "0x", 1024), accounts[1], accounts[2])
         assert.equal(await customERC20.balanceOf(accounts[1]), 1)
         assert.equal(await customERC20.balanceOf(accounts[2]), 2048)
+    })
+
+    it("should transfer old ERC721 successfully", async () => {
+        await mockERC721.mint(accounts[1], 2)
+        await mockERC721.approve(mockOldERC721TransferProxy.address, 2, {from: accounts[1]})
+        await mockCashier.transfer(order.Asset(ERC721_OLD_CLASS, encode(mockERC721.address, 2), 1), accounts[1], accounts[2])
+        assert.equal(await mockERC721.ownerOf(2), accounts[2])
+        assert.equal(await mockERC721.balanceOf(accounts[1]), 0)
     })
 })
