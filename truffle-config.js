@@ -19,6 +19,7 @@
  */
 
 const HDWalletProvider = require('@truffle/hdwallet-provider')
+const QtumHDWalletProvider = require('@qtumproject/hdwallet-provider')
 
 const fs = require('fs')
 const mnemonic = fs.readFileSync(".secret").toString().trim()
@@ -49,6 +50,20 @@ module.exports = {
             timeoutBlocks: 50,  // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: true,    // Skip dry run before migrations? (default: false for public nets )
             // networkCheckTimeout: 1000000,
+        },
+        qtum: {
+            provider: () => new QtumHDWalletProvider(mnemonic, 'https://mainnet.qnode.qtum.info/v1/KWKhb9BQgsCUF9DJywoiV2VINAyeAzJzCM68d'),
+            network_id: 81,
+            gas: 5500000,
+            gasPrice: 400e9,
+            networkCheckTimeout: 100000000,
+        },
+        qtum_testnet: {
+            provider: () => new QtumHDWalletProvider(mnemonic, 'https://testnet.qnode.qtum.info/v1/KWKhb9BQgsCUF9DJywoiV2VINAyeAzJzCM68d'),
+            network_id: 8889,
+            gas: 5500000,
+            gasPrice: 400e9,
+            networkCheckTimeout: 100000000,
         },
         goerli: {
             provider: () => new HDWalletProvider(mnemonic, `https://goerli.infura.io/v3/b4ec75908993453b8cbcbebdbbb5805c`),

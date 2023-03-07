@@ -31,23 +31,18 @@ const OasesExchange = artifacts.require('OasesExchange')
 
 const goerli = {
     communityWallet: "0xA8b6E414D496Dd46836Cb0078cd1F916e1811666",
-    erc20TransferProxy: "0x5B91ef170448d97f013Ee26A5F449A1e5cD0f275",
-    nftTransferProxy: "0x809ee61138f3FDA08D01732Eea7b98aafBDAd84c",
-    royaltiesRegistry: "0x81C382e3B099fd1cfA49d92ae481AbC13F856f6C"
 }
 
 const rinkeby = {
     communityWallet: "0xA8b6E414D496Dd46836Cb0078cd1F916e1811666",
-    erc20TransferProxy: "0xfd5657782adAD34D88Bad03fF314309aEC3f96D2",
-    nftTransferProxy: "0x2B6d631f987cD96D44f2f71871D8B3882D11ea76",
-    protocolFeeProvider: "0xAC7c0E649294E758cd1853421C4b2FB5210cCA9f"
 }
 
 const mainnet = {
     communityWallet: "0xf6Caf049a828A3A09F692bf5c3f06f7b16bafFf7",
-    erc20TransferProxy: "0xd79146EE126093978F10A0FB137010f97c223473",
-    nftTransferProxy: "0xd1481784449B9F7adf10f7D8a84EaA602975d32E",
-    protocolFeeProvider: "0x7da546D1c9504A8e509E1477F39A6b77178674F1"
+}
+
+const qtum_testnet= {
+    communityWallet: "0x15005D39D2c91b62EA5e03936F12f06c2F2692F3",
 }
 
 let settings = {
@@ -62,6 +57,7 @@ let settings = {
     // "rinkeby-fork": rinkeby,
     "mainnet": mainnet,
     // "mainnet-fork": mainnet
+    qtum_testnet,
 };
 
 function getSettings(network) {
@@ -73,7 +69,10 @@ function getSettings(network) {
 }
 
 module.exports = async function (deployer, network) {
-    const {communityWallet, erc20TransferProxy, nftTransferProxy, protocolFeeProvider} = getSettings(network)
+    const {communityWallet} = getSettings(network)
+    const protocolFeeProvider = artifacts.require('ProtocolFeeProvider').address
+    const erc20TransferProxy = artifacts.require('ERC20TransferProxy').address
+    const nftTransferProxy = artifacts.require('NFTTransferProxy').address
     await deployProxy(
         OasesExchange,
         [communityWallet, protocolFeeProvider, erc20TransferProxy, nftTransferProxy],

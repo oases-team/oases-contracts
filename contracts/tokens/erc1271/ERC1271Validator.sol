@@ -2,11 +2,11 @@
 
 pragma solidity 0.8.8;
 
+import "../../QtumTestnetEIP712Upgradeable.sol";
 import "./ERC1271.sol";
-import "@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol";
 import "../../common_libraries/SignatureLibrary.sol";
 
-abstract contract ERC1271Validator is EIP712Upgradeable {
+abstract contract ERC1271Validator is QtumTestnetEIP712Upgradeable {
     using AddressUpgradeable for address;
     using SignatureLibrary for bytes32;
 
@@ -17,10 +17,7 @@ abstract contract ERC1271Validator is EIP712Upgradeable {
         address signer,
         bytes32 structHash,
         bytes memory signature
-    ) 
-    internal 
-    view 
-    {
+    ) internal view {
         bytes32 hash = _hashTypedDataV4(structHash);
 
         address signerFromSig;
