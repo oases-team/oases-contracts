@@ -13,7 +13,12 @@ import "./libraries/FillLibrary.sol";
 import "./interfaces/ICashierManager.sol";
 import "../common_libraries/AssetLibrary.sol";
 
-abstract contract OasesMatchingCore is AssetTypeMatcher, Cashier, OrderVerifier, ICashierManager {
+abstract contract OasesMatchingCore is
+    AssetTypeMatcher,
+    Cashier,
+    OrderVerifier,
+    ICashierManager
+{
     using TransferHelperLibrary for address;
 
     // record the filled amount of each order
@@ -60,33 +65,83 @@ abstract contract OasesMatchingCore is AssetTypeMatcher, Cashier, OrderVerifier,
         OrderLibrary.Order memory rightOrder,
         bytes calldata leftSignature,
         bytes calldata rightSignature
-    )
-    external
-    payable
-    {
+    ) external payable {
         validateOrder(leftOrder, leftSignature);
         validateOrder(rightOrder, rightSignature);
         if (leftOrder.taker != address(0)) {
-            require(rightOrder.maker == leftOrder.taker, "unmatched taker of left order");
+            require(
+                rightOrder.maker == leftOrder.taker,
+                "unmatched taker of left order"
+            );
         }
         if (rightOrder.taker != address(0)) {
-            require(rightOrder.taker == leftOrder.maker, "unmatched taker of right order");
+            require(
+                rightOrder.taker == leftOrder.maker,
+                "unmatched taker of right order"
+            );
         }
 
         trade(leftOrder, rightOrder);
     }
 
-    function trade(OrderLibrary.Order memory leftOrder, OrderLibrary.Order memory rightOrder) internal {
+    function matchMultiOrders(
+        OrderLibrary.Order[] memory leftOrders,
+        OrderLibrary.Order[] memory rightOrders,
+        bytes[] calldata leftSignatures,
+        bytes[] calldata rightSignatures
+    ) external payable {
+        // make sure orders length are equal
+        require(
+            leftOrders.length == rightOrders.length,
+            "unmatched orders length"
+        );
+        require(
+            leftOrders.length == leftSignatures.length,
+            "unmatched signatures length"
+        );
+        require(
+            leftOrders.length == rightSignatures.length,
+            "unmatched signatures length"
+        );
+        uint len = leftOrders.length;
+        for (uint256 i = 0; i < len; ++i) {
+            OrderLibrary.Order memory leftOrder = leftOrders[i];
+            OrderLibrary.Order memory rightOrder = rightOrders[i];
+            validateOrder(leftOrder, leftSignatures[i]);
+            validateOrder(rightOrder, rightSignatures[i]);
+            if (leftOrder.taker != address(0)) {
+                require(
+                    rightOrder.maker == leftOrder.taker,
+                    "unmatched taker of left order"
+                );
+            }
+            if (rightOrder.taker != address(0)) {
+                require(
+                    rightOrder.taker == leftOrder.maker,
+                    "unmatched taker of right order"
+                );
+            }
+
+            trade(leftOrder, rightOrder);
+        }
+    }
+
+    function trade(
+        OrderLibrary.Order memory leftOrder,
+        OrderLibrary.Order memory rightOrder
+    ) internal {
         (
-        AssetLibrary.AssetType memory matchedMakeAssetType,
-        AssetLibrary.AssetType memory matchedTakeAssetType
+            AssetLibrary.AssetType memory matchedMakeAssetType,
+            AssetLibrary.AssetType memory matchedTakeAssetType
         ) = matchAssetTypesFromOrders(leftOrder, rightOrder);
 
         bytes32 leftOrderHashKey = OrderLibrary.getHashKey(leftOrder);
         bytes32 rightOrderHashKey = OrderLibrary.getHashKey(rightOrder);
 
-        OrderDataLibrary.Data memory leftOrderData = OrderDataParsingLibrary.parse(leftOrder);
-        OrderDataLibrary.Data memory rightOrderData = OrderDataParsingLibrary.parse(rightOrder);
+        OrderDataLibrary.Data memory leftOrderData = OrderDataParsingLibrary
+            .parse(leftOrder);
+        OrderDataLibrary.Data memory rightOrderData = OrderDataParsingLibrary
+            .parse(rightOrder);
 
         FillLibrary.FillResult memory fillResult = getFillResult(
             leftOrder,
@@ -109,13 +164,17 @@ abstract contract OasesMatchingCore is AssetTypeMatcher, Cashier, OrderVerifier,
 
         // transfer extra eth
         if (matchedMakeAssetType.assetClass == AssetLibrary.ETH_ASSET_CLASS) {
-            require(matchedTakeAssetType.assetClass != AssetLibrary.ETH_ASSET_CLASS);
+            require(
+                matchedTakeAssetType.assetClass != AssetLibrary.ETH_ASSET_CLASS
+            );
             uint256 ethAmount = msg.value;
             require(ethAmount >= totalMakeAmount, "insufficient eth");
             if (ethAmount > totalMakeAmount) {
                 address(msg.sender).transferEth(ethAmount - totalMakeAmount);
             }
-        } else if (matchedTakeAssetType.assetClass == AssetLibrary.ETH_ASSET_CLASS) {
+        } else if (
+            matchedTakeAssetType.assetClass == AssetLibrary.ETH_ASSET_CLASS
+        ) {
             uint256 ethAmount = msg.value;
             require(ethAmount >= totalTakeAmount, "insufficient eth");
             if (ethAmount > totalTakeAmount) {
@@ -142,13 +201,15 @@ abstract contract OasesMatchingCore is AssetTypeMatcher, Cashier, OrderVerifier,
         bytes32 rightOrderHashKey,
         OrderDataLibrary.Data memory leftOrderData,
         OrderDataLibrary.Data memory rightOrderData
-    )
-    internal
-    returns
-    (FillLibrary.FillResult memory fillResult)
-    {
-        uint256 leftOrderFillRecord = getOrderFilledRecord(leftOrder.salt, leftOrderHashKey);
-        uint256 rightOrderFillRecord = getOrderFilledRecord(rightOrder.salt, rightOrderHashKey);
+    ) internal returns (FillLibrary.FillResult memory fillResult) {
+        uint256 leftOrderFillRecord = getOrderFilledRecord(
+            leftOrder.salt,
+            leftOrderHashKey
+        );
+        uint256 rightOrderFillRecord = getOrderFilledRecord(
+            rightOrder.salt,
+            rightOrderHashKey
+        );
 
         fillResult = FillLibrary.fillOrders(
             leftOrder,
@@ -159,21 +220,32 @@ abstract contract OasesMatchingCore is AssetTypeMatcher, Cashier, OrderVerifier,
             rightOrderData.isMakeFill
         );
 
-        require(fillResult.rightValue > 0 && fillResult.leftValue > 0, "null fill");
+        require(
+            fillResult.rightValue > 0 && fillResult.leftValue > 0,
+            "null fill"
+        );
 
         if (leftOrder.salt != 0) {
             if (leftOrderData.isMakeFill) {
-                filledRecords[leftOrderHashKey] = leftOrderFillRecord + fillResult.leftValue;
+                filledRecords[leftOrderHashKey] =
+                    leftOrderFillRecord +
+                    fillResult.leftValue;
             } else {
-                filledRecords[leftOrderHashKey] = leftOrderFillRecord + fillResult.rightValue;
+                filledRecords[leftOrderHashKey] =
+                    leftOrderFillRecord +
+                    fillResult.rightValue;
             }
         }
 
         if (rightOrder.salt != 0) {
             if (rightOrderData.isMakeFill) {
-                filledRecords[rightOrderHashKey] = rightOrderFillRecord + fillResult.rightValue;
+                filledRecords[rightOrderHashKey] =
+                    rightOrderFillRecord +
+                    fillResult.rightValue;
             } else {
-                filledRecords[rightOrderHashKey] = rightOrderFillRecord + fillResult.leftValue;
+                filledRecords[rightOrderHashKey] =
+                    rightOrderFillRecord +
+                    fillResult.leftValue;
             }
         }
     }
@@ -182,23 +254,42 @@ abstract contract OasesMatchingCore is AssetTypeMatcher, Cashier, OrderVerifier,
         OrderLibrary.Order memory leftOrder,
         OrderLibrary.Order memory rightOrder
     )
-    internal
-    view
-    returns
-    (AssetLibrary.AssetType memory matchedMakeAssetType, AssetLibrary.AssetType memory matchedTakeAssetType)
+        internal
+        view
+        returns (
+            AssetLibrary.AssetType memory matchedMakeAssetType,
+            AssetLibrary.AssetType memory matchedTakeAssetType
+        )
     {
-        matchedMakeAssetType = matchAssetTypes(leftOrder.makeAsset.assetType, rightOrder.takeAsset.assetType);
-        require(matchedMakeAssetType.assetClass != 0, "bad match of make asset");
-        matchedTakeAssetType = matchAssetTypes(leftOrder.takeAsset.assetType, rightOrder.makeAsset.assetType);
-        require(matchedTakeAssetType.assetClass != 0, "bad match of take asset");
+        matchedMakeAssetType = matchAssetTypes(
+            leftOrder.makeAsset.assetType,
+            rightOrder.takeAsset.assetType
+        );
+        require(
+            matchedMakeAssetType.assetClass != 0,
+            "bad match of make asset"
+        );
+        matchedTakeAssetType = matchAssetTypes(
+            leftOrder.takeAsset.assetType,
+            rightOrder.makeAsset.assetType
+        );
+        require(
+            matchedTakeAssetType.assetClass != 0,
+            "bad match of take asset"
+        );
     }
 
     // get filled record of each order by its order key hash
-    function getFilledRecords(bytes32 orderKeyHash) public view returns (uint256){
+    function getFilledRecords(
+        bytes32 orderKeyHash
+    ) public view returns (uint256) {
         return filledRecords[orderKeyHash];
     }
 
-    function validateOrder(OrderLibrary.Order memory order, bytes memory signature) internal view {
+    function validateOrder(
+        OrderLibrary.Order memory order,
+        bytes memory signature
+    ) internal view {
         OrderLibrary.checkTimeValidity(order);
         verifyOrder(order, signature);
     }
@@ -206,11 +297,7 @@ abstract contract OasesMatchingCore is AssetTypeMatcher, Cashier, OrderVerifier,
     function getOrderFilledRecord(
         uint256 orderSalt,
         bytes32 orderHashKey
-    )
-    internal
-    view
-    returns
-    (uint256){
+    ) internal view returns (uint256) {
         if (orderSalt == 0) {
             return 0;
         } else {
