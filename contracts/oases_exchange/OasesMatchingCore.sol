@@ -8,6 +8,7 @@ import "./Cashier.sol";
 import "./OrderVerifier.sol";
 import "./libraries/TransferHelperLibrary.sol";
 import "./libraries/OrderLibrary.sol";
+import "./libraries/OrderParamsLibrary.sol";
 import "./libraries/OrderDataParsingLibrary.sol";
 import "./libraries/FillLibrary.sol";
 import "./interfaces/ICashierManager.sol";
@@ -87,42 +88,124 @@ abstract contract OasesMatchingCore is
     function matchMultiOrders(
         OrderLibrary.Order[] memory leftOrders,
         OrderLibrary.Order[] memory rightOrders,
-        bytes[] calldata leftSignatures,
-        bytes[] calldata rightSignatures
+        bytes[] memory leftSignatures,
+        bytes[] memory rightSignatures
     ) external payable {
+        uint256 len = leftOrders.length;
         // make sure orders length are equal
-        require(
-            leftOrders.length == rightOrders.length,
-            "unmatched orders length"
-        );
-        require(
-            leftOrders.length == leftSignatures.length,
-            "unmatched signatures length"
-        );
-        require(
-            leftOrders.length == rightSignatures.length,
-            "unmatched signatures length"
-        );
-        uint len = leftOrders.length;
+        require(len == rightOrders.length, "unmatched orders length");
+        require(len == leftSignatures.length, "unmatched signatures length");
+        require(len == rightSignatures.length, "unmatched signatures length");
+        uint256 ethUsedAmount = 0;
+        // temp vars
+        OrderParamsLibrary.OrderParams memory leftOrderParams;
+        OrderParamsLibrary.OrderParams memory rightOrderParams;
+        FillLibrary.FillResult memory fillResult;
         for (uint256 i = 0; i < len; ++i) {
-            OrderLibrary.Order memory leftOrder = leftOrders[i];
-            OrderLibrary.Order memory rightOrder = rightOrders[i];
-            validateOrder(leftOrder, leftSignatures[i]);
-            validateOrder(rightOrder, rightSignatures[i]);
-            if (leftOrder.taker != address(0)) {
+            leftOrderParams.order = leftOrders[i];
+            rightOrderParams.order = rightOrders[i];
+            validateOrder(leftOrderParams.order, leftSignatures[i]);
+            validateOrder(rightOrderParams.order, rightSignatures[i]);
+            if (leftOrderParams.order.taker != address(0)) {
                 require(
-                    rightOrder.maker == leftOrder.taker,
+                    rightOrderParams.order.maker == leftOrderParams.order.taker,
                     "unmatched taker of left order"
                 );
             }
-            if (rightOrder.taker != address(0)) {
+            if (rightOrderParams.order.taker != address(0)) {
                 require(
-                    rightOrder.taker == leftOrder.maker,
+                    rightOrderParams.order.taker == leftOrderParams.order.maker,
                     "unmatched taker of right order"
                 );
             }
 
-            trade(leftOrder, rightOrder);
+            // match asset types
+            leftOrderParams.assetType = matchAssetTypes(
+                leftOrderParams.order.makeAsset.assetType,
+                rightOrderParams.order.takeAsset.assetType
+            );
+            require(
+                leftOrderParams.assetType.assetClass != 0,
+                "bad match of make asset"
+            );
+            rightOrderParams.assetType = matchAssetTypes(
+                leftOrderParams.order.takeAsset.assetType,
+                rightOrderParams.order.makeAsset.assetType
+            );
+            require(
+                rightOrderParams.assetType.assetClass != 0,
+                "bad match of take asset"
+            );
+
+            leftOrderParams.orderHashKey = OrderLibrary.getHashKey(
+                leftOrderParams.order
+            );
+            rightOrderParams.orderHashKey = OrderLibrary.getHashKey(
+                rightOrderParams.order
+            );
+
+            leftOrderParams.orderData = OrderDataParsingLibrary.parse(
+                leftOrderParams.order
+            );
+            rightOrderParams.orderData = OrderDataParsingLibrary.parse(
+                rightOrderParams.order
+            );
+
+            fillResult = getFillResult(
+                leftOrderParams.order,
+                rightOrderParams.order,
+                leftOrderParams.orderHashKey,
+                rightOrderParams.orderHashKey,
+                leftOrderParams.orderData,
+                rightOrderParams.orderData
+            );
+
+            (
+                leftOrderParams.totalAmount,
+                rightOrderParams.totalAmount
+            ) = allocateAssets(
+                fillResult,
+                leftOrderParams.assetType,
+                rightOrderParams.assetType,
+                leftOrderParams.order,
+                rightOrderParams.order,
+                leftOrderParams.orderData,
+                rightOrderParams.orderData
+            );
+
+            // check eth amount and make sum
+            if (
+                leftOrderParams.assetType.assetClass ==
+                AssetLibrary.ETH_ASSET_CLASS
+            ) {
+                require(
+                    rightOrderParams.assetType.assetClass !=
+                        AssetLibrary.ETH_ASSET_CLASS
+                );
+                ethUsedAmount += leftOrderParams.totalAmount;
+            } else if (
+                rightOrderParams.assetType.assetClass ==
+                AssetLibrary.ETH_ASSET_CLASS
+            ) {
+                ethUsedAmount += rightOrderParams.totalAmount;
+            }
+
+            emit Trade(
+                leftOrderParams.orderHashKey,
+                rightOrderParams.orderHashKey,
+                leftOrderParams.order.maker,
+                rightOrderParams.order.maker,
+                fillResult.leftValue,
+                fillResult.rightValue,
+                leftOrderParams.assetType,
+                rightOrderParams.assetType
+            );
+        }
+
+        // check eth amount and refund extra
+        require(msg.value >= ethUsedAmount, "insufficient eth");
+        if (msg.value > ethUsedAmount) {
+            address(msg.sender).transferEth(msg.value - ethUsedAmount);
         }
     }
 
